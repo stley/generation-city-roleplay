@@ -225,13 +225,7 @@ stock Utils_ChaosMod(playerid)
  *   Timer for applying random effects.
  * </remarks>
  *//*------------------------------------------------------------------------**/
-
 #if _YSI_SAFE_STARTUP
-	public OnChaosTimer(oid, playerid)
-	{
-		return 1;
-		//Utils_ChaosMod(playerid);
-	}
 #else
 	static stock OnChaosTimer__(oid, playerid)
 	{

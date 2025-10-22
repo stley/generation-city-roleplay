@@ -555,9 +555,9 @@ stock H@(GLOBAL_TAG_TYPES:...)
 #define _H@0:_H@1:%0&%1) _H@0:_H@1:%0%1)
 #define _H@1:%0[%9]%1) _H@1:%0%1)
 
-#if _YSI_SAFE_STARTUP
+/*#if _YSI_SAFE_STARTUP
 	#define OnChaosTimer(%0,%1) YSI_JOIN(,r%0_On,r%0Timer)(%1)
-#endif
+#endif*/
 
 // Correctly stringise "On" callbacks without ALS interferring.
 #define B@:#On%0) "On"#%0)
