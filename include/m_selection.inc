@@ -132,7 +132,7 @@ stock PlayerText:mS_CreateCurrentPageTextDraw(playerid, Float:Xpos, Float:Ypos)
 //------------------------------------------------
 // Creates a button textdraw and returns the textdraw ID.
 
-stock PlayerText:mS_CreatePlayerDialogButton(playerid, Float:Xpos, Float:Ypos, Float:Width, Float:Height, button_text[])
+stock PlayerText:mS_CreatePlayerDialogButton(playerid, Float:Xpos, Float:Ypos, Float:Width, Float:Height, const button_text[])
 {
  	new PlayerText:txtInit;
    	txtInit = CreatePlayerTextDraw(playerid, Xpos, Ypos, button_text);
@@ -153,7 +153,7 @@ stock PlayerText:mS_CreatePlayerDialogButton(playerid, Float:Xpos, Float:Ypos, F
 
 //------------------------------------------------
 
-stock PlayerText:mS_CreatePlayerHeaderTextDraw(playerid, Float:Xpos, Float:Ypos, header_text[])
+stock PlayerText:mS_CreatePlayerHeaderTextDraw(playerid, Float:Xpos, Float:Ypos, const header_text[])
 {
 	new PlayerText:txtInit;
    	txtInit = CreatePlayerTextDraw(playerid, Xpos, Ypos, header_text);
@@ -324,7 +324,7 @@ stock menu_selection(playerid, ListID, const header_text[], pag = 0, dialogBGcol
 
 //------------------------------------------------------------
 
-stock menu_selectionEx(playerid, items_array[], item_amount, header_text[], extraid, Float:Xrot = 0.0, Float:Yrot = 0.0, Float:Zrot = 0.0, Float:mZoom = 1.0, dialogBGcolor = 119, previewBGcolor = 0x555555555 , tdSelectionColor = -1)
+stock menu_selectionEx(playerid, const items_array[], item_amount, const header_text[], extraid, Float:Xrot = 0.0, Float:Yrot = 0.0, Float:Zrot = 0.0, Float:mZoom = 1.0, dialogBGcolor = 119, previewBGcolor = 0x555555555 , tdSelectionColor = -1)
 {
 	mS_DestroySelectionMenu(playerid);
 	if(item_amount > mS_CUSTOM_MAX_ITEMS)
