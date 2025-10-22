@@ -1,6 +1,5 @@
-#include <a_samp>
 #include <streamer>
-#include <sscanf2>
+
 #define FILTERSCRIPT
 
 #pragma tabsize 0

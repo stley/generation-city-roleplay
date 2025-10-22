@@ -9,6 +9,7 @@
 #undef MAX_PLAYERS
 #define MAX_PLAYERS			(500)
 
+#include <sscanf2>
 #include <streamer>
 #include <cmd>
 #include <foreach>
@@ -16,7 +17,7 @@
 #include <yom_buttons>
 #include <mapeos>
 #include <JunkBuster>
-#include <YSI\y_ini>
+#include <YSI_Storage\y_ini>
 
 //- Anti amx
 AntiAmx()
@@ -51324,11 +51325,6 @@ funcion RecargarTaser(playerid)
 	return 1;
 }
 
-stock Random(min, max)
-{
-	new a = random(max - min) + min;
-	return a;
-}
 
 funcion CargarObjetos(playerid)
 {
