@@ -1,11 +1,12 @@
 //- Includes
+#define SAMP_COMPAT
 #include <open.mp>
-#pragma warning disable 213
-#pragma warning disable 234
-#pragma warning disable 239
-#pragma warning disable 214
-#pragma warning disable 204
-#pragma warning disable 240
+//#pragma warning disable 213
+//#pragma warning disable 234
+//#pragma warning disable 239
+//#pragma warning disable 214
+//#pragma warning disable 204
+//#pragma warning disable 240
 #undef MAX_PLAYERS
 #define MAX_PLAYERS			(500)
 
@@ -4800,7 +4801,7 @@ stock RepairExVehicle(vehicleid)
 	return 1;
 }
 
-funcion ExPlayerDialog(playerid, dialogid, dialogstyle, titulo[], texto[], aceptar[], rechazar[]) // anti dialoghide.
+funcion ExPlayerDialog(playerid, dialogid, dialogstyle, const titulo[], const texto[], const aceptar[], const rechazar[]) // anti dialoghide.
 {
     CurrentDialog[playerid] = dialogid;
     ShowPlayerDialog(playerid, dialogid, dialogstyle, titulo, texto, aceptar, rechazar);
@@ -8005,7 +8006,7 @@ vehicle_unlock_doors(vehicle)
 	return SetVehicleParamsEx(vehicle, vParamArr[0], vParamArr[1], vParamArr[2], VEHICLE_PARAMS_OFF, vParamArr[4], vParamArr[5], vParamArr[6]);
 }
 
-stock alm(string[], string2[])
+stock alm(string[], const string2[])
 {
 	strmid(string, string2, 0, strlen(string2), strlen(string2) + 1);
 	return 1;
@@ -10894,7 +10895,7 @@ funcion _Pregunta(playerid, pregunta, error)
 	return 1;
 }
 
-funcion _Expulsar(jugador, tipo, mensaje[])
+funcion _Expulsar(jugador, tipo, const mensaje[])
 {
 	new InfoMjs[150];
 	switch (tipo)
@@ -10915,7 +10916,7 @@ funcion _Expulsar(jugador, tipo, mensaje[])
 	return 1;
 }
 
-stock _MarcarPos(playerid, Float: x, Float: y, Float: z, mensaje[], tip = 1)
+stock _MarcarPos(playerid, Float: x, Float: y, Float: z, const mensaje[], tip = 1)
 {
 	set_checkpoint(playerid, x, y, z, 1.5);
 	Mensaje_(playerid, 0xb0b0b0ff, mensaje);
@@ -10961,7 +10962,7 @@ stock Expulsar(jugador, seg = 0)
 }
 funcion Desconectar(jugador) return Kick(jugador);
 
-funcion _boombox(playerid, music[])
+funcion _boombox(playerid, const music[])
 {
 	if(i_boox[playerid][BB_obj])
 	{
@@ -10977,7 +10978,7 @@ funcion _boombox(playerid, music[])
 	return 1;
 }
 
-funcion _stereo(playerid, music[])
+funcion _stereo(playerid, const music[])
 {
 	if(GetPVarType(playerid, "AreaVehPos"))
 	{
@@ -10993,7 +10994,7 @@ funcion _stereo(playerid, music[])
 	return 1;
 }
 
-funcion _estereo(playerid, music[], id)
+funcion _estereo(playerid, const music[], id)
 {
 	foreach(new i: Player) if(GetPlayerVehicleID(i) == GetPlayerVehicleID(playerid))
 	{
@@ -11005,7 +11006,7 @@ funcion _estereo(playerid, music[], id)
 }
 
 
-funcion _MusicTlf(playerid, music[], titulo[])
+funcion _MusicTlf(playerid, const music[], const titulo[])
 {
 	StopAudioStreamForPlayer(playerid);
 	EscucharMusica(playerid, music);
@@ -12790,7 +12791,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_TELEFONO3:
 		{
 			if (!response) return cmd_telefono(playerid, "\1");
-			if (isnull(inputtext) || !isnumeric(inputtext)) return ExPlayerDialog(playerid, D_TELEFONO3, DIALOG_STYLE_INPUT, "{D6E1EB}Llamar", "Introduce el numero:", "Llamar", "Inicio");
+			if (isnull(inputtext) || !IsNumeric(inputtext)) return ExPlayerDialog(playerid, D_TELEFONO3, DIALOG_STYLE_INPUT, "{D6E1EB}Llamar", "Introduce el numero:", "Llamar", "Inicio");
 			format(string, 16, "%d", strval(inputtext));
 			cmd_llamar(playerid, string);
 			return 1;
@@ -12807,7 +12808,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_TELEFONO5:
 		{
 			if (!response) return cmd_telefono(playerid, "\1");
-			if (isnull(inputtext) || !isnumeric(inputtext)) return ExPlayerDialog(playerid, D_TELEFONO5, DIALOG_STYLE_INPUT, "{D6E1EB}Mensajes", "Introduce el numero:", "Siguiente", "Inicio");
+			if (isnull(inputtext) || !IsNumeric(inputtext)) return ExPlayerDialog(playerid, D_TELEFONO5, DIALOG_STYLE_INPUT, "{D6E1EB}Mensajes", "Introduce el numero:", "Siguiente", "Inicio");
 			format(string, 16, "%d", strval(inputtext));
 			NumeroMensaje[playerid] = strval(inputtext);
 			ExPlayerDialog(playerid, D_TELEFONO6, DIALOG_STYLE_INPUT, "{D6E1EB}Mensajes", "Introduce el texto que vas a enviar:", "Enviar", "Inicio");
@@ -12988,7 +12989,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			{
 				new amount = strval(inputtext), cid = p_bank[playerid][1];
 				if (cid == -1) return 1;
-				if(!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+				if(!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 				if(amount < 1) return _Mensaje(playerid, 0, "22", "No puedes depositar menos de un dolar.");
 				if(ComprobarDineroJ(playerid) >= amount)
 				{
@@ -13006,7 +13007,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			{
 				new amount = strval(inputtext), cid = p_bank[playerid][1];
 				if (cid == -1) return 1;
-				if(!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+				if(!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 				if(amount < 1) return _Mensaje(playerid, 0, "24", "No puedes retirar menos de un dolar.");
 				if(user[cid][jBanco] >= amount)
 				{
@@ -13027,7 +13028,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		{
 			if (!response) return _Mensaje(playerid, 4, "D7D7D4", "Cancelaste la operación.");
 			new money = strval(inputtext);
-			if (!isnumeric(inputtext)) return _Mensaje(playerid, 0, "71", "La cantidad tiene que ser números.");
+			if (!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "71", "La cantidad tiene que ser números.");
 			if (money > user[playerid][jBanco] || money < 1) return _Mensaje(playerid, 0, "72", "Cantidad de dinero incorrecta.");
 			if (money < 0) return _Mensaje(playerid, 0, "73", "ERROR: No puedes retirar menos de 0.");
 			Ganancia(playerid, money);
@@ -13042,7 +13043,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		{
 			if (!response) return _Mensaje(playerid, 4, "D7D7D4", "Cancelaste la operación.");
 			new money = strval(inputtext);
-			if (!isnumeric(inputtext)) return _Mensaje(playerid, 0, "71", "La cantidad tiene que ser números.");
+			if (!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "71", "La cantidad tiene que ser números.");
 			if (money > ComprobarDineroJ(playerid) || money < 1) return _Mensaje(playerid, 0, "72", "Cantidad de dinero incorrecta.");
 			if (money < 0) return _Mensaje(playerid, 0, "73", "ERROR: No puedes depositar menos de 0.");
 			Compra(playerid, money);
@@ -13056,7 +13057,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_BANCOT:
 		{
 			if (!response) return _Mensaje(playerid, 4, "D7D7D4", "Cancelaste la operación.");
-			if (!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+			if (!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 			new idjugador = strval(inputtext);
 			if (playerid == idjugador) return _Mensaje(playerid, 0, "74", "ERROR: No puedes transferirte dinero a ti mismo.");
 			if (!IsPlayerConnected(idjugador)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
@@ -13067,7 +13068,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_BANCOT2:
 		{
 			if (!response) return _Mensaje(playerid, 4, "D7D7D4", "Cancelaste la operación.");
-			if (!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+			if (!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 			new playerid2 = GetPVarInt(playerid, "rdinero"), money = strval(inputtext);
 			if (money > user[playerid][jBanco]) return _Mensaje(playerid, 0, "77", "Cantidad incorrecta.");
 			if (money < 999) return _Mensaje(playerid, 0, "78", "ERROR: No puedes transferir menos de 1000$.");
@@ -13644,7 +13645,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		{
 			if(!response) return cmd_telefono(playerid, "\1");
 			new amount = strval(inputtext);
-			if(!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+			if(!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 			if(amount > 999999 || amount < 1000) return _Mensaje(playerid, 0, "430", "ERROR: El número no puede ser mayor a 999999 o menor a 1000.");
 			if(user[playerid][jContacto][RanuraSeleccionadaA[playerid]] != 0) return _Mensaje(playerid, 0, "430", "ERROR: La ranura se encuentra en uso.");
 
@@ -14075,7 +14076,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_Cdnifalso2:
 		{
 			if (!response) return _Mensaje(playerid, 4, "D7D7D4", "Cancelaste la operación.");
-			if (!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+			if (!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 			new edad = strval(inputtext);
 			user[playerid][jf_Edad] = edad;
 			format(string, sizeof(string), "¿Estás seguro que quieres usar el nombre de\n\t%s, edad: %d en tu DNI falso? Precio: 2.000$", user[playerid][jf_Nombre], edad);
@@ -14712,7 +14713,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_opVeh_2:
 		{
 			if (!response) return cmd_coches(playerid);
-			if (!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+			if (!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 			new idjugador = strval(inputtext);
 			if (playerid == idjugador) return _Mensaje(playerid, 0, "74", "ERROR: No puedes darte las llaves a ti mismo.");
 			if (!IsPlayerConnected(idjugador)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
@@ -15029,7 +15030,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_ACCESORIOS4:
 		{
 			if (!response) return 0;
-			if (!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+			if (!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 			new idjugador = strval(inputtext);
 			if (playerid == idjugador) return _Mensaje(playerid, 0, "74", "No puedes cederte el accesorio a ti mismo.");
 			if (!IsPlayerConnected(idjugador)) return _Mensaje(playerid, 0, "75", "El jugador seleccionado no se encuentra conectado.");
@@ -16542,7 +16543,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			}
 			else
 			{
-				if (!isnumeric(inputtext)) return ExPlayerDialog(playerid, D_Computador3, DIALOG_STYLE_INPUT, "{D6E1EB}Localización de vivienda		", "Introduzca el número de llave de la propiedad:\n\n{ff0000} ID de llave inválida (coloco palabras)", "Buscar", "Cancelar");
+				if (!IsNumeric(inputtext)) return ExPlayerDialog(playerid, D_Computador3, DIALOG_STYLE_INPUT, "{D6E1EB}Localización de vivienda		", "Introduzca el número de llave de la propiedad:\n\n{ff0000} ID de llave inválida (coloco palabras)", "Buscar", "Cancelar");
 				new casa = strval(inputtext);
 				if (casa != -1)
 				{
@@ -16643,7 +16644,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			if(!response) return _ordenador(playerid);
 			if(!strlen(inputtext)) return ExPlayerDialog(playerid, D_Computador2, DIALOG_STYLE_INPUT, "{D6E1EB}Búsqueda de información		", "Introduzca el Nombre ó ID de la persona:\n\n{ff0000} Nombre inválido (no ingreso nada)", "Buscar", "Cancelar");
 			new idjugador = -1;
-			if(isnumeric(inputtext))
+			if(IsNumeric(inputtext))
 			{
 			    new id;
 				sscanf(inputtext, "d", id);
@@ -16737,7 +16738,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_Computador3:
 		{
 			if (!response) return _ordenador(playerid);
-			if (!isnumeric(inputtext)) return ExPlayerDialog(playerid, D_Computador3, DIALOG_STYLE_INPUT, "{D6E1EB}Información de vehículo		", "Introduzca el número de matrícula del vehículo:\n\n{ff0000} Matrícula inválida (coloco palabras)", "Buscar", "Cancelar");
+			if (!IsNumeric(inputtext)) return ExPlayerDialog(playerid, D_Computador3, DIALOG_STYLE_INPUT, "{D6E1EB}Información de vehículo		", "Introduzca el número de matrícula del vehículo:\n\n{ff0000} Matrícula inválida (coloco palabras)", "Buscar", "Cancelar");
 			new vehicleid = strval(inputtext);
 			for(new veh = 0; veh < MAX_VEHICULOS; veh++)
 			{
@@ -18384,7 +18385,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			if (response) //depositar
 			{
 				new amount = strval(inputtext), cid = DentroCasa[playerid];
-				if(!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+				if(!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 				if(amount < 1) return _Mensaje(playerid, 0, "22", "No puedes depositar menos de un dolar.");
 				if(ComprobarDineroJ(playerid) >= amount)
 				{
@@ -18400,7 +18401,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			else // retirar
 			{
 				new amount = strval(inputtext), cid = DentroCasa[playerid];
-				if(!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+				if(!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 				if(amount < 1) return _Mensaje(playerid, 0, "24", "No puedes retirar menos de un dolar.");
 				if(i_Casa[cid][cDinero] >= amount)
 				{
@@ -20175,9 +20176,9 @@ public OnGameModeInit()
 
     //» Configuración
     SetGameModeText("RolePlay "#beta_version"");
-	SendRconCommand("hostname Bullworth - Roleplay");
-    SendRconCommand("weburl www.facebook.com/Bullworthrp");
-    SendRconCommand("mapname UG - Spanish");
+	SendRconCommand("hostname Generation City Roleplay");
+    SendRconCommand("weburl https://open.mp/");
+    SendRconCommand("mapname San Andreas- Spanish");
     SendRconCommand("rcon_password bishop11");
     SendRconCommand("language Español | Spanish");
 
@@ -21913,7 +21914,7 @@ iVehiculo2(carid)
 	return 0;
 }
 
-Log(sz_fileName[], sz_input[])
+Log(const sz_fileName[], const sz_input[])
 {
 	new sz_logEntry[156], i_dateTime[2][3], File: fileHandle = fopen(sz_fileName, io_append);
 	gettime(i_dateTime[0][0], i_dateTime[0][1], i_dateTime[0][2]);
@@ -26404,7 +26405,7 @@ stock _MensajeOOC(color, string[])
 	}
 }
 
-stock _MensajeSAN(color, string[])
+stock _MensajeSAN(color, const string[])
 {
 	foreach(new i: Player)
 	{
@@ -29264,7 +29265,7 @@ GCMD:patriot(playerid, params[])
 	if (!Es_Faccion(playerid, 1)) return _Mensaje(playerid, 0, "0", "No eres policía.");
 	if (!IsPlayerInAnyVehicle(playerid)) return _Mensaje(playerid, 0, "683", "Usted no se encuentra en ningún vehículo.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/patriot [id vehículo]");
-	if (!isnumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+	if (!IsNumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 	new vehicleid = strval(params);
 	new vehicleid2 = GetPlayerVehicleID(playerid);
 	if (!LSPD_Veh(vehicleid2)) return _Mensaje(playerid, 0, "378", "Debes estar en un vehiculo de la PD.");
@@ -32158,7 +32159,7 @@ GCMD:rcaja(playerid, params[])
 	if (!strcmp(params, "sacar", true, 5))
 	{
 		if (sscanf(params, "s[20]s[20]", params, money)) return _Mensaje(playerid, 3, "0", "/rcaja [sacar] [monto]");
-		if (!isnumeric(money)) return _Mensaje(playerid, 3, "0", "/rcaja [sacar] [monto]");
+		if (!IsNumeric(money)) return _Mensaje(playerid, 3, "0", "/rcaja [sacar] [monto]");
 		new dinero = strval(money);
 		if (dinero > user[playerid][jm_DerechaCant]) return _Mensaje(playerid, 4, "b0b0b0", "No posee ese dinero la caja registradora.");
 		DarDineroGC(playerid, dinero);
@@ -32172,7 +32173,7 @@ GCMD:rcaja(playerid, params[])
 	else if (!strcmp(params, "guardar", true, 7))
 	{
 		if (sscanf(params, "s[20]s[20]", params, money)) return _Mensaje(playerid, 3, "0", "/rcaja [guardar] [monto]");
-		if (!isnumeric(money)) return _Mensaje(playerid, 3, "0", "/rcaja [guardar] [monto]");
+		if (!IsNumeric(money)) return _Mensaje(playerid, 3, "0", "/rcaja [guardar] [monto]");
         new dinero = strval(money);
 		if (dinero > ComprobarDineroJ(playerid)) return _Mensaje(playerid, 4, "b0b0b0", "No posees esa cantidad.");
 		if (dinero < 1 || dinero > 1000) return _Mensaje(playerid, 4, "b0b0b0", "Máximo: $1.000.");
@@ -32487,7 +32488,7 @@ GCMD:invitar(playerid, params[])
 	if (!ID_PFac && !ID_PFam) return _Mensaje(playerid, 0, "367", "No eres lider de ninguna familia/facción.");
 	if (sscanf(params, "ds[32]", params[0], params[1])) return _Mensaje(playerid, 3, "0", "/invitar [id jugador] [faccion ó familia]");
 	if (!IsPlayerConnected(params[0])) return _Mensaje(playerid, 0, "367", "ERROR: El jugador seleccionado no se encuentra conectado.");
-	if (isnumeric(params[1])) return _Mensaje(playerid, 0, "476", "No puedes colocar números (faccion ó familia).");
+	if (IsNumeric(params[1])) return _Mensaje(playerid, 0, "476", "No puedes colocar números (faccion ó familia).");
 	if (TomandoTrabajo[params[0]] != -1) return _Mensaje(playerid, 0, "368", "Este jugador está en otra tarea, espera.");
 	if (strlen(params[1]) > 20 || strlen(params[1]) < 6) { _Mensaje(playerid, 0, "476", "Escribe bien la invitación (faccion ó familia)."); return 1; }
 
@@ -34586,7 +34587,7 @@ GCMD:depositar(playerid, params[])
 	if (user[playerid][jm_Derecha] != 84 && user[playerid][jm_Izquierda] != 84){ _Mensaje(playerid, 0, "9", "Necesitas tener tu tarjeta de débito en la mano."); return 1;}
 	new string[128], dinero;
 	if (!sscanf(params, "d", dinero)) {
-		if (!isnumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+		if (!IsNumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 		if (dinero > ComprobarDineroJ(playerid)) return _Mensaje(playerid, 0, "187", "No posees esa cantidad.");
 		if (dinero < 1 || dinero > 10000) return _Mensaje(playerid, 0, "188", "Máximo: $10.000.");
 		Compra(playerid, dinero);
@@ -34608,7 +34609,7 @@ GCMD:retirar(playerid, params[])
 	if (user[playerid][jm_Derecha] != 84 && user[playerid][jm_Izquierda] != 84){ _Mensaje(playerid, 0, "9", "Necesitas tener tu tarjeta de débito en la mano."); return 1;}
 	new string[128], dinero;
 	if (!sscanf(params, "d", dinero)) {
-		if (!isnumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+		if (!IsNumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 		if(dinero > user[playerid][jBanco] || dinero < 1) return _Mensaje(playerid, 0, "72", "Cantidad de dinero incorrecta.");
   		if(dinero < 0) return _Mensaje(playerid, 0, "73", "No puedes retirar menos de 0.");
     	Ganancia(playerid, dinero);
@@ -35416,7 +35417,7 @@ GCMD:estadoc(playerid, params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/estadoc [id vehículo]");
-	if (!isnumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+	if (!IsNumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 	new vehicleid = strval(params);
 	new engine, lights, alarm, doors, bonnet, boot, objective, enginestatus[15], lightstatus[15], string[128];
 	GetVehicleParamsEx(vehicleid, engine, lights, alarm, doors, bonnet, boot, objective);
@@ -35434,7 +35435,7 @@ GCMD:vercoche(playerid, params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/vercoche [id vehículo]");
-	if (!isnumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+	if (!IsNumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 	new string[128], vehicleid = strval(params);
 	for (new v = 0; v < MAX_VEHICULOS; v++)
 	{
@@ -37089,7 +37090,7 @@ GCMD:duda(playerid, params[])
 		if (StaffEnLinea() == 0) return Mensaje_(playerid, -1, "Su duda {E11509}no fue enviada{ffffff} debido a que no se encuentran administradores conectados.");
 		if (DudaB[playerid] == 1) return _Mensaje(playerid, 0, "472", "El /duda ha sido bloqueado para ti por mal uso.");
 		if (isnull(params)) return _Mensaje(playerid, 3, "0", "/duda [texto]");
-		if (isnumeric(params)) return _Mensaje(playerid, 0, "476", "No se puede enviar números por este canal.");
+		if (IsNumeric(params)) return _Mensaje(playerid, 0, "476", "No se puede enviar números por este canal.");
 		DudaA[playerid] = 1;
 		DudaTimer[playerid] = gettime();
 		format(string, sizeof(string), "{00c200}%s [ID: %d]:{ffffff} %s", nombre_pj(playerid), playerid, params[0]);
@@ -39924,7 +39925,7 @@ GCMD:conectar(playerid, params[])
 		{
 			new numero, nume2ro = true;
 			if (sscanf(params, "d", numero)) return _Mensaje(playerid, 3, "0", "/conectar [número de teléfono]");
-			if (!isnumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+			if (!IsNumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 			for (new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if (IsPlayerConnected(i) && user[i][State] == 3 && user[i][jTelefono] == numero)
@@ -42805,7 +42806,7 @@ GCMD:id(playerid, params[])
 
 	if(isnull(params)) return _Mensaje(playerid, 3, "0", "/id [id o nombre]");
 
-	if(isnumeric(params))
+	if(IsNumeric(params))
 	{
 		sscanf(params, "d", id);
 
@@ -50759,7 +50760,7 @@ public OnPlayerEnterRaceCheckpoint(playerid)
 
 /////////////////////////////---------------------------
 
-stock EscucharMusica(playerid, url[], Float: posX = 0.0, Float: posY = 0.0, Float: posZ = 0.0, Float: distance = 50.0, usepos = 0)
+stock EscucharMusica(playerid, const url[], Float: posX = 0.0, Float: posY = 0.0, Float: posZ = 0.0, Float: distance = 50.0, usepos = 0)
 {
 	if(user[playerid][j_uAudio] == 0) PlayAudioStreamForPlayer(playerid, url, posX, posY, posZ, distance, usepos);
 }
@@ -50771,7 +50772,7 @@ stock PlayStream(playerid, url[], Float: posX = 0.0, Float: posY = 0.0, Float: p
 	if(user[playerid][j_uAudio] == 0) PlayAudioStreamForPlayer(playerid, url, posX, posY, posZ, distance, usepos);
 }
 
-stock ReproducirMVeh(playerid, url[], Float: posX = 0.0, Float: posY = 0.0, Float: posZ = 0.0, Float: distance = 50.0, usepos = 0)
+stock ReproducirMVeh(playerid, const url[], Float: posX = 0.0, Float: posY = 0.0, Float: posZ = 0.0, Float: distance = 50.0, usepos = 0)
 {
 	if(GetPVarType(playerid, "MusVeh")) StopAudioStreamForPlayer(playerid);
 	else SetPVarInt(playerid, "MusVeh", 1);
@@ -54803,7 +54804,7 @@ new C_MESSAGES[6] =
 	0x1EB032FF // 5 - Verde.
 };
 
-funcion _Mensaje(playerid, type, optional[], message[])
+funcion _Mensaje(playerid, type, const optional[], const message[])
 {
 	new InfoMsg[150];
 	switch (type)
@@ -54846,7 +54847,7 @@ stock mensaje_bubble(playerid, text[], color, Float: distancia, tiempo = 999999,
 	if (tipo == 1) contador_balas[playerid] = 0;
 }
 
-stock accion_rol(playerid, type, text[], extra = 0)
+stock accion_rol(playerid, type, const text[], extra = 0)
 {
 	new MensajeAR[150];
 	switch (type)

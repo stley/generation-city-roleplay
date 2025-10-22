@@ -298,7 +298,7 @@ stock mS_UpdatePageTextDraw(playerid)
 
 //------------------------------------------------
 
-stock menu_selection(playerid, ListID, header_text[], pag = 0, dialogBGcolor = 119, previewBGcolor = 0x555555555 , tdSelectionColor = -1)
+stock menu_selection(playerid, ListID, const header_text[], pag = 0, dialogBGcolor = 119, previewBGcolor = 0x555555555 , tdSelectionColor = -1)
 {
 	if(!(0 <= ListID < mS_TOTAL_LISTS && gLists[ListID][mS_LIST_START] != gLists[ListID][mS_LIST_END])) return 0;
 	mS_DestroySelectionMenu(playerid);
@@ -597,7 +597,7 @@ forward MP_OPCPTD(playerid, PlayerText:playertextid);
 
 //------------------------------------------------------------------
 
-stock LoadModelSelectionMenu(f_name[])
+stock LoadModelSelectionMenu(const f_name[])
 {
 	new File:f, str[75];
 	format(str, sizeof(str), "%s", f_name);
