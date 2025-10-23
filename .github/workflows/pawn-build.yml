@@ -2,6 +2,7 @@ name: Compile Pawn Scripts
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 jobs:
@@ -14,9 +15,9 @@ jobs:
       SIDE_OUT_DIR: amx/side_scripts
       PAWN_FLAGS: >
         -d3 -;+ -(+ -Z+
-        -Iinclude
-        -Isrc/main_scripts
-        -Isrc/side_scripts
+        -iinclude
+        -isrc/main_scripts
+        -isrc/side_scripts
 
     steps:
       - name: Checkout repository
