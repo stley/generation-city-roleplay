@@ -92,7 +92,7 @@ jobs:
       - name: List compiled files
         run: |
           echo "Compiled scripts:"
-          dir $env:OUTPUT_DIR /s /b
+          Get-ChildItem -Path $env:OUTPUT_DIR -Recurse -Name
 
       - name: Upload compiled AMX files
         uses: actions/upload-artifact@v4
