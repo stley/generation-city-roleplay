@@ -8,138 +8,28 @@
 #undef MAX_PLAYERS
 #define MAX_PLAYERS			(500)
 
-#include "main.p"
+#define PP_SYNTAX_AWAIT
+#define PP_SYNTAX_YIELD
+#include <PawnPlus>
+#include <Pawn.RakNet>
+#include <sscanf2>
+#include <streamer>
+#include <cmd>
+#include <foreach>
+#include <m_selection>
+#include <yom_buttons>
+#include <mapeos>
+#include <JunkBuster>
+#include <a_mysql>
+#include <YSI_Storage\y_ini>
+#include <ecm>
+#include <pp-mysql>
+#include <bcrypt>
+#include <serverLog>
 
-//texto abajo
+#include "../main.p"
 
-/* sistema de almacenes */
-enum alm_Info
-{
-	aComprado,
-	aComprador[32],
-	aSeguro,
-	aTipo,
-	aDinero,
-	a_Int,
-	a_VW,
-	Float: aExteriorX,
-	Float: aExteriorY,
-	Float: aExteriorZ,
-	Float: aExteriorA,
-	Float: aExteriorX_V,
-	Float: aExteriorY_V,
-	Float: aInteriorX,
-	Float: aInteriorY,
-	Float: aInteriorZ,
-	Float: aInteriorA,
-	aArmario[50],
-	aArmarioCant[50],
-};
 
-new
-	i_Almacen[MAX_ALMACENES][alm_Info]
-;
-
-stock save_Almacen(id, bool:Todo = true, ranura = -1)
-{
-	new almd[64];
-	format(almd, 64, DATOS_ALMACENES, id);
-	new INI: File = INI_Open(almd);
-	INI_SetTag(File, "Informacion");
-	if(Todo)
-	{
-		INI_WriteString(File, "Dueño", i_Almacen[id][aComprador]);
-		INI_WriteInt(File, "Comprado", i_Almacen[id][aComprado]);
-		INI_WriteInt(File, "Seguro", i_Almacen[id][aSeguro]);
-		INI_WriteInt(File, "Tipo", i_Almacen[id][aTipo]);
-		INI_WriteInt(File, "Dinero", i_Almacen[id][aDinero]);
-		INI_WriteInt(File, "Interior", i_Almacen[id][a_Int]);
-		INI_WriteInt(File, "VirtualWorld", i_Almacen[id][a_VW]);
-		INI_WriteFloat(File, "ExteriorX", i_Almacen[id][aExteriorX]);
-		INI_WriteFloat(File, "ExteriorY", i_Almacen[id][aExteriorY]);
-		INI_WriteFloat(File, "ExteriorZ", i_Almacen[id][aExteriorZ]);
-		INI_WriteFloat(File, "ExteriorA", i_Almacen[id][aExteriorA]);
-		INI_WriteFloat(File, "ExteriorX_V", i_Almacen[id][aExteriorX_V]);
-		INI_WriteFloat(File, "ExteriorY_V", i_Almacen[id][aExteriorY_V]);
-		INI_WriteFloat(File, "InteriorX", i_Almacen[id][aInteriorX]);
-		INI_WriteFloat(File, "InteriorY", i_Almacen[id][aInteriorY]);
-		INI_WriteFloat(File, "InteriorZ", i_Almacen[id][aInteriorZ]);
-		INI_WriteFloat(File, "InteriorA", i_Almacen[id][aInteriorA]);
-
-	}
-	if(ranura != -1 && ranura < 50)
-	{
-		new sql[100];
-		format(sql, sizeof(sql), "Armario_%d", ranura);
-		INI_WriteInt(File, sql, i_Almacen[id][aArmario][ranura]);
-		format(sql, sizeof(sql), "ArmarioCant_%d", ranura);
-		INI_WriteInt(File, sql, i_Almacen[id][aArmarioCant][ranura]);
-	}
-	INI_Close(File);
-	return 1;
-}
-
-new totalalmacenes;
-funcion cargar_almacenes()
-{
-	new almd[64];
-	for (new id = 0; id < sizeof(i_Almacen); id++)
-	{
-		format(almd, 64, DATOS_ALMACENES, id);
-		INI_ParseFile(almd, "CargarAlmacenes_data", .bExtra = true, .extra = id);
-		if (i_Almacen[id][aTipo] != 0)
-		{
-			totalalmacenes++;
-		}
-	}
-	printf("|- Almacenes [%d]", totalalmacenes);
-	return 1;
-}
-
-funcion CargarAlmacenes_data(id, name[], value[])
-{
-	INI_String("Dueño", i_Almacen[id][aComprador], 32);
-	INI_Int("Comprado", i_Almacen[id][aComprado]);
-	INI_Int("Seguro", i_Almacen[id][aSeguro]);
-	INI_Int("Tipo", i_Almacen[id][aTipo]);
-	INI_Int("Dinero", i_Almacen[id][aDinero]);
-	INI_Int("Interior", i_Almacen[id][a_Int]);
-	INI_Int("VirtualWorld", i_Almacen[id][a_VW]);
-	INI_Float("ExteriorX", i_Almacen[id][aExteriorX]);
-	INI_Float("ExteriorY", i_Almacen[id][aExteriorY]);
-	INI_Float("ExteriorZ", i_Almacen[id][aExteriorZ]);
-	INI_Float("ExteriorA", i_Almacen[id][aExteriorA]);
-	INI_Float("ExteriorX_V", i_Almacen[id][aExteriorX_V]);
-	INI_Float("ExteriorY_V", i_Almacen[id][aExteriorY_V]);
-	INI_Float("InteriorX", i_Almacen[id][aInteriorX]);
-	INI_Float("InteriorY", i_Almacen[id][aInteriorY]);
-	INI_Float("InteriorZ", i_Almacen[id][aInteriorZ]);
-	INI_Float("InteriorA", i_Almacen[id][aInteriorA]);
-	for(new i = 0; i < 50; i++)
-	{
-		new sql[100];
-		format(sql, sizeof(sql), "Armario_%d", i);
-		INI_Int(sql, i_Almacen[id][aArmario][i]);
-		format(sql, sizeof(sql), "ArmarioCant_%d", i);
-		INI_Int(sql, i_Almacen[id][aArmarioCant][i]);
-	}
-	return 1;
-}
-
-/* sistema de anuncios */
-new
-	id_ultimo
-;
-#define MAX_ANUNCIOS (10)
-
-enum ad_left
-{
-	num_ad,
-	tiempo_ad,
-	por_ad[32],
-	texto_ad[256],
-};
-new ad_info[MAX_ANUNCIOS][ad_left];
 
 new random_veh[MAX_VEHICLES];
 
@@ -257,11 +147,7 @@ funcion tp_timers(playerid)
     tp_trabajo[playerid] = 0;
 }
 
-new
-	username[MAX_PLAYERS][MAX_PLAYER_NAME],
-	tipo_carga[MAX_PLAYERS],
-	conectado[MAX_PLAYERS]
-;
+
 
 //vehiculos rentables
 enum rent_i
@@ -546,191 +432,16 @@ new
 	ActRegistro = 1,
 	ActTest = 1,
 	UsandoGym[9] = 0,
-	UsandoGym2[MAX_PLAYERS],
 	nivelexp = 10,
 	RobarBanco = 0,
 	Regalo = 1,
 	CajadeRegalo,
 	Text3D: dynamicgift3DText,
-	_Logeo[MAX_PLAYERS],
-	_rVeh[MAX_PLAYERS],
-	usandoYo[MAX_PLAYERS],
-	pescando[MAX_PLAYERS],
-	pescador[MAX_PLAYERS],
-	pesca[MAX_PLAYERS],
-	_Pesca[MAX_PLAYERS],
-	cocherobo[MAX_PLAYERS],
-	checkcoche[MAX_PLAYERS],
-	veh_robo[MAX_PLAYERS],
-	veh_asiento[MAX_PLAYERS],
-	r_negocio[MAX_PLAYERS],
-	tipo_reparto[MAX_PLAYERS],
-	r_vehiculo[MAX_PLAYERS],
-	compra_Veh[MAX_PLAYERS],
-	Float:TallerX[MAX_VEHICLES],
-	Float:TallerY[MAX_VEHICLES],
-	Float:TallerZ[MAX_VEHICLES],
-	Float:TallerAngulo[MAX_VEHICLES],
-	EnTaller[MAX_PLAYERS],
-	IsTaller[MAX_PLAYERS],
-	asesino[MAX_PLAYERS],
-	p_drogas[MAX_PLAYERS],
-	p_armas[MAX_PLAYERS],
-	_arma[MAX_PLAYERS],
-	PrestadorCoche[MAX_PLAYERS],
-	LlavePrestada[MAX_PLAYERS],
-	PlayerText:TextTrabajo[MAX_PLAYERS],
-	NumeroMensaje[MAX_PLAYERS],
-	EnLlamada[MAX_PLAYERS],
-	ToqueLlamada[MAX_PLAYERS],
-	PersonaEnLlamada[MAX_PLAYERS],
-	ToqueLlamadaTimer[MAX_PLAYERS],
-	Altavoz[MAX_PLAYERS],
-	CasaActual[MAX_PLAYERS] = {INVALID_CASA_ID, ...},
-	OBJ_MuebleC[MAX_PLAYERS][MAX_MUEBLES_C],
-	NegocioActual[MAX_PLAYERS] = {INVALID_NEGOCIO_ID, ...},
-	OBJ_MuebleN[MAX_PLAYERS][MAX_MUEBLES_N],
-	GarageActual[MAX_PLAYERS] = {INVALID_CASA_ID, ...},
-	OBJ_MuebleG[MAX_PLAYERS][MAX_MUEBLES_G],
-	EmpresaActual[MAX_PLAYERS] = {INVALID_CASA_ID, ...},
-	OBJ_MuebleE[MAX_PLAYERS][MAX_MUEBLES_E],
-	DentroCasa[MAX_PLAYERS],
-	DentroAlmacen[MAX_PLAYERS],
-	DentroNegocio[MAX_PLAYERS],
-	DentroEmpresa[MAX_PLAYERS],
-	DentroGarage[MAX_PLAYERS],
-	IDNegocio[MAX_PLAYERS],
-	BuscarTrabajo[MAX_PLAYERS],
-	YaAviso[MAX_PLAYERS],
-	TipoTunning[MAX_PLAYERS][TOTAL_MODS],
-	TestErrores[MAX_PLAYERS],
-	JugadorEnSeccion[MAX_PLAYERS char],
-	VehCallSign[MAX_VEHICLES],
-	Text3D:TextCallSign[MAX_VEHICLES],
-	estacionp[MAX_PLAYERS],
-	escuchandop[MAX_PLAYERS],
-	estacionveh[MAX_VEHICLES],
-	Esposado[MAX_PLAYERS],
-	RecargarTiempo[MAX_PLAYERS],
-	VehiculoGasolina[MAX_PLAYERS],
-	veh_gasolina[MAX_VEHICLES] = 200,
-	arr_Engine[MAX_VEHICLES char],
-	Float: _vVelocidad[MAX_PLAYERS],
-	Taseado[MAX_PLAYERS],
-	_Gomas[MAX_PLAYERS],
-	TaserRecarga[MAX_PLAYERS],
-	RanuraSeleccionadaA[MAX_PLAYERS],
-	EditandoObjetoJ[MAX_PLAYERS],
-	RanuraSeleccionada[MAX_PLAYERS],
-	MultaPrecio[MAX_PLAYERS],
-	MultaOfrecer[MAX_PLAYERS],
-	FacturaMulta[MAX_PLAYERS],
-	MostrarNombre[MAX_PLAYERS],
 	PressBancaBarraObjeto[9],
-	HaciendoPressBanca[MAX_PLAYERS],
-	ProgresoPressBanca[MAX_PLAYERS],
-	RepeticionesPressBanca[MAX_PLAYERS],
-	Spectando[MAX_PLAYERS],
-	Spectate[MAX_PLAYERS],
-	SpectadorID[MAX_PLAYERS],
-	Atado[MAX_PLAYERS],
-	Vendado[MAX_PLAYERS],
-	VendasYSoga[MAX_PLAYERS],
-	ReporteA[MAX_PLAYERS],
-	ReporteB[MAX_PLAYERS],
-	TiempoReporte[MAX_PLAYERS],
-	ReporteT[MAX_PLAYERS][128],
-	DudaTimer[MAX_PLAYERS],
-	DudaA[MAX_PLAYERS] = 0,
-	DudaB[MAX_PLAYERS] = 0,
-	DudaT[MAX_PLAYERS][128],
-	Casco[MAX_PLAYERS],
-	VisitaTimer[MAX_PLAYERS],
-	VisitaTimer2[MAX_PLAYERS],
-	MuebleActual[MAX_PLAYERS],
-	Granjero[MAX_PLAYERS],
-	Carguero[MAX_PLAYERS],
-	VehSeguro[MAX_VEHICLES],
-	TruckDeliver[MAX_PLAYERS],
-	_Contenido[MAX_VEHICLES] = 0,
-	_CamVeh[MAX_PLAYERS] = INVALID_VEHICLE_ID,
 	members_fd = 0,
 	_MedicCall = 999,
-	_MedicAcept[MAX_PLAYERS],
-	_Medic2Call[MAX_PLAYERS],
-	_BombCall = 999,
-	_BombAcept[MAX_PLAYERS],
-	_Bomb2Call[MAX_PLAYERS],
-	NumeroFaccion[MAX_PLAYERS],
-	NumeroFamilia[MAX_PLAYERS],
-	NumeroEmpresa[MAX_PLAYERS],
-	NombreFaccion[MAX_PLAYERS][40],
-	TomandoTrabajo[MAX_PLAYERS],
-	fInvitadoP[MAX_PLAYERS],
-	fIDfamilia[MAX_PLAYERS],
-	VehicleWindows[MAX_VEHICLES] = 0,
-	PrivadosB[MAX_PLAYERS] = 0,
-	B_Pecho[MAX_PLAYERS],
-	B_VIP[MAX_PLAYERS],
-	B_Admin[MAX_PLAYERS],
-	B_Radito[MAX_PLAYERS],
-	B_Faccion[MAX_PLAYERS],
-	B_Familia[MAX_PLAYERS],
-	B_WSP[MAX_PLAYERS],
-	VerPrivados[MAX_PLAYERS],
-	B_SANMUSIC[MAX_PLAYERS],
-	JugadorSentado[MAX_PLAYERS],
-	EnGarajeID[MAX_PLAYERS],
-	EnCasaID[MAX_PLAYERS],
-	Saludo_ID[MAX_PLAYERS],
-	Saludo2_ID[MAX_PLAYERS],
-	Beso_ID[MAX_PLAYERS],
-	Beso2_ID[MAX_PLAYERS],
-	alcoholemia[MAX_PLAYERS],
-	EnServicio[MAX_PLAYERS],
-	EnServicioPD[MAX_PLAYERS],
-	EnServicioADM[MAX_PLAYERS],
-	CasaOffer[MAX_PLAYERS],
-	CasaPrice[MAX_PLAYERS],
-	NegocioOffer[MAX_PLAYERS],
-	NegocioPrice[MAX_PLAYERS],
-	_VehID[MAX_PLAYERS],
-	_Vehprecio[MAX_PLAYERS],
-	_Vehdueno[MAX_PLAYERS],
-	QuienManejo[MAX_PLAYERS],
-	PagarTiempo[MAX_PLAYERS],
-	CederTiempo[MAX_PLAYERS],
-	QuienMato[MAX_PLAYERS][24],
-	MusicaEsc[MAX_PLAYERS],
-	VehGuanteraPlayer[MAX_PLAYERS],
-	VehMaleteroPlayer[MAX_PLAYERS],
-	SolicitaRefuerzos[MAX_PLAYERS],
-	BotonPanico[MAX_PLAYERS],
-	_Entrevista[MAX_PLAYERS],
-	_2Entrevista[MAX_PLAYERS],
-	con_animacion[MAX_PLAYERS],
-	es_hablando[MAX_PLAYERS],
-	SirenObject[MAX_VEHICLES], //objeto
-	bool:SirenOn[MAX_VEHICLES], //bool sirena
-	JetPack[MAX_PLAYERS],
-	CurrentMoney[MAX_PLAYERS],
-	Intentar[MAX_PLAYERS],
-	Intentar2[MAX_PLAYERS],
-	IntentarD[MAX_PLAYERS],
-	UsandoOptiwand[MAX_PLAYERS],
-	TipoOptiwand[MAX_PLAYERS],
-	_mirilla[MAX_PLAYERS],
-	tipo_m[MAX_PLAYERS],
-	xMeses[MAX_PLAYERS],
-	xDias[MAX_PLAYERS],
-	xAnos[MAX_PLAYERS],
-	algomas[MAX_PLAYERS],
-	Taximetro[MAX_PLAYERS],
-	EnTaxi[MAX_PLAYERS],
-	PasajeroTaxi[MAX_PLAYERS],
-	bool:EnServicioTaxi[MAX_PLAYERS],
-	EmpresaLlamada[MAX_PLAYERS]
-	;
+	_BombCall = 999
+;
 
 enum textdraw
 {
@@ -789,241 +500,9 @@ new Float: AccionesRadios[20] =
 };
 
 //<=================================> información de jugadores
-enum jInfo
-{
-	//	———————— username
-	jSQLID, // ID base datos
-	jNombre[MAX_PLAYER_NAME], // username
-	jAdmin, // Admin
-	jStaff[32], // Variable Admin
-	jEncargado[5], // Variables de encargado
-	jClave[24], // Contraseña
-	jEmail[255], // Correo
-	jIP[16], // IP
-	jCuenta_1[MAX_PLAYER_NAME], // personaje 1
-	jCuenta_2[MAX_PLAYER_NAME], // personaje 2
-	jCuenta_3[MAX_PLAYER_NAME], // personaje 3
-	pfechaUreg[32],
 
 
-	//———————— personaje
-	jNombrePJ[32], // Nombre_Apellido
-	jRegistrado, // Registrado
-	Float: jPosicion_X, // PosX
-	Float: jPosicion_Y, // PosY
-	Float: jPosicion_Z, // PosZ
-	Float: jPosicion_R, // PosR
-	Float: jSangre, // Vida
-	Float: jChaleco, // Chaleco
-	jInterior, // Interior
-	jVirtualWorld, // VirtualWorld
-	jSexo, // Sexo
-	jRaza, //Raza
-	jEdad, // Edad
-	jCiudad, // Ciudad
-	jHablar, // Estilo de hablar
-	jEstilo, // Estilo de caminar
-	jPelea, // Estilo de pelea
-	jSed, // Sed
-	Float: jHambre, // Hambre
-	jAlcohol, // Alcohol
-	jFuerza, // Fuerza
-	jDinero, // Dinero
-	jBanco, // Dinero Banco
-	jCheques, // Paga de cheque
-	jDebito, // Número tarjeta de débito
-	jPuntosRol[2],
-	jNivel, // Nivel
-	jExperiencia, // Experiencia
-	j_Horas, // Horas Conectado
-	jMulticuenta, // .
-	jBaneado, // Baneado
-	jBtiempo,
-	jBculpable[32],
-	jBrazon[128],
-	jBmomento[150],
-	jAlmacen,
-	jCasaKey, // Casa
-	jCasaKey2, // Casa 2
-	jAlquiler, // Casa en renta
-	j_timeunrent, // Casa en renta
-	jCasaLlaves, // Llaves de casa
-	jCasa2Llaves, // Llaves de casa
-	j2CasaLlaves, // Llaves de casa 2
-	j2Casa2Llaves, // Llaves de casa 2
-	jNegocioKey, // Negocio
-	jNegocioKey2, // Negocio 2
-	jNegocioLlaves, // Llaves de casa
-	jNegocio2Llaves, // Llaves de casa
-	jEmpresaKey, // Empresa
-	jEmpresaLlaves, // Llaves de empresa
-	jEmpresa2Llaves, // Llaves de empresa
-	jContrato, // Contrato en empresa
-	jHorasE,
-	jLlaveCoche[6],
-	j2Vehiculos[6],
-	j2Vehixculos[6],
-	jPremium, // Sistema vip
-	jColorP, // Color vip
-	jD_premium, // Día del fin del vip
-	jM_premium, // Mes del fin del vip
-	jBolsillo[10], //
-	jBolsilloCant[10], //
-	jm_Izquierda, //
-	jm_IzquierdaCant, //
-	jm_Derecha, //
-	jm_DerechaCant, //
-	jEspalda, //
-	jEspaldaCant, //
-	jCinturon[6], //
-	jCinturonCant[6], //
-	jRopa, // Ropa
-	jSkin, // Ropa
-	jRopaArmario[MAX_ROPA], // Ropa armarios
-	jPayday, // Tiempo payday
-	jtimeP, // Tiempo payday
-	jLider, // Lider fac
-	jMiembro, // Miembro fac
-	jRango, // Rango fac
-	jLiderFam, // Lider fam
-	jMiembroFam, // Miembro fam
-	jRangoFam, // Rango fam
-	jMuerto, // Muerto
-	jMuerto2, // Muerto
-	jTelefono, // Número de teléfono
-	jSaldo, // Saldo de teléfono
-	jFrecuencia, // Frecuencia de radio
-	jBoombox, // Equipo de sonido
-	jLoteria, // número de loteria
-	jMascara, // Mascara
-	jEstrellas, // Busqueda policial
-	jArrestos, // Arrestos IC
-	jPuntosLic,
-	jSanciones, // Arrestos OOC
-	jEncarcelado, // Encarcelado
-	jJrazon[128],
-	jJmomento[150],
-	jJculpable[50], //- Sancionador ooc
-	jTiempoCarcel, // Tiempo de arresto
-	jtiempito, // tiempo pf
-	jCargas, // Cargas realizadas
-	jTroncos, // troncos
-	jPescados, // Pescados
-	jMuebles, // Cosechas de granjero
-	jCosechas, // Cosechas de granjero
-	jTrabajo1, // Trabajo 1
-	jTrabajo2, // Trabajo 2
-	jTrabajo3, // Trabajo 3
-	jLicencias[7], // Licencias
-	jHabilidad[10], // Habilidades
-	jHabilidad2[10], // Habilidades
-	jAdiccion[10],
-	jEstado[128], // Estado - Texto
-	jDocumento, // Documento legal
-	jCasado[32], // Casado
-	jf_Edad, // Edad ilegal
-	jf_Dni, // Documento ilegal
-	jf_Nombre[32], // Nombre del documento ilegal
-	jDelito[10], // Antecedente
-	jContacto[20], // Contactos de agenda telefónica
-	jContactoN1[32], // Contactos de agenda telefónica
-	jContactoN2[32], // Contactos de agenda telefónica
-	jContactoN3[32], // Contactos de agenda telefónica
-	jContactoN4[32], // Contactos de agenda telefónica
-	jContactoN5[32], // Contactos de agenda telefónica
-	jContactoN6[32], // Contactos de agenda telefónica
-	jContactoN7[32], // Contactos de agenda telefónica
-	jContactoN8[32], // Contactos de agenda telefónica
-	jContactoN9[32], // Contactos de agenda telefónica
-	jContactoN10[32], // Contactos de agenda telefónica
-	jContactoN11[32], // Contactos de agenda telefónica
-	jContactoN12[32], // Contactos de agenda telefónica
-	jContactoN13[32], // Contactos de agenda telefónica
-	jContactoN14[32], // Contactos de agenda telefónica
-	jContactoN15[32], // Contactos de agenda telefónica
-	jContactoN16[32], // Contactos de agenda telefónica
-	jContactoN17[32], // Contactos de agenda telefónica
-	jContactoN18[32], // Contactos de agenda telefónica
-	jContactoN19[32], // Contactos de agenda telefónica
-	jContactoN20[32], // Contactos de agenda telefónica
-	jTiempos[22], // Tiempos
-	jHoras, // Última hora conectado
-	jMinutos, // Último minuto conectado
-	jSegundos, // Último segundo conectado
-	jDias, // Último día conectado
-	jMeses, // Último mes conectado
-	jAnos, // Último Año conectado
-	jEmpeno[5],
-	jEmpeno2[5],
-	job_PF[12], //
-	job_PFCant[12], //
-	jDineroPF, //
-	ObjetosRep,
-	jDtipo,
-	jDtiempo,
-	jDpower,
-	jDbonus[2],
-	pAbstinenceEffect,
-	pAbstinenceTime,
 
-	/*jPDR_1[128],
-	jPDR_2[128],
-	jPDR_3[128],
-	jPDR_4[128],
-	jPDR_5[128],
-	jPDR_6[128],
-	jPDR_7[128],
-	jPDR_8[128],
-	jPDR_9[128],
-	jPDR_10[128],*/
-
-	pHud, // 0 = tipo, 1 = ?, 2 = ?
-	jFianza,
-
-	j_uTelefono,
-	j_uManos,
-	j_uMP,
-	j_uMP2[32],
-	j_uRadio,
-	j_uAudio,
-	j_uSAN,
-	j_uOOC,
-	pUseHud,
-	ptimegame,
-	pfechareg[128],
-	jCoche[2],
-	jGraffito,
-	
-
-	//- no guardable
-	jMascaraPD, // Mascara usando
-	jRescatePolicial, // Llamado policial
-	jTiempoGuardado, // Tiempo de guardado
-	jTiempoCurar, // Tiempo en curar
-	j_Mascara, // Mascara usando
-	jTiempoServicio, // Tiempo en servicio
-	//-
-	State,
-	pLenador_free,
-	Float:pLenador_free_PROG,
-	bool:pt_PLAYER_CARRYING_TREE,
-	//licencias
-    bool:Started,
-    Vehicle,
-	Type,
-	Checkpoint,
-	pEditingMode,
-	pSelectedItem,
-	EditandoM,
-	pAFKTime,
-	pUseGUI,
-	pMostrarTexto,
-	pFooterTimer,
-};
-new user[MAX_PLAYERS][jInfo];
-
-//---antecendentes
-new p_delito[MAX_PLAYERS][10][80];
 
 //<=================================> vehículos de facciones
 #define max_malfac 150
@@ -4618,23 +4097,7 @@ stock ActualizarFamilia(fid)
 	INI_Close(File);
 	return 1;
 }
-//<=================================> sistema de accesorios
-enum aInfo
-{
-	aModelo,
-	aParte,
-	Float: aPosicionX,
-	Float: aPosicionY,
-	Float: aPosicionZ,
-	Float: aRotacionX,
-	Float: aRotacionY,
-	Float: aRotacionZ,
-	Float: aEscalaX,
-	Float: aEscalaY,
-	Float: aEscalaZ,
-	aColocado,
-};
-new InfoAccesorio[MAX_PLAYERS][MAX_ACCESORIOS][aInfo];
+
 
 enum AccesoriosEnum
 {
@@ -7191,7 +6654,7 @@ funcion Code_data(playerid, name[], value[])
 	INI_Int("Horas", code_horas[playerid]);
 	return 0;
 }
-funcion C_data(playerid, name[], value[])
+/*funcion C_data(playerid, name[], value[])
 {
 	new tipo = tipo_carga[playerid];
 	switch (tipo)
@@ -7509,7 +6972,7 @@ funcion C_data(playerid, name[], value[])
 	    }
 	}
 	return 0;
-}
+}*/
 
 vehicle_lock_doors(vehicle)
 {
@@ -9667,7 +9130,7 @@ funcion GuardarCuentas()
 	{
 		if (IsPlayerConnected(i))
 		{
-			guardar_cuenta(i);
+			characterSave(i);
 		}
 	}
 	return 1;
@@ -9696,22 +9159,24 @@ public OnPlayerRequestClass(playerid, classid)
 		gettime(hora_s, minuto_s, segundo_s);
 		SetPlayerTime(playerid, hora_s, minuto_s);
 
-		new
-			cuenta2[128],
-			cuenta3[128]
-		;
+		new cuenta2[128];
+		yield 1;
+		mysql_format(mainDatabase, cuenta2, sizeof cuenta2, "SELECT * FROM accounts WHERE Nombre = '%e' LIMIT 1", username[playerid]);
+		await mysql_aquery(mainDatabase, cuenta2);
+		
 
-		format(cuenta2, sizeof(cuenta2), "Bienvenido %s\n\nPor favor introduzca su contraseña:", username[playerid]);
-		format(cuenta3, sizeof(cuenta3), "Bienvenido %s\n\nPor favor introduzca una contraseña:", username[playerid]);
-
-		if(check_username(username[playerid]))
+		if(cache_num_rows())
 		{
+			accountORMInit(playerid);
+			orm_apply_cache(accountORM[playerid], 0);
+			format(cuenta2, sizeof(cuenta2), "Bienvenido %s\n\nPor favor introduzca su contraseña:", username[playerid]);
 			ExPlayerDialog(playerid, D_INGRESO, DIALOG_STYLE_PASSWORD, "Iniciar Sesión", cuenta2, "Ingresar", "Salir");
 		}
 		else
 		{
 			if (ActRegistro == 0) _Expulsar(playerid, 1, "Registro deshabilitado");
-			ExPlayerDialog(playerid, D_REGISTRO, DIALOG_STYLE_PASSWORD, "Registro", cuenta3, "Registrar", "Salir");
+			format(cuenta2, sizeof(cuenta2), "Bienvenido %s\n\nPor favor introduzca una contraseña:", username[playerid]);
+			ExPlayerDialog(playerid, D_REGISTRO, DIALOG_STYLE_PASSWORD, "Registro", cuenta2, "Registrar", "Salir");
 		}
 	}
 	return 1;
@@ -10087,7 +9552,7 @@ public OnPlayerDisconnect(playerid, reason)
 	PlayerTextDrawDestroy(playerid, TextTrabajo[playerid]);
 	PlayerTextDrawDestroy(playerid, info_w[playerid][Velocimetro]);
 	secuencia_veh(playerid);
-	guardar_cuenta(playerid);
+	characterSave(playerid);
 
 	SetPlayerName(playerid, username[playerid]);
 	return 1;
@@ -11258,7 +10723,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 code_nivel[playerid] = 0;
                 code_horas[playerid] = 0;
                 code_dinero[playerid] = 0;
-				guardar_cuenta(playerid);
+				characterSave(playerid);
 				return 1;
 			}
 			else
@@ -11270,28 +10735,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_INGRESO:
 		{
 			if (!response) return _Expulsar(playerid, 1, "Ingreso falso");
-
-			new
-				p_username[50 + MAX_PLAYER_NAME]
-			;
-			format(p_username, sizeof(p_username), DATOS_CUENTAS, username[playerid]);
-			INI_ParseFile(p_username, "C_data", .bExtra = true, .extra = playerid);
-
-			if(!strcmp(user[playerid][jClave], inputtext))
-			{
-				ver_personajes(playerid);
-			}
 			else
 			{
+				bcrypt_hash(playerid, "accountPasswordHash", inputtext, BCRYPT_COST, "d", playerid);
 				if (_Logeo[playerid] == 3)
 				{
 					_Expulsar(playerid, 1, "Ingreso falso");
 					return 1;
 				}
-				new cuenta2[200];
-				format(cuenta2, sizeof(cuenta2), "%s, la contraseña escrita no es válida\nPor favor intente de nuevo.\n\nIntroduzca su contraseña:", username[playerid]);
-				ExPlayerDialog(playerid, D_INGRESO, DIALOG_STYLE_PASSWORD, "Iniciar Sesión", cuenta2, "Ingresar", "Salir");
-				_Logeo[playerid] += 1;
 			}
 		}
 
@@ -11312,12 +10763,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				ExPlayerDialog(playerid, D_REGISTRO, DIALOG_STYLE_PASSWORD, "Registro", cuenta2, "Registrar", "Salir");
 				return 1;
 			}
-			alm(user[playerid][jClave], inputtext);
-			StopAudioStreamForPlayer(playerid);
-
-			ExPlayerDialog(playerid, D_EMAIL, DIALOG_STYLE_INPUT, "Correo electrónico:",
-			"Escribe tu correo electrónico\n\nFormato: email@dominio.com\n", "Continuar", "Salir");
-
+			bcrypt_hash(playerid, "accountPasswordHash", inputtext, BCRYPT_COST, "d", playerid);
 			return 1;
 		}
 
@@ -11334,48 +10780,24 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		        if (ActTest != 0) test_rol(playerid);
 		        else //test desactivado
 		        {
-					if(!check_username(username[playerid]))
-					{
-						alm(user[playerid][jCuenta_1], "user_none");
-						alm(user[playerid][jCuenta_2], "user_none");
-						alm(user[playerid][jCuenta_3], "user_none");
-						new year, month, day, code_1[128];
-						getdate(year, month, day);
-						format(code_1, sizeof(code_1), "%02d de %s del %02d", day, GetMonth(month), year);
-						user[playerid][pfechareg] = code_1;
-						c_cuentas++;
-						save_stuff();
-						user[playerid][jSQLID] = c_cuentas;
-
-						new data[60];
-						format(data, sizeof data, DATOS_CUENTAS, username[playerid]);
-						new INI: File = INI_Open(data);
-
-						INI_WriteString(File, "Contraseña", user[playerid][jClave]);
-						INI_WriteInt(File, "SQLID", user[playerid][jSQLID]);
-						INI_WriteString(File, "Nombre", username[playerid]);
-						INI_WriteString(File, "Email", user[playerid][jEmail]);
-						INI_WriteInt(File, "Admin", user[playerid][jAdmin]);
-						INI_WriteString(File, "Staff", user[playerid][jStaff]);
-						INI_WriteInt(File, "Encargado1", user[playerid][jEncargado][0]);
-						INI_WriteInt(File, "Encargado2", user[playerid][jEncargado][1]);
-						INI_WriteInt(File, "Encargado3", user[playerid][jEncargado][2]);
-						INI_WriteInt(File, "Encargado4", user[playerid][jEncargado][3]);
-						INI_WriteInt(File, "Encargado5", user[playerid][jEncargado][4]);
-						INI_WriteString(File, "IP", user[playerid][jIP]);
-						INI_WriteString(File, "Cuenta_1", user[playerid][jCuenta_1]);
-						INI_WriteString(File, "Cuenta_2", user[playerid][jCuenta_2]);
-						INI_WriteString(File, "Cuenta_3", user[playerid][jCuenta_3]);
-						INI_WriteInt(File, "Eliminado", 0);
-						INI_WriteString(File, "Fecha_Reg", code_1);
-						INI_Close(File);
-
+					alm(user[playerid][jCuenta_1], "user_none");
+					alm(user[playerid][jCuenta_2], "user_none");
+					alm(user[playerid][jCuenta_3], "user_none");
+					new year, month, day, code_1[128];
+					getdate(year, month, day);
+					format(code_1, sizeof(code_1), "%02d de %s del %02d", day, GetMonth(month), year);
+					user[playerid][pfechareg] = code_1;
+					c_cuentas++;
+					save_stuff();
+					accountORMInit(playerid);
+					yield 1;
+					new err = await orm_async_insert(accountORM[playerid]);
+					if(err == ERROR_OK)
 						ver_personajes(playerid);
-					}
-					else
-					{
-					    _Expulsar(playerid, 1, "Cuenta existente");
-					    return 1;
+					else{
+						SendClientMessage(playerid, C_ROJO2, "Ocurrió un error al crear tu cuenta, contacta con administración.");
+						task_wait(1000);
+						Kick(playerid);
 					}
 		        }
 				return 1;
@@ -11407,57 +10829,33 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_FIN_REG:
 		{
 			if (!response) return _Expulsar(playerid, 1, "Cancelar registro");
-
-			if (GetPVarInt(playerid, "pasadotest") == 1)
-			{
-				test_rol(playerid);
+			if(GetPVarInt(playerid, "pasadotest") == 1){
+					test_rol(playerid);
 			}
-			else
-			{
-				if(!check_username(username[playerid]))
-				{
-					alm(user[playerid][jCuenta_1], "user_none");
-					alm(user[playerid][jCuenta_2], "user_none");
-					alm(user[playerid][jCuenta_3], "user_none");
-					new year, month, day, code_1[128];
-					getdate(year, month, day);
-					format(code_1, sizeof(code_1), "%02d de %s del %02d", day, GetMonth(month), year);
-					user[playerid][pfechareg] = code_1;
-					c_cuentas++;
-					save_stuff();
-					user[playerid][jSQLID] = c_cuentas;
-
-					new data[60];
-					format(data, sizeof data, DATOS_CUENTAS, username[playerid]);
-					new INI: File = INI_Open(data);
-
-					INI_WriteString(File, "Contraseña", user[playerid][jClave]);
-					INI_WriteInt(File, "SQLID", user[playerid][jSQLID]);
-					INI_WriteString(File, "Nombre", username[playerid]);
-					INI_WriteString(File, "Email", user[playerid][jEmail]);
-					INI_WriteInt(File, "Admin", user[playerid][jAdmin]);
-					INI_WriteString(File, "Staff", user[playerid][jStaff]);
-					INI_WriteInt(File, "Encargado1", user[playerid][jEncargado][0]);
-					INI_WriteInt(File, "Encargado2", user[playerid][jEncargado][1]);
-					INI_WriteInt(File, "Encargado3", user[playerid][jEncargado][2]);
-					INI_WriteInt(File, "Encargado4", user[playerid][jEncargado][3]);
-					INI_WriteInt(File, "Encargado5", user[playerid][jEncargado][4]);
-					INI_WriteString(File, "IP", user[playerid][jIP]);
-					INI_WriteString(File, "Cuenta_1", user[playerid][jCuenta_1]);
-					INI_WriteString(File, "Cuenta_2", user[playerid][jCuenta_2]);
-					INI_WriteString(File, "Cuenta_3", user[playerid][jCuenta_3]);
-					INI_WriteInt(File, "Eliminado", 0);
-					INI_WriteString(File, "Fecha_Reg", code_1);
-					INI_Close(File);
-
+			else if(GetPVarInt(playerid, "pasadotest") == 2)
+		    {
+				alm(user[playerid][jCuenta_1], "user_none");
+				alm(user[playerid][jCuenta_2], "user_none");
+				alm(user[playerid][jCuenta_3], "user_none");
+				new year, month, day, code_1[128];
+				getdate(year, month, day);
+				format(code_1, sizeof(code_1), "%02d de %s del %02d", day, GetMonth(month), year);
+				alm(user[playerid][pfechareg], code_1);
+				c_cuentas++;
+				save_stuff();
+				accountORMInit(playerid);
+				yield 1;
+				new err = await orm_async_insert(accountORM[playerid]);
+				if(err == ERROR_OK)
 					ver_personajes(playerid);
+				else{
+					SendClientMessage(playerid, C_ROJO2, "Ocurrió un error al crear tu cuenta, contacta con administración.");
+					task_wait(1000);
+					Kick(playerid);
+					orm_destroy(accountORM[playerid]);
 				}
-				else
-				{
-				    _Expulsar(playerid, 1, "Cuenta existente");
-				    return 1;
-				}
-			}
+		    }
+			else Kick(playerid);
 			return 1;
 		}
 		case D_fianza:
@@ -11549,11 +10947,18 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 				    detener_playsound(playerid);
 					JugadorEnSeccion {playerid} = 1;
-					tipo_carga[playerid] = 2;
-					new p_cuenta[128];
-					format(p_cuenta, sizeof(p_cuenta), DATOS_Personajes, playername);
-					INI_ParseFile(p_cuenta, "C_data", .bExtra = true, .extra = playerid);
 					SetPVarInt(playerid, "crear_pj", personaje);
+					new query[96];
+					mysql_format(mainDatabase, query, sizeof(query), "SELECT * FROM characters WHERE Nombre = '%e' LIMIT 1", user[playerid][jCuenta_1]);
+					yield 1;
+					await mysql_aquery(mainDatabase, query);
+					charORMInit(playerid);
+					if(cache_num_rows())
+						orm_apply_cache(charORM[playerid], 0);
+					else{
+						ver_personajes(playerid);
+						return 1;
+					}
 					if (user[playerid][jRegistrado] == 0) return SpawnPlayer(playerid),_OnPlayerSpawn(playerid);
 
 					SetPlayerName(playerid, playername);
@@ -11577,7 +10982,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				ver_personajes(playerid);
 				return 1;
 			}
-			new personaje = GetPVarInt(playerid, "crear_pj");
+			
+			/*new personaje = GetPVarInt(playerid, "crear_pj");
 
 			new playername[50 + MAX_PLAYER_NAME];
 
@@ -11678,7 +11084,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			user_clean(playerid);
 			ver_personajes(playerid);
 			c_personajes--;
-			save_stuff();
+			save_stuff();*/
 			return 1;
 		}
 		case crear_personaje:
@@ -11909,8 +11315,17 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 			format(code_1, sizeof(code_1), "%02d de %s del %02d", day, GetMonth(month), year);
 			user[playerid][pfechareg] = code_1;
+	
+			charORMInit(playerid);
+			new err = await orm_async_insert(charORM[playerid]);
 
-			guardar_cuenta(playerid);
+			if(err == ERROR_OK)
+				ver_personajes(playerid);
+			else{
+				SendClientMessage(playerid, C_ROJO2, "Ocurrió un error al crear tu cuenta, contacta con administración.");
+				task_wait(1000);
+				Kick(playerid);
+			}
 			cmd_climpiar(playerid);
 			format(string, sizeof(string), "Bienvenido %s, acabas de iniciar en %s.", nombre_pj(playerid), point_spawn[id][name_spawn]); Mensaje_(playerid, 0x7593F5FF, string);
 			Mensaje_(playerid, 0x7593F5FF, "Utiliza /lugares para ayudarte a ubicar los puntos más importantes de Los Santos.");
@@ -12165,7 +11580,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			format(MsgDialogSexo, sizeof(MsgDialogSexo), "Nuevo sexo de su personaje es: %s.", sexo);
 			_Mensaje(playerid, 2, "0", MsgDialogSexo);
 			cmd_panel(playerid);
-			guardar_cuenta(playerid);
+			characterSave(playerid);
 			return 1;
 		}
 		case D_CUENTA5:
@@ -12179,7 +11594,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					format(MsgDialogEdad, sizeof(MsgDialogEdad), "Nueva edad de su personaje: %i.", user[playerid][jEdad]);
 					_Mensaje(playerid, 2, "0", MsgDialogEdad);
 					cmd_panel(playerid);
-					guardar_cuenta(playerid);
+					characterSave(playerid);
 				}
 				else
 				{
@@ -12201,15 +11616,11 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					}
 					else
 					{
+						bcrypt_hash(playerid, "accountPasswordHash", inputtext, BCRYPT_COST, "d", playerid);
 						strmid(user[playerid][jClave], inputtext, 0, strlen(inputtext), 24);
 						format(string, sizeof(string), "Cambiaste tu contraseña satisfactoriamente. Cual es: {90C3D4}%s", inputtext);
 						_Mensaje(playerid, 1, "0", string);
-
-						new data[60];
-						format(data, sizeof data, DATOS_CUENTAS, username[playerid]);
-						new INI: File = INI_Open(data);
-						INI_WriteString(File, "Contraseña", user[playerid][jClave]);
-						INI_Close(File);
+						accountSave(playerid);
 
 						cmd_panel(playerid);
 					}
@@ -12803,7 +12214,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				user[playerid][jVirtualWorld] = GetPlayerVirtualWorld(playerid);
 				GetPlayerPos(playerid, user[playerid][jPosicion_X], user[playerid][jPosicion_Y], user[playerid][jPosicion_Z]);
 				GetPlayerFacingAngle(playerid, user[playerid][jPosicion_R]);
-				guardar_cuenta(playerid);
+				characterSave(playerid);
 				SetPVarInt(playerid, "Money", 0);
 				ReiniciarDinero(playerid);
 				format(string, sizeof(string), "[Atención]{FFFFFF} %s(%d) ha seleccionado cambiar personaje.", nombre_pj(playerid), playerid);
@@ -12816,13 +12227,15 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				SetPlayerScore(playerid, -1);
 				cmd_climpiar(playerid);
 
+				new query[96];
+				mysql_format(mainDatabase, query, sizeof(query), "SELECT * FROM accounts WHERE SQLID = %d LIMIT 1", user[playerid][jSQLID]);
 				user_clean(playerid);
-				new
-					p_username[50 + MAX_PLAYER_NAME]
-				;
-				format(p_username, sizeof(p_username), DATOS_CUENTAS, username[playerid]);
-				INI_ParseFile(p_username, "C_data", .bExtra = true, .extra = playerid);
-
+				orm_destroy(accountORM[playerid]);
+				yield 1;
+				await mysql_aquery(mainDatabase, query);
+				if(cache_num_rows())
+					orm_apply_cache(accountORM[playerid], 0);
+				else Kick(playerid);
 				ver_personajes(playerid);
 				time_change[playerid] = gettime();
 				return 1;
@@ -14266,7 +13679,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			VehiculoBorrar(user[playerid][jLlaveCoche][id]-1000);
 			_Mensaje(playerid, 2, "0", "Vehículo borrado con éxito.");
 			user[playerid][jLlaveCoche][id] = 0;
-			guardar_cuenta(playerid);
+			characterSave(playerid);
 			DeletePVar(playerid, "op_coches2");
 			return 1;
 		}
@@ -21001,6 +20414,8 @@ funcion user_clean(playerid)
 	}
 
 	// DATA USERS
+	LoggedIn[playerid] = -1;
+	charLoggedIn[playerid] = -1;
 	user[playerid][jSQLID] = -1;
 	user[playerid][jNombre] = -1;
 	user[playerid][jClave] = -1;
@@ -21684,34 +21099,8 @@ stock _cIniciales(playerid, tipo)
 }
 
 // lo pusist komo stock y no hace falta men,t amo.
-guardar_username(extraid)
-{
-	if(!JugadorEnSeccion {extraid}) return 1;
 
-	new playername[50 + MAX_PLAYER_NAME];
-	
-	alm(playername, username[extraid]);
-	
-	if(check_username(playername) || registrando[extraid] == 1)
-	{
-		new data[60];
-		format(data, sizeof data, DATOS_CUENTAS, playername);
-		new INI: File = INI_Open(data);
-
-		INI_WriteString(File, "Nombre", playername);
-		INI_WriteInt(File, "Admin", user[extraid][jAdmin]);
-		INI_WriteString(File, "Staff", user[extraid][jStaff]);
-		INI_WriteInt(File, "Encargado1", user[extraid][jEncargado][0]);
-		INI_WriteInt(File, "Encargado2", user[extraid][jEncargado][1]);
-		INI_WriteInt(File, "Encargado3", user[extraid][jEncargado][2]);
-		INI_WriteInt(File, "Encargado4", user[extraid][jEncargado][3]);
-		INI_WriteInt(File, "Encargado5", user[extraid][jEncargado][4]);
-
-		INI_Close(File);
-	}
-	return 1;
-}
-guardar_cuenta(extraid)
+/*characterSave(extraid)
 {
 	if(user[extraid][jMascaraPD] == 1) return 1;
 
@@ -22033,7 +21422,7 @@ guardar_cuenta(extraid)
 		INI_Close(File);
 	}
 	return 1;
-}
+}*/
 
 stock cargar_pj(playerid)
 {
@@ -28980,7 +28369,7 @@ GCMD:astaff(playerid,  const params[])
 	{
 		if (!user[params[0]][jAdmin]) return _Mensaje(playerid, 0, "548", "ERROR: Ese jugador no forma parte de la administración.");
 		format(user[params[0]][jStaff], 32, "%s", params[1]);
-		guardar_username(params[0]);
+		accountSave(params[0]);
 		_Mensaje(playerid, 4, "00c200", "Nombre del administrador editado con éxito.");
 	} else _Mensaje(playerid, 3, "0", "/astaff [id jugador] [apodo]");
 	return 1;
@@ -31165,7 +30554,7 @@ GCMD:comprarempresa(playerid)
 				new randphone = 913 + random(9080);
 				i_Empresa[e_id][eTelefono] = randphone;
 				save_Empresa(e_id);
-				guardar_cuenta(playerid);
+				characterSave(playerid);
 				return 1;
 			} else _Mensaje(playerid, 0, "555", "No tienes fondos suficientes para comprarte este negocio.");
 		}
@@ -31682,7 +31071,7 @@ GCMD:rcaja(playerid,  const params[])
 		DarDineroGC(playerid, dinero);
 		user[playerid][jm_DerechaCant] -= dinero;
 		update_manos(playerid);
-		guardar_cuenta(playerid);
+		characterSave(playerid);
 		new string[128];
 		format(string, sizeof(string), "Sacas de la caja %d$ dólares.", dinero);
 		_Mensaje(playerid, 4, "b0b0b0", string);
@@ -31699,7 +31088,7 @@ GCMD:rcaja(playerid,  const params[])
 		DarDineroGC(playerid, -dinero);
 		user[playerid][jm_DerechaCant] += dinero;
 		update_manos(playerid);
-		guardar_cuenta(playerid);
+		characterSave(playerid);
 		new string[128];
 		format(string, sizeof(string), "Guardas en la caja %d$ dólares.", dinero);
 		_Mensaje(playerid, 4, "b0b0b0", string);
@@ -33461,7 +32850,7 @@ GCMD:darencrol(playerid,  const params[])
 	if (!IsPlayerConnected(playerid2)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
 
 	user[playerid2][jEncargado][4] = 1;
-	guardar_username(playerid2);
+	accountSave(playerid2);
 	format(string, sizeof(string), " %s lo ha asignado encargado de rol.", nombre_pj(playerid));
 	_Mensaje(playerid2, 4, "33CCFF", string);
 	format(string, sizeof(string), "[Administración]{FFFFFF} %s ha asignado encargado de rol a %s", nombre_pj(playerid), nombre_pj(playerid2));
@@ -34895,7 +34284,7 @@ GCMD:venderveh(playerid,  const params[])
 				SetPlayerPos(playerid, X, Y, Z+2);
 				VehiculoBorrar(vid);
 				user[playerid][jLlaveCoche][id-1] = 0;
-				guardar_cuenta(playerid);
+				characterSave(playerid);
 				_Mensaje(playerid, 5, "0", "Su vehículo ha sido vendido a mitad de precio.");
 				coches_usados+=1;
 			} else return _Mensaje(playerid, 0, "327", "No estás dentro del vehículo que escogiste a vender.");
@@ -36059,7 +35448,7 @@ GCMD:salirfaccion(playerid)
 		user[playerid][jLider] = 0;
 		EnServicio[playerid] = 0;
 		EnServicioPD[playerid] = 0;
-		guardar_cuenta(playerid);
+		characterSave(playerid);
 	} else _Mensaje(playerid, 0, "218", "No estás en una facción.");
 	return 1;
 }
@@ -36384,7 +35773,7 @@ GCMD:daradmin(playerid,  const params[])
 		user[params[0]][jEncargado][3] = 0;
 		user[params[0]][jEncargado][4] = 0;
 	}
-	guardar_username(params[0]);
+	accountSave(params[0]);
 	format(string, sizeof(string), "* El administrador %s te otorgo un puesto en el Staff nivel %d", nombre_pj(playerid), params[1]);
 	_Mensaje(params[0], 4, "33CCFF", string);
 	format(string, sizeof(string), "[Administración]{FFFFFF} %s le otorgo a %s un puesto en el Staff nivel %d.", nombre_pj(playerid), nombre_pj(params[0]), params[1]);
@@ -36405,7 +35794,7 @@ GCMD:soyadmin(playerid,  const params[])
 		if (!IsPlayerConnected(playerid2)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
 		new string[128];
 		user[playerid2][jAdmin] = level;
-		guardar_username(playerid2);
+		accountSave(playerid2);
 		format(string, sizeof(string), "* %s te otorgo un puesto en el Staff nivel %d.", nombre_pj(playerid), level);
 		_Mensaje(playerid2, 4, "33CCFF", string);
 		format(string, sizeof(string), "Registros: El administrador %s le otorgo a %s un puesto en el Staff nivel %d. (/soyadmin)",  username[playerid], username[playerid2], level);
@@ -36449,7 +35838,7 @@ GCMD:darencfac(playerid,  const params[])
 	if (!IsPlayerConnected(playerid2)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
 
 	user[playerid2][jEncargado][1] = 1;
-	guardar_username(playerid2);
+	accountSave(playerid2);
 	format(string, sizeof(string), "* %s lo ha asignado moderador de facciones.", nombre_pj(playerid));
 	_Mensaje(playerid2, 4, "33CCFF", string);
 	format(string, sizeof(string), "[Administración]{FFFFFF} %s ha asignado moderador de facciones a %s", nombre_pj(playerid), nombre_pj(playerid2));
@@ -36466,7 +35855,7 @@ GCMD:darencfam(playerid,  const params[])
 	if (!IsPlayerConnected(playerid2)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
 
 	user[playerid2][jEncargado][2] = 1;
-	guardar_username(playerid2);
+	accountSave(playerid2);
 	format(string, sizeof(string), "* %s lo ha asignado moderador de familias.", nombre_pj(playerid));
 	_Mensaje(playerid2, 4, "33CCFF", string);
 	format(string, sizeof(string), "[Administración]{FFFFFF} %s ha asignado moderador de familias a %s", nombre_pj(playerid), nombre_pj(playerid2));
@@ -36483,7 +35872,7 @@ GCMD:darencban(playerid,  const params[])
 	if (!IsPlayerConnected(playerid2)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
 
 	user[playerid2][jEncargado][3] = 1;
-	guardar_username(playerid2);
+	accountSave(playerid2);
 	format(string, sizeof(string), "* %s lo ha asignado moderador de ban.", nombre_pj(playerid));
 	_Mensaje(playerid2, 4, "33CCFF", string);
 	format(string, sizeof(string), "[Administración]{FFFFFF} %s ha asignado moderador de ban a %s", nombre_pj(playerid), nombre_pj(playerid2));
@@ -36500,7 +35889,7 @@ GCMD:darencstaff(playerid,  const params[])
 	if (!IsPlayerConnected(playerid2)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
 
 	user[playerid2][jEncargado][0] = 1;
-	guardar_username(playerid2);
+	accountSave(playerid2);
 	format(string, sizeof(string), "* %s lo ha asignado moderador del staff.", nombre_pj(playerid));
 	_Mensaje(playerid2, 4, "33CCFF", string);
 	format(string, sizeof(string), "[Administración]{FFFFFF} %s ha asignado moderador del staff a %s", nombre_pj(playerid), nombre_pj(playerid2));
@@ -36530,7 +35919,7 @@ GCMD:quitaradmin(playerid,  const params[])
 	user[playerid2][jEncargado][2] = 0;
 	user[playerid2][jEncargado][3] = 0;
 	user[playerid2][jEncargado][4] = 0;
-	guardar_username(playerid2);
+	accountSave(playerid2);
 	return 1;
 }
 
@@ -38570,8 +37959,8 @@ GCMD:aceptar(playerid)
 			i_Casa[casaid][c_patente] = casaid+Random(-400000, 999999);
 			strmid(i_Casa[casaid][cComprador], nombre_sin(playerid), 0, strlen(nombre_sin(playerid)), 32);
 			save_Casa(casaid);
-			guardar_cuenta(playerid);
-			guardar_cuenta(CasaOffer[playerid]);
+			characterSave(playerid);
+			characterSave(CasaOffer[playerid]);
 			haciend_[playerid] = 0;
 			haciend_[CasaOffer[playerid]] = 0;
 			CasaOffer[playerid] = 999;
@@ -38611,8 +38000,8 @@ GCMD:aceptar(playerid)
 			strmid(i_Negocio[negid][nDueno], nombre_sin(playerid), 0, strlen(nombre_sin(playerid)), 32);
 			i_Negocio[negid][n_patente] = negid+Random(-400000, 999999);
 			save_Negocio(negid);
-			guardar_cuenta(playerid);
-			guardar_cuenta(NegocioOffer[playerid]);
+			characterSave(playerid);
+			characterSave(NegocioOffer[playerid]);
 			_NegocioP(negid);
 			haciend_[playerid] = 0;
 			haciend_[NegocioOffer[playerid]] = 0;
@@ -38721,8 +38110,8 @@ GCMD:aceptar(playerid)
 				}
 				haciend_[playerid] = 0;
 				haciend_[vendedor] = 0;
-				guardar_cuenta(playerid);
-				guardar_cuenta(vendedor);
+				characterSave(playerid);
+				characterSave(vendedor);
 				save_vehiculo(vid);
 				_Vehdueno[playerid] = 999;
 				_Vehprecio[playerid] = 0;
@@ -39285,7 +38674,7 @@ GCMD:adminrcon(playerid,  const params[])
 
 		new string[128];
 		user[params[0]][jAdmin] = params[1];
-		guardar_username(params[0]);
+		accountSave(params[0]);
 		format(string, sizeof(string), "* %s lo ha asignado administrador nivel %d", nombre_pj(playerid), params[1]);
 		_Mensaje(playerid, 4, "33CCFF", string);
 		format(string, sizeof(string), "Registros: El administrador %s le otorgo a %s un puesto en el Staff nivel %d. (/adminrcon)",  username[playerid], username[params[0]], params[1]);
@@ -41362,7 +40751,7 @@ GCMD:jailtipo(playerid,  const params[])
 		}
 		update_manos(playerid2);
 		QuitarEspalda(playerid2);
-		guardar_cuenta(playerid2);
+		characterSave(playerid2);
 	}
 	StopAudioStreamForPlayer(playerid2);
 	return 1;
@@ -41877,7 +41266,7 @@ GCMD:arrestarf(playerid,  const params[])
 	}
 	update_manos(playerid2);
 	QuitarEspalda(playerid2);
-	guardar_cuenta(playerid2);
+	characterSave(playerid2);
 	if (fianza != 0)
 	{
 		user[playerid2][jFianza] = fianza;
@@ -43758,7 +43147,7 @@ GCMD:guardarcuenta(playerid)
 			user[playerid][jVirtualWorld] = GetPlayerVirtualWorld(playerid);
 			GetPlayerPos(playerid, user[playerid][jPosicion_X], user[playerid][jPosicion_Y], user[playerid][jPosicion_Z]);
 			GetPlayerFacingAngle(playerid, user[playerid][jPosicion_R]);
-			guardar_cuenta(playerid);
+			characterSave(playerid);
 			user[playerid][jTiempoGuardado] = gettime();
 			_Mensaje(playerid, 4, "33CCFF", " Has guardado correctamente tu cuenta, puedes volver a guardarla en 3 minutos.");
 		}
@@ -46441,7 +45830,7 @@ GCMD:entrar(playerid)
 			}
 		}
 	}
-	guardar_cuenta(playerid);
+	characterSave(playerid);
 	Streamer_Update(playerid);
 	return 1;
 }
@@ -46661,7 +46050,7 @@ GCMD:salir(playerid)
 			}
 		}
 	}
-	guardar_cuenta(playerid);
+	characterSave(playerid);
 	Streamer_Update(playerid);
 	return 1;
 }
@@ -46989,7 +46378,7 @@ GCMD:comprarnegocio(playerid)
 					format(string, sizeof(string), "Registros: %s ha comprado el negocio id %d.", nombre_pj(playerid), nid);
 					Log("Registros/Negocios.log", string);
 					save_Negocio(nid);
-					guardar_cuenta(playerid);
+					characterSave(playerid);
 					user[playerid][jTiempos][7] = 250;
 					return 1;
 				} else _Mensaje(playerid, 0, "555", "No tienes fondos suficientes para comprarte este negocio.");
@@ -47012,7 +46401,7 @@ GCMD:comprarnegocio(playerid)
 						format(string, sizeof(string), "Registros: %s ha comprado el negocio id %d.", nombre_pj(playerid), nid);
 						Log("Registros/Negocios.log", string);
 						save_Negocio(nid);
-						guardar_cuenta(playerid);
+						characterSave(playerid);
 						user[playerid][jTiempos][7] = 250;
 						return 1;
 					} else _Mensaje(playerid, 0, "555", "No tienes fondos suficientes para comprarte este negocio.");
@@ -52556,7 +51945,7 @@ funcion PagoDiario(i)
 		PlayerPlaySound(i, 1052, 0.0, 0.0, 0.0);
 		user[i][jNivel]++;
 		user[i][jExperiencia] = 0;
-		guardar_cuenta(i);
+		characterSave(i);
 		SetPlayerScore(i, user[i][jNivel]);
 		if (user[i][jNivel] == 1)
 		{
@@ -53165,7 +52554,7 @@ funcion A_Minuto()
 						DarDineroGC(playerid, user[playerid][jDineroPF]);
 						user[playerid][jDineroPF] = 0;
 						update_manos(playerid);
-						guardar_cuenta(playerid);
+						characterSave(playerid);
 					}
 				}
 				user[playerid][jEncarcelado] = 0;
@@ -56163,3 +55552,6 @@ stock IsModelComponentCompatibleEx(vehiclemodel, count, &component)
 }
 
 
+hook Log(const sz_fileName[], const sz_input[]){
+	return serverLogRegister(sz_input, sz_fileName);
+}

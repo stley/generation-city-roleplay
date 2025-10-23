@@ -3,9 +3,6 @@ project(Generation-City NONE)
 
 # Find pawncc on PATH
 find_program(PAWNCC NAMES pawncc pawncc.exe)
-if(NOT PAWNCC)
-    set(PAWNCC "C:/pawn-compiler/bin/pawncc.exe")
-endif()
 
 # Common flags (tweak as needed)
 set(PAWN_FLAGS
@@ -13,8 +10,8 @@ set(PAWN_FLAGS
   "-\;+" "-\(+"
   "-Z+"
   "-i${CMAKE_SOURCE_DIR}/include"
-  "-i${CMAKE_SOURCE_DIR}/src/main_scripts"
-  "-i${CMAKE_SOURCE_DIR}/src/side_scripts"
+  "-i${CMAKE_SOURCE_DIR}/src/main_scripts/modules"
+  "-i${CMAKE_SOURCE_DIR}/src/side_scripts/modules"
 )
 
 # Output directories

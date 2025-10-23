@@ -1,15 +1,4 @@
-#include <PawnPlus>
-#include <Pawn.RakNet>
-#include <sscanf2>
-#include <streamer>
-#include <cmd>
-#include <foreach>
-#include <m_selection>
-#include <yom_buttons>
-#include <mapeos>
-#include <JunkBuster>
-#include <YSI_Storage\y_ini>
-#include <ecm>
+
 
 //- Anti amx
 AntiAmx()
@@ -479,3 +468,11 @@ new WalkStyle[MAX_PLAYERS];
 #define C_AMARILLO 	     	    (0xFFF000FF)
 #define C_COLORPOLICIA   		(0x8D8DFFFF)
 #define C_COLORRADIO    		(0x9B9BFFFF)
+
+
+#include "core/database.p"
+#include "core/orm_async.p"
+#include "core/other.p"
+#include "almacenes/almacenes.p"
+#include "anuncios/anuncios.p"
+#include "account/player.p"
