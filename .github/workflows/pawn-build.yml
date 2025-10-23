@@ -16,8 +16,8 @@ jobs:
       PAWN_FLAGS: >
         -d3 -;+ -(+ -Z+
         -iinclude
-        -isrc/main_scripts
-        -isrc/side_scripts
+        -isrc/main_scripts/modules
+        -isrc/side_scripts/modules
 
     steps:
       - name: Checkout repository
