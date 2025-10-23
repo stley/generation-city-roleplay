@@ -22,20 +22,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download Pawn compiler
+      - name: Download and extract Pawn compiler
+        shell: pwsh
         run: |
           echo "Downloading Pawn compiler..."
-          curl -L $env:COMPILER_URL -o compiler.zip
-          echo "Extracting compiler..."
-          tar -xf compiler.zip -C .
-          if (Test-Path "pawnc.exe") {
-            mkdir compiler
-            Move-Item pawnc.exe compiler/pawncc.exe
-          } elseif (Test-Path "pawncc.exe") {
-            mkdir compiler
-            Move-Item pawncc.exe compiler/
+          Invoke-WebRequest -Uri $env:COMPILER_URL -OutFile compiler.zip
+          echo "Extracting..."
+          Expand-Archive -Path compiler.zip -DestinationPath compiler -Force
+          
+          # Look for pawncc.exe or pawnc.exe
+          $exe = Get-ChildItem -Recurse -Path compiler -Filter "pawn*.exe" | Select-Object -First 1
+          if (-not $exe) {
+            Write-Error "Pawn compiler not found in archive!"
+            exit 1
           }
-          echo "Compiler ready at ./compiler/pawncc.exe"
+
+          # Normalize to compiler/pawncc.exe
+          if ($exe.Name -ne "pawncc.exe") {
+            Rename-Item -Path $exe.FullName -NewName "pawncc.exe" -Force
+          }
+          Write-Host "Compiler ready at: compiler/pawncc.exe"
+          Get-ChildItem -Recurse compiler
 
       - name: Create output directories
         run: |
@@ -63,11 +70,11 @@ jobs:
         if: steps.find_main.outputs.files != ''
         shell: pwsh
         run: |
-          $pawncc = "./compiler/pawncc.exe"
+          $pawncc = ".\compiler\pawncc.exe"
           foreach ($file in "${{ steps.find_main.outputs.files }}".Split(',')) {
             $name = [IO.Path]::GetFileNameWithoutExtension($file)
             Write-Host "Compiling main script: $file"
-            & $pawncc $file $env:PAWN_FLAGS -Dmain_scripts -o$env:MAIN_OUT_DIR\$name.amx
+            & $pawncc $file $env:PAWN_FLAGS -Dmain_scripts -o"$env:MAIN_OUT_DIR\$name.amx"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
 
@@ -75,11 +82,11 @@ jobs:
         if: steps.find_side.outputs.files != ''
         shell: pwsh
         run: |
-          $pawncc = "./compiler/pawncc.exe"
+          $pawncc = ".\compiler\pawncc.exe"
           foreach ($file in "${{ steps.find_side.outputs.files }}".Split(',')) {
             $name = [IO.Path]::GetFileNameWithoutExtension($file)
             Write-Host "Compiling side script: $file"
-            & $pawncc $file $env:PAWN_FLAGS -Dside_scripts -o$env:SIDE_OUT_DIR\$name.amx
+            & $pawncc $file $env:PAWN_FLAGS -Dside_scripts -o"$env:SIDE_OUT_DIR\$name.amx"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
 
