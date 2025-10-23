@@ -13,7 +13,8 @@ set(PAWN_FLAGS
   "-\;+" "-\(+"
   "-Z+"
   "-i${CMAKE_SOURCE_DIR}/include"
-  "-i${CMAKE_SOURCE_DIR}/src"
+  "-i${CMAKE_SOURCE_DIR}/src/main_scripts"
+  "-i${CMAKE_SOURCE_DIR}/src/side_scripts"
 )
 
 # Output directories
