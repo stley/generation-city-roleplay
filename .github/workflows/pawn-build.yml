@@ -27,22 +27,21 @@ jobs:
         run: |
           echo "Downloading Pawn compiler..."
           Invoke-WebRequest -Uri $env:COMPILER_URL -OutFile compiler.zip
-          echo "Extracting..."
+          echo "Extracting archive..."
           Expand-Archive -Path compiler.zip -DestinationPath compiler -Force
-          
-          # Look for pawncc.exe or pawnc.exe
-          $exe = Get-ChildItem -Recurse -Path compiler -Filter "pawn*.exe" | Select-Object -First 1
-          if (-not $exe) {
-            Write-Error "Pawn compiler not found in archive!"
+
+          # Move everything from the bin folder to compiler root
+          $bin = Get-ChildItem -Recurse -Directory -Path compiler | Where-Object { $_.Name -eq "bin" } | Select-Object -First 1
+          if ($bin) {
+            Write-Host "Found bin folder at: $($bin.FullName)"
+            Move-Item -Path "$($bin.FullName)\*" -Destination "compiler" -Force
+          } else {
+            Write-Error "No bin folder found inside compiler archive!"
             exit 1
           }
 
-          # Normalize to compiler/pawncc.exe
-          if ($exe.Name -ne "pawncc.exe") {
-            Rename-Item -Path $exe.FullName -NewName "pawncc.exe" -Force
-          }
-          Write-Host "Compiler ready at: compiler/pawncc.exe"
-          Get-ChildItem -Recurse compiler
+          Write-Host "Compiler contents after move:"
+          Get-ChildItem compiler
 
       - name: Create output directories
         run: |
@@ -70,7 +69,7 @@ jobs:
         if: steps.find_main.outputs.files != ''
         shell: pwsh
         run: |
-          $pawncc = ".\compiler\pawncc.exe"
+          $pawncc = "compiler/pawncc.exe"
           foreach ($file in "${{ steps.find_main.outputs.files }}".Split(',')) {
             $name = [IO.Path]::GetFileNameWithoutExtension($file)
             Write-Host "Compiling main script: $file"
@@ -82,7 +81,7 @@ jobs:
         if: steps.find_side.outputs.files != ''
         shell: pwsh
         run: |
-          $pawncc = ".\compiler\pawncc.exe"
+          $pawncc = "compiler/pawncc.exe"
           foreach ($file in "${{ steps.find_side.outputs.files }}".Split(',')) {
             $name = [IO.Path]::GetFileNameWithoutExtension($file)
             Write-Host "Compiling side script: $file"
