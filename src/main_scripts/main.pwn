@@ -1,494 +1,14 @@
 //- Includes
+#define SAMP_COMPAT
+#define CGEN_MEMORY 60000
 #include <open.mp>
+
 #pragma warning disable 213
-#pragma warning disable 234
-#pragma warning disable 239
-#pragma warning disable 214
-#pragma warning disable 204
-#pragma warning disable 240
+
 #undef MAX_PLAYERS
 #define MAX_PLAYERS			(500)
 
-#include <sscanf2>
-#include <streamer>
-#include <cmd>
-#include <foreach>
-#include <m_selection>
-#include <yom_buttons>
-#include <mapeos>
-#include <JunkBuster>
-#include <YSI_Storage\y_ini>
-
-//- Anti amx
-AntiAmx()
-{
-    new a[][] = {
-        "Unarmed (Fist)",
-        "Brass K"
-    };
-    #pragma unused a
-}
-
-//- Scriptfiles
-#define beta_version			"1.7.34"
-#define DATOS_CUENTAS			"Cuentas/%s.rp"
-#define DATOS_Personajes		"Personajes/%s.rp"
-#define DATOS_VEHICULOS			"Vehiculos/Veh_%d.rp"
-#define DATOS_CASAS				"Casas/Casa_%d.rp"
-#define DATOS_GARAGES			"Garages/Garage_%d.rp"
-#define DATOS_NEGOCIOS			"Negocios/Negocio_%d.rp"
-#define DATOS_FAMILIAS			"Facciones/Fac_%d.rp"
-#define DATOS_VEHICULOS_F		"Vehiculos_F/Veh_%d.rp"
-#define DATOS_MARIA				"Plantas/s_%d.rp"
-#define DATOS_EMPRESAS			"Empresas/Empresa_%d.rp"
-#define DATOS_PUERTAS			"Puertas/Puerta_%d.rp"
-#define DATOS_CAJAS				"Cajas/Caja_%d.rp"
-#define DATOS_GRAFFITIS			"Graffitis/Graffiti_%d.rp"
-#define DATOS_ALMACENES			"Almacenes/Almacen_%d.rp"
-
-#define data_codes				"Codes/%s.rp"
-
-//- Limites -
-#undef MAX_ACTORS
-#define MAX_POBJETOS				(200)
-#define MAX_ACTORS					(100)
-#define MAX_PEAJES					(20)
-#define MAX_PUERTAS					(36) //> 20
-#define MAX_ROPA					(8)
-#define MAX_CASAS					(970)
-#define MAX_ALMACENES				(30)
-#define MAX_MUEBLES_C				(300)
-#define MAX_MUEBLES_N				(200)
-#define MAX_MUEBLES_G				(50)
-#define MAX_MUEBLES_E				(200)
-#define MAX_GARAJES					(100)
-#define	MAX_VEHJUGADOR				(5)
-#define	MAX_VEHICULOS				(5000)
-#define MAX_GASOLINERAS				(30)
-#define	MAX_MODVEHICULOS			(15)
-#define MAX_CAJAS					(200)
-#define MAX_EMPRESAS				(30)
-#define MAX_NEGOCIOS				(100)
-#define	MAX_BARRERAS				(30)
-#define	MAX_FACCIONES				(20)
-#define	MAX_FAMILIAS				(11)
-#define MAX_OBJETOS_S				(500)
-#define MAX_GRAFFITIS				(100) //grafitis
-#define	MAX_uACCESORIOS				(7) //limite a usuarios: 7
-#define	MAX_ACCESORIOS				(8) //la id 7 es para /espalda
-#define	MAX_VEHFAMILIAS				(10)
-#define MAX_VEH_VENTA				(111)
-#define MAX_VEH_USADO				(100)
-#define MAX_ZONE_NAME				(28)
-#define MAX_TEXT_CHAT				(150)
-#define MAX_TELEFONOS				(30)
-#define MAX_INCENDIOS				(15)
-#define MAX_PLANTAS					(1000)
-#define MAX_MEMBERS					(30)
-#define TOTAL_MODS					(36)
-
-//- Timer's e Invalid's
-#define TIEMPO_RESPAWN 			   (9999)
-
-#define INVALID_CASA_ID 		   (-1)
-#define INVALID_NEGOCIO_ID		   (-1)
-#define INVALID_MUEBLES_ID 	       (0)
-#define INVALID_PLAYER_VEHICLE_ID  (0)
-#define CHECKPOINT_NONE 		   (0)
-#define CHECKPOINT_RETURNTRUCK 	   (600)
-
-//- Estilos
-#define WALK_DEFAULT    1
-#define WALK_PED        2
-#define WALK_GANGSTA    3
-#define WALK_GANGSTA2   4
-#define WALK_OLD        5
-#define WALK_FAT_OLD    6
-#define WALK_FAT        7
-#define WALK_LADY      	8
-#define WALK_LADY2      9
-#define WALK_WHORE      10
-#define WALK_WHORE2     11
-#define WALK_DRUNK     	12
-#define WALK_BLIND     	13
-
-// Daños
-#define COLT_DAMAGE_TORSO_AND_GROIN (11.0)
-#define COLT_DAMAGE_ARMS (5.0)
-#define COLT_DAMAGE_LEGS (7.0)
-#define DESERT_DAMAGE_TORSO_AND_GROIN (30.0)
-#define DESERT_DAMAGE_ARMS (18.0)
-#define DESERT_DAMAGE_LEGS (22.0)
-#define SHOTGUN_DAMAGE_TORSO_AND_GROIN (35.0)
-#define SHOTGUN_DAMAGE_ARMS (20.0)
-#define SHOTGUN_DAMAGE_LEGS (24.0)
-#define SAWNOFF_DAMAGE_TORSO_AND_GROIN (40.0)
-#define SAWNOFF_DAMAGE_ARMS (25.0)
-#define SAWNOFF_DAMAGE_LEGS (30.0)
-#define SPAS12_DAMAGE_TORSO_AND_GROIN (45.0)
-#define SPAS12_DAMAGE_ARMS (30.0)
-#define SPAS12_DAMAGE_LEGS (35.0)
-#define UZI_DAMAGE_TORSO_AND_GROIN (8.5)
-#define UZI_DAMAGE_ARMS (5.0)
-#define UZI_DAMAGE_LEGS (6.5)
-#define MP5_DAMAGE_TORSO_AND_GROIN (14.0)
-#define MP5_DAMAGE_ARMS (7.5)
-#define MP5_DAMAGE_LEGS (8.5)
-#define AK47_DAMAGE_TORSO_AND_GROIN (25.0)
-#define AK47_DAMAGE_ARMS (16.0)
-#define AK47_DAMAGE_LEGS (20.0)
-#define M4_DAMAGE_TORSO_AND_GROIN (28.0)
-#define M4_DAMAGE_ARMS (17.0)
-#define M4_DAMAGE_LEGS (21.0)
-#define TEC_DAMAGE_TORSO_AND_GROIN (8.4)
-#define TEC_DAMAGE_ARMS (5.0)
-#define TEC_DAMAGE_LEGS (6.3)
-#define RIFLE_DAMAGE_TORSO_AND_GROIN (48.0)
-#define RIFLE_DAMAGE_ARMS (38.0)
-#define RIFLE_DAMAGE_LEGS (40.0)
-#define SNIPER_DAMAGE_TORSO_AND_GROIN (65.0)
-#define SNIPER_DAMAGE_ARMS (45.0)
-#define SNIPER_DAMAGE_LEGS (55.0)
-#define ug_paintball_DAMAGE_TORSO_AND_GROIN (3.0)
-#define ug_paintball_DAMAGE_ARMS (1.0)
-#define ug_paintball_DAMAGE_LEGS (0.5)
-
-
-new walktime[MAX_PLAYERS];
-new WalkStyle[MAX_PLAYERS];
-
-//- Macros
-#define SetPVarInt(%0,%1,0); 		        DeletePVar(%0,%1);
-#define _GiveWeapon							GivePlayerWeapon
-#define ColocarObject                       SetPlayerAttachedObject
-#define ReiniciarDinero                     ResetPlayerMoney
-#define ActualizarDinero 				    GivePlayerMoney
-#define textgame_player   					GameTextForPlayer
-#define ComprobarDineroJ(%0) 			    GetPVarInt(%0, "Money")
-#define Mensaje_ 			                SendClientMessage
-#define EnviarMensajeTodos 			        SendClientMessageToAll
-#define funcion%0(%1) 				        forward %0(%1); public %0(%1)
-#define Loop(%0,%1,%2)                      for(new %0 = %2; %0 < %1; %0++)
-#define NombreVehiculo(%0) 			        nombre_vehiculo[GetVehicleModel(%0)-400]
-#define	en_pos(%2,%1,%3,%4,%5)			  	IsPlayerInRangeOfPoint(%2,%1,%3,%4,%5)
-#define set_checkpoint                      SetPlayerCheckpoint
-#define Formato(%1,              			format(%1,sizeof(%1),
-#define TOTAL_MODS  (36)
-#define IsValidComponent(%1)  \
-									(1000 <= (%1) <= 1193)
-#define IsVehicleValidModel(%1) \
-									(400 <= (%1) <= 611)
-									// PRESSED(keys)
-#define PRESSED(%0) \
-	(((newkeys & (%0)) == (%0)) && ((oldkeys & (%0)) != (%0)))
-									// RELEASED(keys)
-#define RELEASED(%0) \
-	(((newkeys & (%0)) != (%0)) && ((oldkeys & (%0)) == (%0)))
-//- Dialog's
-#define D_INVALIDO      		   (0)
-
-#define D_INGRESO					(1)
-#define D_REGISTRO					(2)
-#define D_EMAIL						(3)
-#define D_FIN_REG					(4)
-#define crear_personaje				(5)
-#define D_SEXO						(6)
-#define D_EDAD						(7)
-#define D_fin_regpj					(8)
-#define D_personajes				(9)
-
-
-#define D_TEST0						(10)
-#define D_TEST1						(11)
-#define D_TEST2						(12)
-#define D_TEST3						(13)
-#define D_TEST4						(14)
-#define D_TEST5						(15)
-#define D_TEST6						(16)
-#define D_TEST7						(17)
-#define D_TEST8						(18)
-#define D_TEST9						(19)
-#define D_Habilidad                 (20)
-#define	D_CUENTA					(21)
-#define D_CUENTA3					(22)
-#define D_CUENTA4					(23)
-#define D_CUENTA5					(24)
-#define D_CUENTA6					(25)
-#define D_Iempresa					(26)
-#define D_VehEmpresa				(27)
-#define D_INVENTARIO				(28)
-#define D_CINTURON					(29)
-#define D_Caja                      (30)
-#define D_TELEFONO					(31)
-#define D_TELEFONO2					(32)
-#define D_TELEFONO3					(33)
-#define D_TELEFONO4					(34)
-#define D_TELEFONO5					(35)
-#define D_TELEFONO6					(36)
-#define D_TELEFONO7					(37)
-#define D_TELEFONO8					(38)
-#define D_TELEFONO9					(39)
-#define D_AYUDA						(40)
-#define D_AYUDA2					(41)
-#define	D_BANCO						(42)
-#define D_BANCOR					(43)
-#define D_BANCOD					(44)
-#define D_BANCOT					(45)
-#define D_BANCOT2					(46)
-#define D_Carmario					(47)
-#define D_Carmario2					(48)
-#define D_ArmarioN					(49)
-#define D_Farmario					(50)
-#define D_TRABAJOS					(51)
-#define D_LUGARES					(52)
-#define D_LUGARES_2					(53)
-#define D_LUGARES_3					(54)
-#define D_LUGARES_4					(55)
-#define D_LUGARES_5					(56)
-#define D_GPS						(57)
-#define D_Cuotas					(58)
-#define DialogLicense               (59)
-#define D_PDmecanico				(60)
-#define D_gArmario					(61)
-#define D_gArmario2					(62)
-#define D_Cvehiculo					(63)
-#define D_Cvehiculo2				(64)
-#define D_Uvehiculo1				(65)
-#define D_Uvehiculo2				(66)
-#define D_PUERTO					(67)
-#define D_AYUNTAMIENTO				(68)
-#define D_PuntosP					(69)
-#define D_VEHMENU					(70)
-#define D_opVeh_1					(71)
-#define D_opVeh_2					(72)
-#define D_opVeh_3					(73)
-#define D_opVeh_4					(74)
-#define D_VEH2MENU					(75)
-#define D_op2Veh_1					(76)
-#define D_BOOMBOX					(77)
-#define D_BOOMBOX1					(78)
-#define D_BOOMBOX2					(79)
-#define D_Mnegro					(80)
-#define D_Cdnifalso					(81)
-#define D_Cdnifalso2				(82)
-#define D_Ifamilia					(83)
-#define D_Ifaccion					(84)
-#define	D_Tmecanico0				(85)
-#define	D_Tmecanico1				(86)
-#define	D_Tmecanico2				(87)
-#define	D_Tmecanico3				(88)
-#define	D_Tmecanico4				(89)
-#define D_MusiCar					(90)
-#define D_MusiCar2					(91)
-#define D_MusiCar3					(92)
-#define D_Ilista					(93)
-#define D_Ibuscar					(94)
-#define D_ACCESORIOS				(95)
-#define D_ACCESORIOS2				(96)
-#define D_ACCESORIOS3				(97)
-#define D_ACCESORIOS4				(98)
-#define D_ACCESORIOS5				(99)
-#define D_Toys						(100)
-#define D_cToys						(101)
-#define D_vToys						(102)
-#define D_COMPRARTOYVIP				(103)
-#define D_COMPRARTOYVIP2			(104)
-#define D_COMPRARTOYPD				(105)
-#define D_COMPRARTOYPD2				(106)
-#define D_COMPRARTOYPD3				(107)
-#define D_ESTEREO					(108)
-#define D_ESTEREO2					(109)
-#define D_CASIVIPSKIN				(110)
-#define D_SALDO						(111)
-#define D_vip_locker				(112)
-#define D_VIPTRABAJO				(113)
-#define D_VIPTRABAJO2				(114)
-#define	D_MULTA						(115)
-#define D_CAMELLO					(116)
-#define D_cJoyeria					(117)
-#define D_Praticar					(118)
-#define D_MENUMALETERO				(119)
-#define D_MENUMALETERO2				(120)
-#define D_MENUMALETERO3				(121)
-#define D_MENUMALETERO4				(122)
-#define D_MENUMALETERO5				(123)
-#define D_MENUMALETEROF				(124)
-#define D_MENUGUANTERA				(125)
-#define D_Heridos					(126)
-#define D_robos						(127)
-#define D_AGENDA					(128)
-#define D_AGENDA2					(129)
-#define D_AGENDA3					(130)
-#define D_AGENDA4					(131)
-#define D_ELEGIRROPA				(132)
-#define D_EDITARROPA				(133)
-#define D_EDITARROPA2				(134)
-#define D_Comprar_Muebles			(135)
-#define D_Comprar_Muebles2			(136)
-#define D_Cacheo                    (137)
-#define DIALOG_EDIT_BONE			(138)
-#define D_TIENDA247					(139)
-#define D_nrLOTERIA					(140)
-#define D_ROPA						(141)
-#define D_RESTAURANTES				(142)
-#define D_AMMUNATION				(143)
-#define D_CLUCKINBELL				(144)
-#define D_BURGERSHOT				(145)
-#define D_PIZZASTACK				(146)
-#define D_SEXSHOP					(147)
-#define D_SEXSHOP2					(148)
-#define D_SEXSHOP3					(149)
-#define D_SEXSHOP4					(150)
-#define D_GASOLINERA				(151)
-#define D_ELECTRONICA				(152)
-#define D_FERRETERIA				(153)
-#define D_AMMUNATION2				(154)
-#define D_COMPRAELCVEH				(155)
-#define	D_Peluqueria				(156)
-#define	D_cPeluqueria				(157)
-#define D_Empeno					(158)
-#define D_Empeno2					(159)
-#define D_NEG_CLUBS					(160)
-#define D_QUITARTUNNING				(161)
-#define D_cmdPanel					(162)
-#define	D_Computador0				(163)
-#define	D_Computador1				(164)
-#define	D_Computador2				(165)
-#define	D_Computador3				(166)
-#define	D_Computador4				(167)
-#define	D_Computador5				(168)
-#define D_Cdnifalso3				(169)
-#define D_PDarmario					(170)
-#define D_PDgarmario				(171)
-#define D_CAMELLO2					(172)
-#define D_cmdPanel2					(173)
-#define D_personajes2				(174)
-#define D_personajes3				(175)
-#define D_vehPatente                (176)
-#define D_vehPatente2				(177)
-#define D_Cafeteria					(178)
-#define D_Talleres                  (179)
-#define D_Ascensor					(180)
-#define D_AvisoMuerto				(181)
-#define D_Anuncios					(182)
-#define D_fianza					(183)
-#define d_permisosbank				(184)
-
-#define d_codes (190)
-#define d_Almacen (191)
-#define d_alquiler (192)
-//casa
-#define D_Casa_Opciones				(200)
-#define D_Casa_Nombre				(201)
-#define D_Casa_Dinero				(202)
-#define D_Casa_iMuebles				(203)
-#define D_Casa_oMuebles				(204)
-#define D_Casa_tMuebles				(205)
-#define D_Casa_mTexturizar			(206)
-#define D_Casa_mTexturizar2			(207)
-
-//negocio
-#define D_Neg_Opciones				(210)
-#define D_Neg_Nombre				(211)
-#define D_Neg_Dinero				(212)
-#define D_Neg_Productos				(213)
-#define D_Neg_iMuebles				(214)
-#define D_Neg_oMuebles				(215)
-#define D_Neg_tMuebles				(216)
-#define D_Neg_mTexturizar			(217)
-#define D_Neg_mTexturizar2			(218)
-
-//garaje
-#define D_Garaje_iMuebles			(220)
-#define D_Garaje_oMuebles			(221)
-#define D_Garaje_tMuebles			(222)
-
-//empresa
-#define D_empresa_O					(230)
-#define D_empresa_O2				(231)
-#define D_empresa_O3				(232)
-#define D_empresa_O4				(233)
-#define D_empresa_O5				(234)
-#define D_empresa_O6				(235)
-#define D_empresa_O7				(236)
-#define D_Empresa_iMuebles			(237)
-#define D_Empresa_oMuebles			(238)
-#define D_Empresa_tMuebles			(239)
-#define DIALOGO_EMPRESA				(240)
-#define DIALOGO_EMPRESA2			(241)
-#define D_Emp_mTexturizar			(242)
-#define D_Emp_mTexturizar2			(243)
-
-#define D_Repartos		(261)
-#define D_TAXI			(262)
-
-#define D_Centralita				(270)
-#define D_Centralita2				(271)
-#define D_Textdraw					(272)
-#define D_Textdraw2					(273)
-#define D_Buscados					(274)
-#define D_Historial					(276)
-#define D_informes					(277)
-
-#define D_Graffiti                  (280)
-#define D_tGraffiti                 (281)
-#define D_fGraffiti                 (282)
-
-
-#define D_graffitis					(303)
-
-#define D_vehGranjero               (360)
-#define D_vehPescador               (361)
-#define teleport_staff              (362)
-#define teleport_pf					(363)
-
-//equipo
-#define D_equipoPDySD				(400)
-#define D_equipoPDySD2				(401)
-#define D_equipoPDySD3				(402)
-#define D_equipoSADOC				(403)
-#define D_equipoSADOC2				(404)
-#define D_equipo_ED					(405)
-#define D_equipo_noticias			(406)
-
-//Model's
-#define	D_UNIFORMESPD				(500)
-#define	D_UNIFORMESnoticias			(501)
-#define	D_UNIFORMESFD				(503)
-#define	D_OBJETOS_TRAFICO			(504)
-#define D_OBJETOSADMIN				(505)
-#define	D_MODELOS					(507)
-#define Models_cVehiculo			(508)
-#define D_joyeria					(510)
-
-//Colores
-#define C_VIP 					(0xC93CCEFF)
-#define C_GRIS                  (0xb0b0b0FF)
-#define C_ROJO                  (0xFF0000FF)
-#define C_LIGHTBLUE 	        (0x33CCFFFF)
-#define C_UGRP                  (0x00C200FF)
-#define C_AZUL 					(0x2641FEFF)
-
-#define C_FADE1 				(0xE6E6E6FF)
-#define C_FADE2 				(0xC8C8C8FF)
-#define C_FADE3 				(0xAAAAAAFF)
-#define C_FADE4 				(0x8C8C8CFF)
-#define C_FADE5 				(0x6E6E6EFF)
-#define C_GRAD1 				(0xB4B5B7FF)
-#define C_GRAD2 				(0xBFC0C2FF)
-#define C_GRAD3 				(0xCBCCCEFF)
-#define C_GRAD4 				(0xD8D8D8FF)
-#define C_GRAD5 				(0xE3E3E3FF)
-#define C_GRAD6 				(0xF0F0F0FF)
-#define C_VERDE		 			(0x1EB032FF)
-#define C_ROJO2 				(0xFF6F6FFF)
-#define C_BLANCO 			    (0xFFFFFFFF)
-#define C_PLAYERBLANCO 			(0xFFFFFF00)
-#define C_AMARILLO 	     	    (0xFFF000FF)
-#define C_COLORPOLICIA   		(0x8D8DFFFF)
-#define C_COLORRADIO    		(0x9B9BFFFF)
-
-
+#include "main.p"
 
 //texto abajo
 
@@ -1833,7 +1353,7 @@ funcion CargarBan_data(playerid, name[], value[])
 	return 1;
 }
 
-veri_ip(puto[])
+veri_ip(const puto[])
 {
     new tmp[128];
     format(tmp, sizeof(tmp), "Baneados/%s.rp", puto);
@@ -3393,7 +2913,7 @@ funcion crear_VehEmpresa(jugador, e_id, veh, modelo, Float: x, Float: y, Float: 
 		LinkVehicleToInterior(Coche, InfoVehEmp[e_id][veh][vInterior]);
 		SetVehicleMatricula(Coche);
 		save_Empresa(e_id, false, veh);
-		veh = 10;
+		//veh = 10;
 	}
 	return 1;
 }
@@ -4800,7 +4320,7 @@ stock RepairExVehicle(vehicleid)
 	return 1;
 }
 
-funcion ExPlayerDialog(playerid, dialogid, dialogstyle, titulo[], texto[], aceptar[], rechazar[]) // anti dialoghide.
+funcion ExPlayerDialog(playerid, dialogid, dialogstyle, const titulo[], const texto[], const aceptar[], const rechazar[]) // anti dialoghide.
 {
     CurrentDialog[playerid] = dialogid;
     ShowPlayerDialog(playerid, dialogid, dialogstyle, titulo, texto, aceptar, rechazar);
@@ -7639,21 +7159,21 @@ funcion DarMatricula(carid, id)
 	return 1;
 }
 
-check_code(account[])
+check_code(const account[])
 {
 	new count[128];
 	format(count, sizeof(count), data_codes, account);
 	return fexist(count);
 }
 
-check_username(account[])
+check_username(const account[])
 {
 	new count[128];
 	format(count, sizeof(count), DATOS_CUENTAS, account);
 	return fexist(count);
 }
 
-check_cuenta(account[])
+check_cuenta(const account[])
 {
 	new count[128];
 	format(count, sizeof(count), DATOS_Personajes, account);
@@ -8005,7 +7525,7 @@ vehicle_unlock_doors(vehicle)
 	return SetVehicleParamsEx(vehicle, vParamArr[0], vParamArr[1], vParamArr[2], VEHICLE_PARAMS_OFF, vParamArr[4], vParamArr[5], vParamArr[6]);
 }
 
-stock alm(string[], string2[])
+stock alm(string[], const string2[])
 {
 	strmid(string, string2, 0, strlen(string2), strlen(string2) + 1);
 	return 1;
@@ -10244,7 +9764,8 @@ public OnPlayerConnect(playerid)
 		SetPlayerTime(playerid, 0, 0);
 
 		Expulsar(playerid, 2);
-		SetPlayerName(playerid, "ip_baneada");
+		new name[] = "ip_baneada";
+		SetPlayerName(playerid, name);
 		return 1;
 	}
 
@@ -10894,7 +10415,7 @@ funcion _Pregunta(playerid, pregunta, error)
 	return 1;
 }
 
-funcion _Expulsar(jugador, tipo, mensaje[])
+funcion _Expulsar(jugador, tipo, const mensaje[])
 {
 	new InfoMjs[150];
 	switch (tipo)
@@ -10915,7 +10436,7 @@ funcion _Expulsar(jugador, tipo, mensaje[])
 	return 1;
 }
 
-stock _MarcarPos(playerid, Float: x, Float: y, Float: z, mensaje[], tip = 1)
+stock _MarcarPos(playerid, Float: x, Float: y, Float: z, const mensaje[], tip = 1)
 {
 	set_checkpoint(playerid, x, y, z, 1.5);
 	Mensaje_(playerid, 0xb0b0b0ff, mensaje);
@@ -10961,7 +10482,7 @@ stock Expulsar(jugador, seg = 0)
 }
 funcion Desconectar(jugador) return Kick(jugador);
 
-funcion _boombox(playerid, music[])
+funcion _boombox(playerid, const music[])
 {
 	if(i_boox[playerid][BB_obj])
 	{
@@ -10977,7 +10498,7 @@ funcion _boombox(playerid, music[])
 	return 1;
 }
 
-funcion _stereo(playerid, music[])
+funcion _stereo(playerid, const music[])
 {
 	if(GetPVarType(playerid, "AreaVehPos"))
 	{
@@ -10993,7 +10514,7 @@ funcion _stereo(playerid, music[])
 	return 1;
 }
 
-funcion _estereo(playerid, music[], id)
+funcion _estereo(playerid, const music[], id)
 {
 	foreach(new i: Player) if(GetPlayerVehicleID(i) == GetPlayerVehicleID(playerid))
 	{
@@ -11005,7 +10526,7 @@ funcion _estereo(playerid, music[], id)
 }
 
 
-funcion _MusicTlf(playerid, music[], titulo[])
+funcion _MusicTlf(playerid, const music[], const titulo[])
 {
 	StopAudioStreamForPlayer(playerid);
 	EscucharMusica(playerid, music);
@@ -12790,7 +12311,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_TELEFONO3:
 		{
 			if (!response) return cmd_telefono(playerid, "\1");
-			if (isnull(inputtext) || !isnumeric(inputtext)) return ExPlayerDialog(playerid, D_TELEFONO3, DIALOG_STYLE_INPUT, "{D6E1EB}Llamar", "Introduce el numero:", "Llamar", "Inicio");
+			if (isnull(inputtext) || !IsNumeric(inputtext)) return ExPlayerDialog(playerid, D_TELEFONO3, DIALOG_STYLE_INPUT, "{D6E1EB}Llamar", "Introduce el numero:", "Llamar", "Inicio");
 			format(string, 16, "%d", strval(inputtext));
 			cmd_llamar(playerid, string);
 			return 1;
@@ -12807,7 +12328,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_TELEFONO5:
 		{
 			if (!response) return cmd_telefono(playerid, "\1");
-			if (isnull(inputtext) || !isnumeric(inputtext)) return ExPlayerDialog(playerid, D_TELEFONO5, DIALOG_STYLE_INPUT, "{D6E1EB}Mensajes", "Introduce el numero:", "Siguiente", "Inicio");
+			if (isnull(inputtext) || !IsNumeric(inputtext)) return ExPlayerDialog(playerid, D_TELEFONO5, DIALOG_STYLE_INPUT, "{D6E1EB}Mensajes", "Introduce el numero:", "Siguiente", "Inicio");
 			format(string, 16, "%d", strval(inputtext));
 			NumeroMensaje[playerid] = strval(inputtext);
 			ExPlayerDialog(playerid, D_TELEFONO6, DIALOG_STYLE_INPUT, "{D6E1EB}Mensajes", "Introduce el texto que vas a enviar:", "Enviar", "Inicio");
@@ -12988,7 +12509,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			{
 				new amount = strval(inputtext), cid = p_bank[playerid][1];
 				if (cid == -1) return 1;
-				if(!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+				if(!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 				if(amount < 1) return _Mensaje(playerid, 0, "22", "No puedes depositar menos de un dolar.");
 				if(ComprobarDineroJ(playerid) >= amount)
 				{
@@ -13006,7 +12527,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			{
 				new amount = strval(inputtext), cid = p_bank[playerid][1];
 				if (cid == -1) return 1;
-				if(!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+				if(!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 				if(amount < 1) return _Mensaje(playerid, 0, "24", "No puedes retirar menos de un dolar.");
 				if(user[cid][jBanco] >= amount)
 				{
@@ -13027,7 +12548,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		{
 			if (!response) return _Mensaje(playerid, 4, "D7D7D4", "Cancelaste la operación.");
 			new money = strval(inputtext);
-			if (!isnumeric(inputtext)) return _Mensaje(playerid, 0, "71", "La cantidad tiene que ser números.");
+			if (!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "71", "La cantidad tiene que ser números.");
 			if (money > user[playerid][jBanco] || money < 1) return _Mensaje(playerid, 0, "72", "Cantidad de dinero incorrecta.");
 			if (money < 0) return _Mensaje(playerid, 0, "73", "ERROR: No puedes retirar menos de 0.");
 			Ganancia(playerid, money);
@@ -13042,7 +12563,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		{
 			if (!response) return _Mensaje(playerid, 4, "D7D7D4", "Cancelaste la operación.");
 			new money = strval(inputtext);
-			if (!isnumeric(inputtext)) return _Mensaje(playerid, 0, "71", "La cantidad tiene que ser números.");
+			if (!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "71", "La cantidad tiene que ser números.");
 			if (money > ComprobarDineroJ(playerid) || money < 1) return _Mensaje(playerid, 0, "72", "Cantidad de dinero incorrecta.");
 			if (money < 0) return _Mensaje(playerid, 0, "73", "ERROR: No puedes depositar menos de 0.");
 			Compra(playerid, money);
@@ -13056,7 +12577,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_BANCOT:
 		{
 			if (!response) return _Mensaje(playerid, 4, "D7D7D4", "Cancelaste la operación.");
-			if (!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+			if (!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 			new idjugador = strval(inputtext);
 			if (playerid == idjugador) return _Mensaje(playerid, 0, "74", "ERROR: No puedes transferirte dinero a ti mismo.");
 			if (!IsPlayerConnected(idjugador)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
@@ -13067,7 +12588,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_BANCOT2:
 		{
 			if (!response) return _Mensaje(playerid, 4, "D7D7D4", "Cancelaste la operación.");
-			if (!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+			if (!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 			new playerid2 = GetPVarInt(playerid, "rdinero"), money = strval(inputtext);
 			if (money > user[playerid][jBanco]) return _Mensaje(playerid, 0, "77", "Cantidad incorrecta.");
 			if (money < 999) return _Mensaje(playerid, 0, "78", "ERROR: No puedes transferir menos de 1000$.");
@@ -13644,7 +13165,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		{
 			if(!response) return cmd_telefono(playerid, "\1");
 			new amount = strval(inputtext);
-			if(!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+			if(!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 			if(amount > 999999 || amount < 1000) return _Mensaje(playerid, 0, "430", "ERROR: El número no puede ser mayor a 999999 o menor a 1000.");
 			if(user[playerid][jContacto][RanuraSeleccionadaA[playerid]] != 0) return _Mensaje(playerid, 0, "430", "ERROR: La ranura se encuentra en uso.");
 
@@ -14075,7 +13596,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_Cdnifalso2:
 		{
 			if (!response) return _Mensaje(playerid, 4, "D7D7D4", "Cancelaste la operación.");
-			if (!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+			if (!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 			new edad = strval(inputtext);
 			user[playerid][jf_Edad] = edad;
 			format(string, sizeof(string), "¿Estás seguro que quieres usar el nombre de\n\t%s, edad: %d en tu DNI falso? Precio: 2.000$", user[playerid][jf_Nombre], edad);
@@ -14712,7 +14233,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_opVeh_2:
 		{
 			if (!response) return cmd_coches(playerid);
-			if (!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+			if (!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 			new idjugador = strval(inputtext);
 			if (playerid == idjugador) return _Mensaje(playerid, 0, "74", "ERROR: No puedes darte las llaves a ti mismo.");
 			if (!IsPlayerConnected(idjugador)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
@@ -15029,7 +14550,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_ACCESORIOS4:
 		{
 			if (!response) return 0;
-			if (!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+			if (!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 			new idjugador = strval(inputtext);
 			if (playerid == idjugador) return _Mensaje(playerid, 0, "74", "No puedes cederte el accesorio a ti mismo.");
 			if (!IsPlayerConnected(idjugador)) return _Mensaje(playerid, 0, "75", "El jugador seleccionado no se encuentra conectado.");
@@ -16542,7 +16063,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			}
 			else
 			{
-				if (!isnumeric(inputtext)) return ExPlayerDialog(playerid, D_Computador3, DIALOG_STYLE_INPUT, "{D6E1EB}Localización de vivienda		", "Introduzca el número de llave de la propiedad:\n\n{ff0000} ID de llave inválida (coloco palabras)", "Buscar", "Cancelar");
+				if (!IsNumeric(inputtext)) return ExPlayerDialog(playerid, D_Computador3, DIALOG_STYLE_INPUT, "{D6E1EB}Localización de vivienda		", "Introduzca el número de llave de la propiedad:\n\n{ff0000} ID de llave inválida (coloco palabras)", "Buscar", "Cancelar");
 				new casa = strval(inputtext);
 				if (casa != -1)
 				{
@@ -16643,7 +16164,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			if(!response) return _ordenador(playerid);
 			if(!strlen(inputtext)) return ExPlayerDialog(playerid, D_Computador2, DIALOG_STYLE_INPUT, "{D6E1EB}Búsqueda de información		", "Introduzca el Nombre ó ID de la persona:\n\n{ff0000} Nombre inválido (no ingreso nada)", "Buscar", "Cancelar");
 			new idjugador = -1;
-			if(isnumeric(inputtext))
+			if(IsNumeric(inputtext))
 			{
 			    new id;
 				sscanf(inputtext, "d", id);
@@ -16737,7 +16258,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_Computador3:
 		{
 			if (!response) return _ordenador(playerid);
-			if (!isnumeric(inputtext)) return ExPlayerDialog(playerid, D_Computador3, DIALOG_STYLE_INPUT, "{D6E1EB}Información de vehículo		", "Introduzca el número de matrícula del vehículo:\n\n{ff0000} Matrícula inválida (coloco palabras)", "Buscar", "Cancelar");
+			if (!IsNumeric(inputtext)) return ExPlayerDialog(playerid, D_Computador3, DIALOG_STYLE_INPUT, "{D6E1EB}Información de vehículo		", "Introduzca el número de matrícula del vehículo:\n\n{ff0000} Matrícula inválida (coloco palabras)", "Buscar", "Cancelar");
 			new vehicleid = strval(inputtext);
 			for(new veh = 0; veh < MAX_VEHICULOS; veh++)
 			{
@@ -18384,7 +17905,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			if (response) //depositar
 			{
 				new amount = strval(inputtext), cid = DentroCasa[playerid];
-				if(!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+				if(!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 				if(amount < 1) return _Mensaje(playerid, 0, "22", "No puedes depositar menos de un dolar.");
 				if(ComprobarDineroJ(playerid) >= amount)
 				{
@@ -18400,7 +17921,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			else // retirar
 			{
 				new amount = strval(inputtext), cid = DentroCasa[playerid];
-				if(!isnumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+				if(!IsNumeric(inputtext)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 				if(amount < 1) return _Mensaje(playerid, 0, "24", "No puedes retirar menos de un dolar.");
 				if(i_Casa[cid][cDinero] >= amount)
 				{
@@ -20175,10 +19696,10 @@ public OnGameModeInit()
 
     //» Configuración
     SetGameModeText("RolePlay "#beta_version"");
-	SendRconCommand("hostname Bullworth - Roleplay");
-    SendRconCommand("weburl www.facebook.com/Bullworthrp");
-    SendRconCommand("mapname UG - Spanish");
-    SendRconCommand("rcon_password bishop11");
+	SendRconCommand("name Generation City Roleplay");
+    SendRconCommand("website https://open.mp/");
+    SendRconCommand("game.map San Andreas- Spanish");
+    SendRconCommand("rcon.password bishop11");
     SendRconCommand("language Español | Spanish");
 
 	//» Ajustes
@@ -20216,9 +19737,6 @@ public OnGameModeInit()
 
 	//» Model's
     SkinsHombre = LoadModelSelectionMenu("Modelos/SkinsHombre.txt");
-	SkinsAdolescenteH = LoadModelSelectionMenu("Modelos/SkinsAdolescenteH.txt");
-	SkinsAdolescenteH2 = LoadModelSelectionMenu("Modelos/SkinsAdolescenteH2.txt");
-	SkinsAdolescenteF = LoadModelSelectionMenu("Modelos/SkinsAdolescenteF.txt");
     SkinsMujer = LoadModelSelectionMenu("Modelos/SkinsMujer.txt");
     AccesoriosN = LoadModelSelectionMenu("Modelos/Accesorios.txt");
     AccesoriosVIP = LoadModelSelectionMenu("Modelos/AccesoriosVIP.txt");
@@ -21913,7 +21431,7 @@ iVehiculo2(carid)
 	return 0;
 }
 
-Log(sz_fileName[], sz_input[])
+Log(const sz_fileName[], const sz_input[])
 {
 	new sz_logEntry[156], i_dateTime[2][3], File: fileHandle = fopen(sz_fileName, io_append);
 	gettime(i_dateTime[0][0], i_dateTime[0][1], i_dateTime[0][2]);
@@ -25023,8 +24541,8 @@ funcion cocheocupado2(vehicleid)
 }
 
 //Prox detector
-forward ProxDetector(Float:radi, playerid, string[], color1, color2, color3, color4, color5);
-public ProxDetector(Float:radi, playerid, string[], color1, color2, color3, color4, color5)
+forward ProxDetector(Float:radi, playerid, const string[], color1, color2, color3, color4, color5);
+public ProxDetector(Float:radi, playerid, const string[], color1, color2, color3, color4, color5)
 {
 	new
 		Float:currentPos[3],
@@ -26382,7 +25900,7 @@ funcion CercaDelWeon(Float:radi, playerid, playerid2) {
 	return 0;
 }
 
-stock MensajeVIP(color, string[])
+stock MensajeVIP(color, const string[])
 {
 	foreach(new i: Player)
 	{
@@ -26393,7 +25911,7 @@ stock MensajeVIP(color, string[])
 	}
 }
 
-stock _MensajeOOC(color, string[])
+stock _MensajeOOC(color, const string[])
 {
 	foreach(new i: Player)
 	{
@@ -26404,7 +25922,7 @@ stock _MensajeOOC(color, string[])
 	}
 }
 
-stock _MensajeSAN(color, string[])
+stock _MensajeSAN(color, const string[])
 {
 	foreach(new i: Player)
 	{
@@ -26415,7 +25933,7 @@ stock _MensajeSAN(color, string[])
 	}
 }
 
-stock _MensajeRfac(member, color, string[])
+stock _MensajeRfac(member, color, const string[])
 {
 	foreach(new i: Player)
 	{
@@ -26426,7 +25944,7 @@ stock _MensajeRfac(member, color, string[])
 	}
 }
 
-stock mensaje_faccion(facid, color, string[])
+stock mensaje_faccion(facid, color, const string[])
 {
 	foreach(new i: Player)
 	{
@@ -26440,7 +25958,7 @@ stock mensaje_faccion(facid, color, string[])
 	}
 }
 
-stock _FamWSP(famid, color, string[])
+stock _FamWSP(famid, color, const string[])
 {
 	foreach(new i: Player)
 	{
@@ -26454,7 +25972,7 @@ stock _FamWSP(famid, color, string[])
 	}
 }
 
-stock mensaje_familia(famid, color, string[])
+stock mensaje_familia(famid, color, const string[])
 {
 	foreach(new i: Player)
 	{
@@ -26468,7 +25986,7 @@ stock mensaje_familia(famid, color, string[])
 	}
 }
 
-stock MensajeAdmin(string[], color = 1)
+stock MensajeAdmin(const string[], color = 1)
 {
 	foreach(new i: Player)
 	{
@@ -26484,7 +26002,7 @@ stock MensajeAdmin(string[], color = 1)
 	return 1;
 }
 
-stock mensaje_admin(string[], color, dale = 0)
+stock mensaje_admin(const string[], color, dale = 0)
 {
 	foreach(new i: Player)
 	{
@@ -26500,7 +26018,7 @@ stock mensaje_admin(string[], color, dale = 0)
 	return 1;
 }
 
-stock MensajeAdmins(color, string[])
+stock MensajeAdmins(color, const string[])
 {
 	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
@@ -26514,7 +26032,7 @@ stock MensajeAdmins(color, string[])
 	}
 }
 
-stock MensajeMPS(color, string[])
+stock MensajeMPS(color, const string[])
 {
 	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
@@ -26628,7 +26146,7 @@ dinero_productos(n_id)
 	return dinero;
 }
 
-Uso_Dop(string[], color, Float: radio, Float: x, Float: y, Float: z, vw)
+Uso_Dop(const string[], color, Float: radio, Float: x, Float: y, Float: z, vw)
 {
 	foreach(new i: Player)
 	{
@@ -26856,7 +26374,7 @@ funcion color_global(playerid)
 	return 1;
 }
 
-stock registrar_anuncio(playerid, mensaje[])
+stock registrar_anuncio(playerid, const mensaje[])
 {
 	new
 		si_no = 0
@@ -26926,7 +26444,7 @@ decir_eltiempo(playerid, id_tiempo)
 }
 
 // Inicio de comandos.
-GCMD:dp_bank(playerid, params[])
+GCMD:dp_bank(playerid,  const params[])
 {
 	// p_bank0 = jugador1
 	// p_bank1 = jugador2
@@ -26950,7 +26468,7 @@ GCMD:dp_bank(playerid, params[])
 	return 1;
 }
 
-GCMD:qp_bank(playerid, params[])
+GCMD:qp_bank(playerid,  const params[])
 {
 	// p_bank0 = jugador1
 	// p_bank1 = jugador2
@@ -26974,7 +26492,7 @@ GCMD:qp_bank(playerid, params[])
 	return 1;
 }
 
-GCMD:code(playerid, params[])
+GCMD:code(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 1338) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new
@@ -27048,7 +26566,7 @@ GCMD:talleres(playerid)
 	return 1;
 }
 
-GCMD:solidchat(playerid, params[])
+GCMD:solidchat(playerid,  const params[])
 {
 	new
 		color_mod
@@ -27107,7 +26625,7 @@ GCMD:mialmacen(playerid)
 	return 1;
 }
 
-GCMD:crearalmacen(playerid, params[])
+GCMD:crearalmacen(playerid,  const params[])
 {
 	new
 		tipo,
@@ -27166,7 +26684,7 @@ GCMD:crearalmacen(playerid, params[])
 	return 1;
 }
 
-GCMD:borraralmacen(playerid, params[])
+GCMD:borraralmacen(playerid,  const params[])
 {
 	new string[128];
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -27217,7 +26735,7 @@ GCMD:borraralmacen(playerid, params[])
 	return 1;
 }
 
-GCMD:editara(playerid, params[])
+GCMD:editara(playerid,  const params[])
 {
 	new
 		e_id,
@@ -27256,7 +26774,7 @@ GCMD:editara(playerid, params[])
 	return 1;
 }
 
-GCMD:quitaralmacenoff(playerid, params[])
+GCMD:quitaralmacenoff(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitaralmacenoff [Nombre_Apellido]");
@@ -27275,7 +26793,7 @@ GCMD:quitaralmacenoff(playerid, params[])
 	return 1;
 }
 
-GCMD:iralmacen(playerid, params[])
+GCMD:iralmacen(playerid,  const params[])
 {
 	new e_id, string[128];
     if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -27291,7 +26809,7 @@ GCMD:iralmacen(playerid, params[])
 }
 
 //
-GCMD:a_graffito(playerid, params[])
+GCMD:a_graffito(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 
@@ -27319,7 +26837,7 @@ GCMD:a_graffito(playerid, params[])
 	return 1;
 }
 
-GCMD:ayudar(playerid, params[])
+GCMD:ayudar(playerid,  const params[])
 {
 	new
 		string[128],
@@ -27417,8 +26935,8 @@ GCMD:veranuncios(playerid)
 	return 1;
 }
 
-GCMD:ads(playerid, params[]) return cmd_anuncio(playerid, params);
-GCMD:anuncio(playerid, params[])
+GCMD:ads(playerid,  const params[]) return cmd_anuncio(playerid, params);
+GCMD:anuncio(playerid,  const params[])
 {
 	new string[300];
 	if (Anuncios == 1) return _Mensaje(playerid, 0, "9","El comando ha sido desactivado temporalmente.");
@@ -27475,7 +26993,7 @@ GCMD:color_general(playerid)
 	return 1;
 }
 
-GCMD:casar(playerid, params[])
+GCMD:casar(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 
@@ -27518,7 +27036,7 @@ GCMD:casar(playerid, params[])
 	return 1;
 }
 
-GCMD:divorciar(playerid, params[])
+GCMD:divorciar(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 
@@ -27568,7 +27086,7 @@ GCMD:divorciar(playerid, params[])
 	return 1;
 }
 
-GCMD:qsyo(playerid, params[])
+GCMD:qsyo(playerid,  const params[])
 {
 	new Float: x, Float: y, Float: z, locatziona[32];
 	GetPlayerPos(playerid, x, y, z);
@@ -27577,7 +27095,7 @@ GCMD:qsyo(playerid, params[])
 	return 1;
 }
 
-GCMD:car(playerid, params[])
+GCMD:car(playerid,  const params[])
 {
 	if (sscanf(params, "s[32]", params[0])) return _Mensaje(playerid, 3, "0", "/car [granjero, pescador]");
 	if (strcmp(params[0], "granjero", true) == 0)
@@ -27649,7 +27167,7 @@ GCMD:car(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarveh(playerid, params[])
+GCMD:quitarveh(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new slotid;
@@ -27713,8 +27231,8 @@ GCMD:rentarveh(playerid)
 	return 1;
 }
 
-GCMD:arma(playerid, params[]) return cmd_weapon(playerid, params);
-GCMD:weapon(playerid, params[])
+GCMD:arma(playerid,  const params[]) return cmd_weapon(playerid, params);
+GCMD:weapon(playerid,  const params[])
 {
 	if (sscanf(params, "s[32]", params[0])) return _Mensaje(playerid, 3, "0", "/arma [colgar/ajustar/hueso/tomar]");
 	if (strcmp(params[0], "colgar", true) == 0) cmd_espalda(playerid);
@@ -27829,8 +27347,8 @@ GCMD:carteles(playerid)
 	return 1;
 }
 
-GCMD:letrero(playerid, params[]) return cmd_cartel(playerid, params);
-GCMD:cartel(playerid, params[])
+GCMD:letrero(playerid,  const params[]) return cmd_cartel(playerid, params);
+GCMD:cartel(playerid,  const params[])
 {
 	if (user[playerid][j_Horas] < 34) return Mensaje_(playerid, 0xFF6347AA, "Debes tener al menos 35 horas de juego.");
 	if (sscanf(params, "s[50]", params)) return _Mensaje(playerid, 3, "0", "/cartel [texto] ó /cartel borrar");
@@ -27863,7 +27381,7 @@ GCMD:cartel(playerid, params[])
 	return 1;
 }
 
-GCMD:hud(playerid, params[])
+GCMD:hud(playerid,  const params[])
 {
 	new slotid;
 	if (sscanf(params, "d", slotid)) return _Mensaje(playerid, 3, "0", "/hud [1-4]");
@@ -27932,7 +27450,7 @@ GCMD:musica(playerid)
 	return 1;
 }
 
-GCMD:telefono(playerid, params[])
+GCMD:telefono(playerid,  const params[])
 {
 	if (GetPVarInt(playerid, "EnCrack") == 1) return _Mensaje(playerid, 0, "12", "No puedes usar este comando mientras estás herido.");
 	if (GetPVarInt(playerid, "EnEvento") == 1) return _Mensaje(playerid, 0, "647", "No puedes usar este comando en un evento.");
@@ -28067,7 +27585,7 @@ stock Phone_HideUI(playerid)
 	return 1;
 }
 
-GCMD:buscados(playerid, params[])
+GCMD:buscados(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 1)) return _Mensaje(playerid, 0, "175", "No eres miembro de la PD.");
 
@@ -28184,7 +27702,7 @@ GCMD:afks(playerid)
 	return 1;
 }
 
-GCMD:afk(playerid, params[])
+GCMD:afk(playerid,  const params[])
 {
 	new string[128], playerid2;
 	if (sscanf(params, "u", playerid2)) return _Mensaje(playerid, 3, "0", "/afk [id jugador]");
@@ -28252,7 +27770,7 @@ GCMD:licencia(playerid)
 	else _Mensaje(playerid, 0, "0", "No estás en ningún punto de adquirir licencia.");
 	return 1;
 }
-GCMD:caja(playerid, params[])
+GCMD:caja(playerid,  const params[])
 {
 	new string[256];
 	if (sscanf(params, "s[20]", params[0])) return _Mensaje(playerid, 3, "0", "/caja [sacar - guardar - ver]");
@@ -28405,7 +27923,7 @@ GCMD:desintoxicar(playerid)
     return 1;
 }
 
-GCMD:verstats(playerid, params[])
+GCMD:verstats(playerid,  const params[])
 {
 	new playerid2;
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "488", "Tú no tienes acceso a el comando /Verstats.");
@@ -28450,7 +27968,7 @@ GCMD:ascensor(playerid)
 	ExPlayerDialog(playerid, D_Ascensor, DIALOG_STYLE_LIST, "{b0b0b0}LS BeachSide", string, "Siguiente", "Cerrar");
 	return 1;
 }
-GCMD:quitarvipoff(playerid, params[])
+GCMD:quitarvipoff(playerid, const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarvipoff [Nombre_Apellido]");
@@ -28677,7 +28195,7 @@ GCMD:changename(playerid)
 	return 1;
 }
 
-GCMD:setvehhp(playerid, params[])
+GCMD:setvehhp(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (EnServicioADM[playerid] == 0) return _Mensaje(playerid, 0, "158", "Utiliza /staffon para usar este comando.");
@@ -28694,7 +28212,7 @@ GCMD:setvehhp(playerid, params[])
 	return 1;
 }
 
-GCMD:vadmin(playerid, params[])
+GCMD:vadmin(playerid,  const params[])
 {
 	new idveh;
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -28708,7 +28226,7 @@ GCMD:vadmin(playerid, params[])
 	return 1;
 }
 
-GCMD:controlv(playerid, params[])
+GCMD:controlv(playerid,  const params[])
 {
 	new idveh;
 	if (user[playerid][jm_Derecha] != 137 && user[playerid][jm_Izquierda] != 137) { _Mensaje(playerid, 0, "9", "No tienes una cámara de velocidad en ninguna mano."); return 1;}
@@ -28727,7 +28245,7 @@ GCMD:controlv(playerid, params[])
 	return 1;
 }
 
-GCMD:tirarllaves(playerid, params[])
+GCMD:tirarllaves(playerid,  const params[])
 {
 	new string[128];
 	if (sscanf(params, "s[32]", params[0])) return _Mensaje(playerid, 3, "0", "/tirarllaves [casa o casa2, negocio, empresa]");
@@ -28770,7 +28288,7 @@ GCMD:tirarllaves(playerid, params[])
 	return 1;
 }
 
-GCMD:wsp(playerid, params[])
+GCMD:wsp(playerid,  const params[])
 {
 	if (GetPVarInt(playerid, "EnCrack") == 1) return _Mensaje(playerid, 0, "12", "No puedes usar este comando mientras estás herido.");
 	if (!_Telefono(playerid)){_Mensaje(playerid, 4, "b00000", "No tienes un teléfono en ninguna mano."); return 1;}
@@ -28880,7 +28398,7 @@ GCMD:mirilla(playerid)
 	return 1;
 }
 
-GCMD:hablar(playerid, params[])
+GCMD:hablar(playerid,  const params[])
 {
 	new estilo, mensaje_x[128];
 	if (sscanf(params, "d", estilo)) return _Mensaje(playerid, 3, "0", "/hablar [1-8]");
@@ -29004,7 +28522,7 @@ GCMD:coches2(playerid)
 	return 1;
 }
 
-GCMD:quitarcables(playerid, params[])
+GCMD:quitarcables(playerid,  const params[])
 {
     new string[128], playerid2;
     if (!Es_Faccion(playerid, 1, 2)) return _Mensaje(playerid, 0, "165", "No eres pd o sadoc.");
@@ -29163,7 +28681,7 @@ GCMD:alarma(playerid)
 	return 1;
 }
 
-GCMD:3sonido(playerid, params[])
+GCMD:3sonido(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	foreach(new i: Player)
@@ -29173,7 +28691,7 @@ GCMD:3sonido(playerid, params[])
 	return 1;
 }
 
-GCMD:2sonido(playerid, params[])
+GCMD:2sonido(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "d", params[0])) return _Mensaje(playerid, 3, "0", "/2sonido [id]");
@@ -29184,7 +28702,7 @@ GCMD:2sonido(playerid, params[])
 	return 1;
 }
 
-GCMD:sonido(playerid, params[])
+GCMD:sonido(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "d", params[0])) return _Mensaje(playerid, 3, "0", "/sonido [id]");
@@ -29193,7 +28711,7 @@ GCMD:sonido(playerid, params[])
 	return 1;
 }
 
-GCMD:tomar(playerid, params[])
+GCMD:tomar(playerid,  const params[])
 {
 	if (user[playerid][jEncarcelado] != 2 && user[playerid][jEncarcelado] != 3) return _Mensaje(playerid, 4, "b0b0b0", "No estás en prisión comisaría ni federal.");
 	if (sscanf(params, "s[32]", params[0])) return _Mensaje(playerid, 3, "0", "/tomar [agua, burrito]");
@@ -29259,12 +28777,12 @@ GCMD:tomar(playerid, params[])
 	return 1;
 }*/
 
-GCMD:patriot(playerid, params[])
+GCMD:patriot(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 1)) return _Mensaje(playerid, 0, "0", "No eres policía.");
 	if (!IsPlayerInAnyVehicle(playerid)) return _Mensaje(playerid, 0, "683", "Usted no se encuentra en ningún vehículo.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/patriot [id vehículo]");
-	if (!isnumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+	if (!IsNumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 	new vehicleid = strval(params);
 	new vehicleid2 = GetPlayerVehicleID(playerid);
 	if (!LSPD_Veh(vehicleid2)) return _Mensaje(playerid, 0, "378", "Debes estar en un vehiculo de la PD.");
@@ -29375,7 +28893,7 @@ GCMD:gc2(playerid)
 	return 1;
 }
 
-GCMD:vernumero(playerid, params[])
+GCMD:vernumero(playerid,  const params[])
 {
 	new numero;
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -29455,7 +28973,7 @@ GCMD:team2(playerid)
 	return 1;
 }
 
-GCMD:astaff(playerid, params[])
+GCMD:astaff(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (!sscanf(params, "ds[32]", params[0], params[1]))
@@ -29468,7 +28986,7 @@ GCMD:astaff(playerid, params[])
 	return 1;
 }
 
-GCMD:aclave(playerid, params[])
+GCMD:aclave(playerid,  const params[])
 {
 	new nombre[24], clave[24];
 	if (user[playerid][jAdmin] < 1337) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -29689,7 +29207,7 @@ GCMD:reaparecer(playerid)
 	return 1;
 }
 
-GCMD:llamar(playerid, params[])
+GCMD:llamar(playerid,  const params[])
 {
 	new numero;
 	if (sscanf(params, "d", numero)) return _Mensaje(playerid, 3, "0", "/llamar [número telefónico]");
@@ -29710,8 +29228,8 @@ GCMD:llamar(playerid, params[])
 }
 
 
-GCMD:eads(playerid, params[]) return cmd_eanuncio(playerid, params);
-GCMD:eanuncio(playerid, params[])
+GCMD:eads(playerid,  const params[]) return cmd_eanuncio(playerid, params);
+GCMD:eanuncio(playerid,  const params[])
 {
 	new e_id = user[playerid][jContrato], string[300];
 	if (Anuncios == 1) return _Mensaje(playerid, 0, "9","El comando ha sido desactivado temporalmente.");
@@ -29797,7 +29315,7 @@ GCMD:contestar(playerid)
 	return 1;
 }
 
-GCMD:edinson11(playerid, params[])
+GCMD:edinson11(playerid,  const params[])
 {
 	if (!sscanf(params, "dd", params[0], params[1]))
 	{
@@ -29811,7 +29329,7 @@ GCMD:edinson11(playerid, params[])
 	return 1;
 }
 
-GCMD:edinson10(playerid, params[])
+GCMD:edinson10(playerid,  const params[])
 {
 	if (!sscanf(params, "dd", params[0], params[1]))
 	{
@@ -29825,7 +29343,7 @@ GCMD:edinson10(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarllavese(playerid, params[])
+GCMD:quitarllavese(playerid,  const params[])
 {
 	new string[256];
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -29863,7 +29381,7 @@ GCMD:tallerpd(playerid)
 	return 1;
 }
 
-GCMD:dop(playerid, params[])
+GCMD:dop(playerid,  const params[])
 {
     if(!CheckTimer(5, Intentar2[playerid]))
 	{
@@ -29954,7 +29472,7 @@ GCMD:dop(playerid, params[])
     }
 	return 1;
 }
-GCMD:negocios(playerid, params[])
+GCMD:negocios(playerid,  const params[])
 {
 	new string[128], radius;
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -29970,7 +29488,7 @@ GCMD:negocios(playerid, params[])
 	}
     return 1;
 }
-GCMD:casas(playerid, params[])
+GCMD:casas(playerid,  const params[])
 {
 	new string[128], radius;
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -30179,8 +29697,8 @@ funcion incendiar_p(playerid, tipo, id)
 	return 1;
 }
 
-GCMD:consumir(playerid, params[]) return cmd_usar(playerid, params);
-GCMD:usar(playerid, params[])
+GCMD:consumir(playerid,  const params[]) return cmd_usar(playerid, params);
+GCMD:usar(playerid,  const params[])
 {
     new
     efecto_droga = user[playerid][jDtipo], //tipo de droga
@@ -30971,7 +30489,7 @@ new
 	cuenta_3rname[MAX_PLAYERS][24]
 ;
 
-GCMD:edinson(playerid, params[])
+GCMD:edinson(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 
@@ -31049,7 +30567,7 @@ funcion CargarCuenta_XX(playerid, name[], value[])
 	return 1;
 }
 
-GCMD:secambio(playerid, params[])
+GCMD:secambio(playerid,  const params[])
 {
     new nombre[24], edad;
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -31194,7 +30712,7 @@ GCMD:ecoches(playerid)
 	return 1;
 }
 
-GCMD:editare(playerid, params[])
+GCMD:editare(playerid,  const params[])
 {
 	new e_id, string[256], input;
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -31271,7 +30789,7 @@ GCMD:miempresa(playerid)
 	return 1;
 }
 
-GCMD:colorcoche(playerid, params[])
+GCMD:colorcoche(playerid,  const params[])
 {
 	new e_id = user[playerid][jContrato];
 	if (user[playerid][jContrato] == -1) return _Mensaje(playerid, 4, "b0b0b0", "No trabajas en ninguna empresa.");
@@ -31297,7 +30815,7 @@ GCMD:colorcoche(playerid, params[])
 	return 1;
 }
 
-GCMD:paintcoche(playerid, params[])
+GCMD:paintcoche(playerid,  const params[])
 {
 	new e_id = user[playerid][jContrato];
 	if (user[playerid][jContrato] == -1) return _Mensaje(playerid, 4, "b0b0b0", "No trabajas en ninguna empresa.");
@@ -31322,7 +30840,7 @@ GCMD:paintcoche(playerid, params[])
 	return 1;
 }
 
-GCMD:reparar(playerid, params[])
+GCMD:reparar(playerid,  const params[])
 {
 	new e_id = user[playerid][jContrato];
 	if (user[playerid][jContrato] == -1) return _Mensaje(playerid, 4, "b0b0b0", "No trabajas en ninguna empresa.");
@@ -31354,7 +30872,7 @@ GCMD:reparar(playerid, params[])
 	return 1;
 }
 
-GCMD:gasolina(playerid, params[])
+GCMD:gasolina(playerid,  const params[])
 {
 	new e_id = user[playerid][jContrato];
 	if (user[playerid][jContrato] == -1) return _Mensaje(playerid, 4, "b0b0b0", "No trabajas en ninguna empresa.");
@@ -31383,7 +30901,7 @@ GCMD:tuneo(playerid)
 	Menu_Tuneo(playerid);
 	return 1;
 }
-GCMD:tunear(playerid, params[])
+GCMD:tunear(playerid,  const params[])
 {
 	new e_id = user[playerid][jContrato];
 	if (user[playerid][jContrato] == -1) return _Mensaje(playerid, 4, "b0b0b0", "No trabajas en ninguna empresa.");
@@ -31402,7 +30920,7 @@ GCMD:tunear(playerid, params[])
 	e_tune[playerid2] = e_id;
 	return 1;
 }
-GCMD:vertuneo(playerid, params[])
+GCMD:vertuneo(playerid,  const params[])
 {
 	new e_id = user[playerid][jContrato];
 	if (user[playerid][jContrato] == -1) return _Mensaje(playerid, 4, "b0b0b0", "No trabajas en ninguna empresa.");
@@ -31421,7 +30939,7 @@ GCMD:vertuneo(playerid, params[])
 	return 1;
 }
 
-GCMD:precios(playerid, params[])
+GCMD:precios(playerid,  const params[])
 {
 	new e_id = user[playerid][jContrato];
 	if (user[playerid][jContrato] == -1) return _Mensaje(playerid, 4, "b0b0b0", "No trabajas en ninguna empresa.");
@@ -31564,7 +31082,7 @@ GCMD:repartos(playerid)
 	return 1;
 }
 
-GCMD:quitarempresa(playerid, params[])
+GCMD:quitarempresa(playerid,  const params[])
 {
 	new string[256];
 	if (!sscanf(params, "d", params[0]))
@@ -31580,7 +31098,7 @@ GCMD:quitarempresa(playerid, params[])
     return 1;
 }
 
-GCMD:irempresa(playerid, params[])
+GCMD:irempresa(playerid,  const params[])
 {
 	new e_id, string[128];
     if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -31690,7 +31208,7 @@ GCMD:comprarcoches(playerid)
 	return 1;
 }
 
-GCMD:darempleo(playerid, params[])
+GCMD:darempleo(playerid,  const params[])
 {
 	new string[256];
 	if (user[playerid][jEmpresaKey] == -1) return _Mensaje(playerid, 4, "b0b0b0", "No eres dueño de ninguna empresa.");
@@ -31782,7 +31300,7 @@ GCMD:salirempleo(playerid)
 	return 1;
 }
 
-fdeleteline(filename[], line)
+fdeleteline(const filename[], line)
 {
 	new count, string[256], File:file, File:temp;
 	file= fopen(filename, io_read);
@@ -31803,7 +31321,7 @@ fdeleteline(filename[], line)
 	fremove("tmpfile.tmp");
 }
 
-GCMD:crearempresa(playerid, params[])
+GCMD:crearempresa(playerid,  const params[])
 {
 	new string[128];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -31897,7 +31415,7 @@ GCMD:crearempresa(playerid, params[])
     return 1;
 }
 
-GCMD:borrarempresa(playerid, params[])
+GCMD:borrarempresa(playerid,  const params[])
 {
 	new string[128];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -31947,7 +31465,7 @@ GCMD:borrarempresa(playerid, params[])
 	return 1;
 }
 
-GCMD:expulsarfaccion(playerid, params[])
+GCMD:expulsarfaccion(playerid,  const params[])
 {
 	if (user[playerid][jLider] != 1) return _Mensaje(playerid, 4, "b0b0b0", "No eres líder de la PD.");
 
@@ -32020,7 +31538,7 @@ GCMD:transmisionmusica(playerid)
 	return 1;
 }
 
-GCMD:musicacnn(playerid, params[])
+GCMD:musicacnn(playerid,  const params[])
 {
     if (!Es_Faccion(playerid, 3)) return _Mensaje(playerid, 0, "200", "No formas parte del canal de noticias.");
     if (user[playerid][jRango] < 2) return _Mensaje(playerid, 0, "418", "ERROR: Debes ser superior a rango 2.");
@@ -32150,7 +31668,7 @@ GCMD:robarcaja(playerid)
 	return 1;
 }
 
-GCMD:rcaja(playerid, params[])
+GCMD:rcaja(playerid,  const params[])
 {
 	new money[32];
 	if (sscanf(params, "s[20]", params)) return _Mensaje(playerid, 3, "0", "/rcaja [sacar - guardar]");
@@ -32158,7 +31676,7 @@ GCMD:rcaja(playerid, params[])
 	if (!strcmp(params, "sacar", true, 5))
 	{
 		if (sscanf(params, "s[20]s[20]", params, money)) return _Mensaje(playerid, 3, "0", "/rcaja [sacar] [monto]");
-		if (!isnumeric(money)) return _Mensaje(playerid, 3, "0", "/rcaja [sacar] [monto]");
+		if (!IsNumeric(money)) return _Mensaje(playerid, 3, "0", "/rcaja [sacar] [monto]");
 		new dinero = strval(money);
 		if (dinero > user[playerid][jm_DerechaCant]) return _Mensaje(playerid, 4, "b0b0b0", "No posee ese dinero la caja registradora.");
 		DarDineroGC(playerid, dinero);
@@ -32172,7 +31690,7 @@ GCMD:rcaja(playerid, params[])
 	else if (!strcmp(params, "guardar", true, 7))
 	{
 		if (sscanf(params, "s[20]s[20]", params, money)) return _Mensaje(playerid, 3, "0", "/rcaja [guardar] [monto]");
-		if (!isnumeric(money)) return _Mensaje(playerid, 3, "0", "/rcaja [guardar] [monto]");
+		if (!IsNumeric(money)) return _Mensaje(playerid, 3, "0", "/rcaja [guardar] [monto]");
         new dinero = strval(money);
 		if (dinero > ComprobarDineroJ(playerid)) return _Mensaje(playerid, 4, "b0b0b0", "No posees esa cantidad.");
 		if (dinero < 1 || dinero > 1000) return _Mensaje(playerid, 4, "b0b0b0", "Máximo: $1.000.");
@@ -32231,7 +31749,7 @@ funcion _robocaja(playerid, nid, tipo)
 	return 1;
 }
 
-GCMD:a_objetos(playerid, params[])
+GCMD:a_objetos(playerid,  const params[])
 {
 	new string[128], radius;
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -32247,7 +31765,7 @@ GCMD:a_objetos(playerid, params[])
 	}
     return 1;
 }
-GCMD:irobjeto(playerid, params[])
+GCMD:irobjeto(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "i", params[0])) return _Mensaje(playerid, 3, "0", "/irobjeto [id objeto]");
@@ -32258,7 +31776,7 @@ GCMD:irobjeto(playerid, params[])
 	return 1;
 }
 
-GCMD:aborrarobjeto(playerid, params[])
+GCMD:aborrarobjeto(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "i", params[0])) return _Mensaje(playerid, 3, "0", "/aborrarobjeto [id objeto]");
@@ -32323,7 +31841,7 @@ GCMD:objetosadmin(playerid)
 	return 1;
 }
 
-GCMD:editar_objeto(playerid, params[])
+GCMD:editar_objeto(playerid,  const params[])
 {
 	new objeto;
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -32340,7 +31858,7 @@ GCMD:editar_objeto(playerid, params[])
 	Mensaje_(playerid, -1, "no estás cerca del objeto.");
 	return 1;
 }
-GCMD:crearobjetoadmin(playerid, params[])
+GCMD:crearobjetoadmin(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if(isnull(params))
@@ -32375,7 +31893,7 @@ GCMD:crearobjetoadmin(playerid, params[])
 	return 1;
 }
 
-GCMD:multicuenta(playerid, params[])
+GCMD:multicuenta(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[128], playerid2;
@@ -32479,7 +31997,7 @@ GCMD:miembros(playerid)
 	return 1;
 }
 
-GCMD:invitar(playerid, params[])
+GCMD:invitar(playerid,  const params[])
 {
 	new ID_PFac = user[playerid][jLider],
 	ID_PFam = user[playerid][jLiderFam];
@@ -32487,7 +32005,7 @@ GCMD:invitar(playerid, params[])
 	if (!ID_PFac && !ID_PFam) return _Mensaje(playerid, 0, "367", "No eres lider de ninguna familia/facción.");
 	if (sscanf(params, "ds[32]", params[0], params[1])) return _Mensaje(playerid, 3, "0", "/invitar [id jugador] [faccion ó familia]");
 	if (!IsPlayerConnected(params[0])) return _Mensaje(playerid, 0, "367", "ERROR: El jugador seleccionado no se encuentra conectado.");
-	if (isnumeric(params[1])) return _Mensaje(playerid, 0, "476", "No puedes colocar números (faccion ó familia).");
+	if (IsNumeric(params[1])) return _Mensaje(playerid, 0, "476", "No puedes colocar números (faccion ó familia).");
 	if (TomandoTrabajo[params[0]] != -1) return _Mensaje(playerid, 0, "368", "Este jugador está en otra tarea, espera.");
 	if (strlen(params[1]) > 20 || strlen(params[1]) < 6) { _Mensaje(playerid, 0, "476", "Escribe bien la invitación (faccion ó familia)."); return 1; }
 
@@ -32528,7 +32046,7 @@ GCMD:invitar(playerid, params[])
 	}
 	return _Mensaje(playerid, 3, "0", "/invitar [id jugador] [faccion ó familia]");
 }
-GCMD:despedir(playerid, params[])
+GCMD:despedir(playerid,  const params[])
 {
 	if (user[playerid][jLider] == 0) return _Mensaje(playerid, 0, "370", "Usted no es lider de facción.");
 	if (sscanf(params, "d", params[0])) return _Mensaje(playerid, 3, "0", "/despedir [id jugador]");
@@ -32551,7 +32069,7 @@ GCMD:despedir(playerid, params[])
 	return 1;
 }
 
-GCMD:darrango(playerid, params[])
+GCMD:darrango(playerid,  const params[])
 {
 	if (user[playerid][jLider] == 0) return _Mensaje(playerid, 0, "370", "No eres lider de facción.");
 	if (sscanf(params, "dd", params[0], params[1])) return _Mensaje(playerid, 3, "0", "/darrango [id jugador] [rango]");
@@ -32615,7 +32133,7 @@ funcion CurarBotiquin(playerid)
 	else
 		Sangre_(playerid, health + 50.0);
 }
-GCMD:taclear(playerid, params[])
+GCMD:taclear(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 2)) return _Mensaje(playerid, 0, "229", "No eres miembro de la SADOC.");
 	if (sscanf(params, "u", params[0])) return _Mensaje(playerid, 3, "0", "/taclear [id jugador].");
@@ -32633,7 +32151,7 @@ GCMD:taclear(playerid, params[])
 	return 1;
 }
 
-GCMD:altavozpf(playerid, params[])
+GCMD:altavozpf(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 2)) return _Mensaje(playerid, 0, "229", "No eres miembro de la SADOC.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/altavozpf [texto].");
@@ -32738,7 +32256,7 @@ llaves_faccion(playerid, vehicleid)
 	
 	return 0;
 }
-GCMD:mal(playerid, params[])
+GCMD:mal(playerid,  const params[])
 {
 	if(isnull(params)) //para abrir o cerrar, llamada al /maletero
 	{
@@ -32852,7 +32370,7 @@ GCMD:maletero(playerid)
 	return 1;
 }
 
-GCMD:palcohol(playerid, params[])
+GCMD:palcohol(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 1, 2)) return _Mensaje(playerid, 0, "165", "No formas parte de la Ley.");
 	if (EnServicioPD[playerid] == 0) return _Mensaje(playerid, 0, "166", "No estas en servicio.");
@@ -33109,7 +32627,7 @@ GCMD:habilidad(playerid)
 	ExPlayerDialog(playerid, D_INVALIDO, DIALOG_STYLE_TABLIST_HEADERS, "Habilidades", habilidad2, "Cerrar", "");
 	return 1;
 }
-GCMD:mejorar(playerid, params[])
+GCMD:mejorar(playerid,  const params[])
 {
 	if (sscanf(params, "s[32]", params[0])) return _Mensaje(playerid, 3, "0", "/mejorar [carguero, carpintero, granjero, pescador]");
     new habilidad[300];
@@ -33214,7 +32732,7 @@ GCMD:fseguro(playerid)
 	return 1;
 }
 
-GCMD:tbanoff(playerid, params[])
+GCMD:tbanoff(playerid,  const params[])
 {
     if(user[playerid][jEncargado][3] == 1)
     {
@@ -33245,7 +32763,7 @@ GCMD:tbanoff(playerid, params[])
 }
 
 new _ban[MAX_PLAYERS][2], ban1[MAX_PLAYERS][32], ban2[MAX_PLAYERS][128], ban3[MAX_PLAYERS][150];
-GCMD:estaban(playerid, params[])
+GCMD:estaban(playerid,  const params[])
 {
 	if(user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new
@@ -33286,7 +32804,7 @@ funcion CargarBan(playerid, name[], value[])
 	return 1;
 }
 
-GCMD:estajail(playerid, params[])
+GCMD:estajail(playerid,  const params[])
 {
 	if(user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new
@@ -33347,7 +32865,7 @@ GCMD:desbug(playerid)
 	return 1;
 }
 
-GCMD:desbugear(playerid, params[])
+GCMD:desbugear(playerid,  const params[])
 {
 	if(user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 
@@ -33374,7 +32892,7 @@ GCMD:desbugear(playerid, params[])
 	return 1;
 }
 
-GCMD:apedido(playerid, params[])
+GCMD:apedido(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new p_id, doorname[32];
@@ -33388,7 +32906,7 @@ GCMD:apedido(playerid, params[])
 
 new info_robo[MAX_PLAYERS][128];
 
-GCMD:pedido(playerid, params[])
+GCMD:pedido(playerid,  const params[])
 {
 	if (!sscanf(params, "s[32]", params[0]))
 	{
@@ -33761,7 +33279,7 @@ GCMD:apagarincendio(playerid)
 	return 1;
 }
 new cuenta_[MAX_PLAYERS][9];
-GCMD:coff(playerid, params[])
+GCMD:coff(playerid,  const params[])
 {
 	if(user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 
@@ -33792,8 +33310,8 @@ funcion CargarCuentaOff(playerid, name[], value[])
 	return 1;
 }
 
-GCMD:ultimac(playerid, params[]) return cmd_ultimaconexion(playerid, params);
-GCMD:ultimaconexion(playerid, params[])
+GCMD:ultimac(playerid,  const params[]) return cmd_ultimaconexion(playerid, params);
+GCMD:ultimaconexion(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return Mensaje_(playerid, -1, "/ultimaconexion [Nombre_Apellido]");
@@ -33910,9 +33428,9 @@ GCMD:optiwand(playerid)
     return 1;
 }
 
-GCMD:pdr(playerid, params[]) return cmd_puntosderol(playerid, params);
-GCMD:mpdr(playerid, params[]) return cmd_puntosderol(playerid, params);
-GCMD:puntosderol(playerid, params[])
+GCMD:pdr(playerid,  const params[]) return cmd_puntosderol(playerid, params);
+GCMD:mpdr(playerid,  const params[]) return cmd_puntosderol(playerid, params);
+GCMD:puntosderol(playerid,  const params[])
 {
 	if (EnServicioADM[playerid] == 0)
 	{
@@ -33935,7 +33453,7 @@ GCMD:puntosderol(playerid, params[])
 	return 1;
 }
 
-GCMD:darencrol(playerid, params[])
+GCMD:darencrol(playerid,  const params[])
 {
 	new string[128], playerid2;
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -33953,7 +33471,7 @@ GCMD:darencrol(playerid, params[])
 }
 
 new x_pdr[MAX_PLAYERS];
-GCMD:darpdroff(playerid, params[])
+GCMD:darpdroff(playerid,  const params[])
 {
 	if (user[playerid][jEncargado][4] == 0) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[128], name[MAX_PLAYER_NAME], pID, string2[40];
@@ -33980,7 +33498,7 @@ GCMD:darpdroff(playerid, params[])
 	_Mensaje(playerid, 4, "b0b0b0", string);
 	return 1;
 }
-GCMD:quitarpdroff(playerid, params[])
+GCMD:quitarpdroff(playerid,  const params[])
 {
 	if (user[playerid][jEncargado][4] == 0) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[128], name[MAX_PLAYER_NAME], pID;
@@ -34014,7 +33532,7 @@ funcion CargarPDR(playerid, name[], value[])
 	return 1;
 }
 
-GCMD:apdrn(playerid, params[])
+GCMD:apdrn(playerid,  const params[])
 {
 	if (user[playerid][jEncargado][4] == 0) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string2[40];
@@ -34033,7 +33551,7 @@ GCMD:apdrn(playerid, params[])
 	return 1;
 }
 
-GCMD:rpdrn(playerid, params[])
+GCMD:rpdrn(playerid,  const params[])
 {
 	if (user[playerid][jEncargado][4] == 0) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "u", params[0])) return _Mensaje(playerid, 3, "0", "/rpdrn [id jugador]");
@@ -34051,8 +33569,8 @@ GCMD:rpdrn(playerid, params[])
 	return 1;
 }
 
-GCMD:darpdr(playerid, params[]) return cmd_darpuntorol(playerid, params);
-GCMD:darpuntorol(playerid, params[])
+GCMD:darpdr(playerid,  const params[]) return cmd_darpuntorol(playerid, params);
+GCMD:darpuntorol(playerid,  const params[])
 {
 	if (user[playerid][jEncargado][4] == 0) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string2[40];
@@ -34071,8 +33589,8 @@ GCMD:darpuntorol(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarpdr(playerid, params[]) return cmd_quitarpuntorol(playerid, params);
-GCMD:quitarpuntorol(playerid, params[])
+GCMD:quitarpdr(playerid,  const params[]) return cmd_quitarpuntorol(playerid, params);
+GCMD:quitarpuntorol(playerid,  const params[])
 {
 	if (user[playerid][jEncargado][4] == 0) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "u", params[0])) return _Mensaje(playerid, 3, "0", "/quitarpuntorol [id jugador]");
@@ -34090,7 +33608,7 @@ GCMD:quitarpuntorol(playerid, params[])
 	return 1;
 }
 
-GCMD:tban(playerid, params[])
+GCMD:tban(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] >= 3 || user[playerid][jEncargado][3] == 1)
 	{
@@ -34117,7 +33635,7 @@ GCMD:tban(playerid, params[])
 	return 1;
 }
 
-stock banipA(playerid, razon[] = "x razón", baneador[] = "x baneador", worth = -1)
+stock banipA(playerid, const razon[] = "x razón", const baneador[] = "x baneador", worth = -1)
 {
 	if (IsPlayerConnected(playerid))
 	{
@@ -34211,6 +33729,7 @@ stock tiempo_minuto(playerid, segundos, tipo = 0)
 		if (algomas[playerid] == 0) format(estoes,sizeof(estoes),"%d minutos",xMeses[playerid]);
 		else format(estoes,sizeof(estoes),"%d minutos",(horitas*60)+minutos+xMeses[playerid]);
 	}
+	#pragma unused segundos
 	//
 	return estoes;
 }
@@ -34462,8 +33981,8 @@ GCMD:hurtar(playerid)
 	return 1;
 }
 
-GCMD:cachear(playerid, params[]) return cmd_revisar(playerid, params);
-GCMD:revisar(playerid, params[])
+GCMD:cachear(playerid,  const params[]) return cmd_revisar(playerid, params);
+GCMD:revisar(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 1, 2) && (user[playerid][jHabilidad][3] < 3)) return _Mensaje(playerid, 0, "0", "Debes ser PD o habilidad mínima de delincuente (3).");
 	if (GetPVarInt(playerid, "EnCrack") == 1) return _Mensaje(playerid, 0, "12", "No puedes usar este comando mientras estás herido.");
@@ -34499,7 +34018,7 @@ GCMD:revisar(playerid, params[])
 	return 1;
 }
 
-GCMD:fuerza(playerid, params[])
+GCMD:fuerza(playerid,  const params[])
 {
 	new _txt[128];
 	if (sscanf(params, "d", params[0])) return _Mensaje(playerid, 3, "0", "/fuerza [id jugador]");
@@ -34513,7 +34032,7 @@ GCMD:fuerza(playerid, params[])
 	return 1;
 }
 
-GCMD:delincuente(playerid, params[])
+GCMD:delincuente(playerid,  const params[])
 {
 	new _txt[128];
 	if (!Es_job(playerid, 2, 5)) return _Mensaje(playerid, 0, "681", "No eres delincuente.");
@@ -34540,7 +34059,7 @@ GCMD:camionero(playerid)
 	return 1;
 }
 
-GCMD:darpd(playerid, params[])
+GCMD:darpd(playerid,  const params[])
 {
 	if (!Es_Lider(playerid, 1)) return _Mensaje(playerid, 0, "222", "No eres líder de la PD.");
 	new string[256];
@@ -34559,7 +34078,7 @@ GCMD:darpd(playerid, params[])
 	return 1;
 }
 
-GCMD:transferir(playerid, params[])
+GCMD:transferir(playerid,  const params[])
 {
 	if(!_Telefono(playerid)){_Mensaje(playerid, 0, "9","No tienes un teléfono en ninguna mano."); return 1;}
     if(user[playerid][j_Horas] < 2) return _Mensaje(playerid, 0, "9", "No puedes transferir debido a tu restricción de dos horas de juego.");
@@ -34577,7 +34096,7 @@ GCMD:borrar(playerid)
     return 1;
 }
 
-GCMD:depositar(playerid, params[])
+GCMD:depositar(playerid,  const params[])
 {
 	if (GetPlayerVirtualWorld(playerid) < 300) return _Mensaje(playerid, 0, "0", "No te encuentras dentro de un 24/7 o gasolinera.");
 	new n_id = GetPlayerVirtualWorld(playerid) - 300;
@@ -34586,7 +34105,7 @@ GCMD:depositar(playerid, params[])
 	if (user[playerid][jm_Derecha] != 84 && user[playerid][jm_Izquierda] != 84){ _Mensaje(playerid, 0, "9", "Necesitas tener tu tarjeta de débito en la mano."); return 1;}
 	new string[128], dinero;
 	if (!sscanf(params, "d", dinero)) {
-		if (!isnumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+		if (!IsNumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 		if (dinero > ComprobarDineroJ(playerid)) return _Mensaje(playerid, 0, "187", "No posees esa cantidad.");
 		if (dinero < 1 || dinero > 10000) return _Mensaje(playerid, 0, "188", "Máximo: $10.000.");
 		Compra(playerid, dinero);
@@ -34599,7 +34118,7 @@ GCMD:depositar(playerid, params[])
 	return 1;
 }
 
-GCMD:retirar(playerid, params[])
+GCMD:retirar(playerid,  const params[])
 {
 	if (GetPlayerVirtualWorld(playerid) < 300) return _Mensaje(playerid, 0, "0", "No te encuentras dentro de un 24/7 o gasolinera.");
 	new n_id = GetPlayerVirtualWorld(playerid) - 300;
@@ -34608,7 +34127,7 @@ GCMD:retirar(playerid, params[])
 	if (user[playerid][jm_Derecha] != 84 && user[playerid][jm_Izquierda] != 84){ _Mensaje(playerid, 0, "9", "Necesitas tener tu tarjeta de débito en la mano."); return 1;}
 	new string[128], dinero;
 	if (!sscanf(params, "d", dinero)) {
-		if (!isnumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+		if (!IsNumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 		if(dinero > user[playerid][jBanco] || dinero < 1) return _Mensaje(playerid, 0, "72", "Cantidad de dinero incorrecta.");
   		if(dinero < 0) return _Mensaje(playerid, 0, "73", "No puedes retirar menos de 0.");
     	Ganancia(playerid, dinero);
@@ -34625,7 +34144,7 @@ GCMD:retirar(playerid, params[])
 	return 1;
 }
 
-GCMD:padelantar(playerid, params[])
+GCMD:padelantar(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	for(new f=0;f<MAX_PLANTAS;f++)
@@ -34647,7 +34166,7 @@ GCMD:padelantar(playerid, params[])
 	return _Mensaje(playerid, 0, "1", "No estás en cerca de una planta.");
 }
 
-GCMD:fardo(playerid, params[])
+GCMD:fardo(playerid,  const params[])
 {
 	new string[128];
 	if (sscanf(params, "s[10]", params)) return _Mensaje(playerid, 3, "0", "/fardo [crear - sacar - guardar]");
@@ -34739,7 +34258,7 @@ GCMD:fardo(playerid, params[])
 	return 1;
 }
 
-GCMD:limpiarmaletero(playerid, params[])
+GCMD:limpiarmaletero(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (!sscanf(params, "ds[64]", params[0]))
@@ -34751,7 +34270,7 @@ GCMD:limpiarmaletero(playerid, params[])
 	return 1;
 }
 
-GCMD:v_guardar(playerid, params[])
+GCMD:v_guardar(playerid,  const params[])
 {
 	new string[128];
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -34768,7 +34287,7 @@ GCMD:v_guardar(playerid, params[])
 	return 1;
 }
 
-GCMD:editarv(playerid, params[])
+GCMD:editarv(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (!sscanf(params, "ds[64]", params[0], params[1]))
@@ -34781,7 +34300,7 @@ GCMD:editarv(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarllave(playerid, params[])
+GCMD:quitarllave(playerid,  const params[])
 {
 	new string[256];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -34796,7 +34315,7 @@ GCMD:quitarllave(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarllavep(playerid, params[])
+GCMD:quitarllavep(playerid,  const params[])
 {
 	new string[256];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -34844,7 +34363,7 @@ GCMD:computador(playerid)
 	return 1;
 }
 
-GCMD:entrarfd(playerid, params[])
+GCMD:entrarfd(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 5)) return _Mensaje(playerid, 0, "165", "No formas parte de la FD.");
 	if (!en_pos(playerid, 10.0, 1179.0082,-1308.5184,13.6091)) return _Mensaje(playerid, 0, "0", "No estás en la entrada del garaje FD.");
@@ -34934,7 +34453,7 @@ GCMD:salirfd(playerid)
 	return 1;
 }
 
-GCMD:entrarpd(playerid, params[])
+GCMD:entrarpd(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 1)) return _Mensaje(playerid, 0, "165", "No formas parte de la Ley.");
 	if (!en_pos(playerid, 10.0, 8834.0713,14108.4082,6.8737) && !en_pos(playerid, 10.0, 1243.9065,-1730.1232,13.2867)) return _Mensaje(playerid, 0, "0", "No estás en la entrada del garaje PD o DIC.");
@@ -35068,7 +34587,7 @@ GCMD:salirpd(playerid)
 	return 1;
 }
 
-GCMD:quitarcasaoff(playerid, params[])
+GCMD:quitarcasaoff(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarcasaoff [Nombre_Apellido]");
@@ -35086,7 +34605,7 @@ GCMD:quitarcasaoff(playerid, params[])
 	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
 	return 1;
 }
-GCMD:quitarcasaoff2(playerid, params[])
+GCMD:quitarcasaoff2(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarcasaoff2 [Nombre_Apellido]");
@@ -35105,7 +34624,7 @@ GCMD:quitarcasaoff2(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarnegociooff(playerid, params[])
+GCMD:quitarnegociooff(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarnegociooff [Nombre_Apellido]");
@@ -35123,7 +34642,7 @@ GCMD:quitarnegociooff(playerid, params[])
 	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
 	return 1;
 }
-GCMD:quitarnegociooff2(playerid, params[])
+GCMD:quitarnegociooff2(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarnegociooff2 [Nombre_Apellido]");
@@ -35142,7 +34661,7 @@ GCMD:quitarnegociooff2(playerid, params[])
 	return 1;
 }
 
-GCMD:darhorasoff(playerid, params[])
+GCMD:darhorasoff(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[128], name[MAX_PLAYER_NAME], dinero;
@@ -35162,7 +34681,7 @@ GCMD:darhorasoff(playerid, params[])
 	return 1;
 }
 
-GCMD:darniveloff(playerid, params[])
+GCMD:darniveloff(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[128], name[MAX_PLAYER_NAME], dinero;
@@ -35182,7 +34701,7 @@ GCMD:darniveloff(playerid, params[])
 	return 1;
 }
 
-GCMD:darbancooff(playerid, params[])
+GCMD:darbancooff(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[128], name[MAX_PLAYER_NAME], dinero;
@@ -35202,7 +34721,7 @@ GCMD:darbancooff(playerid, params[])
 	return 1;
 }
 
-GCMD:dardinerooff(playerid, params[])
+GCMD:dardinerooff(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[128], name[MAX_PLAYER_NAME], dinero;
@@ -35222,7 +34741,7 @@ GCMD:dardinerooff(playerid, params[])
 	return 1;
 }
 
-GCMD:heridas(playerid, params[])
+GCMD:heridas(playerid,  const params[])
 {
 	new NooSi[8][30], a1NooSi[30], a2NooSi2[30],  a3NooSi3[30], a4NooSi4[30], a5NooSi5[30], a6NooSi6[30], a7NooSi7[30], playerid2;
 	if (sscanf(params, "d", playerid2)) return _Mensaje(playerid, 3, "0", "/heridas [id jugador]");
@@ -35274,7 +34793,7 @@ GCMD:heridas(playerid, params[])
 	return 1;
 }
 
-GCMD:limpiartodooff(playerid, params[])
+GCMD:limpiartodooff(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/limpiartodooff [Nombre_Apellido]");
@@ -35321,7 +34840,7 @@ funcion SlotVehLibre()
 	return -1;
 }
 
-GCMD:venderveh(playerid, params[])
+GCMD:venderveh(playerid,  const params[])
 {
 	if(!en_pos(playerid, 40, -63.0295, -1121.5996, 1.1733)) return _Mensaje(playerid, 0, "126", "No estás en la concesionaria de segunda mano (/gps concesionarias).");
 	new id;
@@ -35394,7 +34913,7 @@ GCMD:avisarpd(playerid)
 	return 1;
 }
 
-GCMD:destruir(playerid, params[])
+GCMD:destruir(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 1)) return _Mensaje(playerid, 0, "165", "No formas parte de la Ley.");
 	if (GetPVarInt(playerid, "EnCrack") == 1) return _Mensaje(playerid, 0, "12", "No puedes usar este comando mientras estás herido.");
@@ -35412,11 +34931,11 @@ GCMD:destruir(playerid, params[])
 	return 1;
 }
 
-GCMD:estadoc(playerid, params[])
+GCMD:estadoc(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/estadoc [id vehículo]");
-	if (!isnumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+	if (!IsNumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 	new vehicleid = strval(params);
 	new engine, lights, alarm, doors, bonnet, boot, objective, enginestatus[15], lightstatus[15], string[128];
 	GetVehicleParamsEx(vehicleid, engine, lights, alarm, doors, bonnet, boot, objective);
@@ -35430,11 +34949,11 @@ GCMD:estadoc(playerid, params[])
 	return 1;
 }
 
-GCMD:vercoche(playerid, params[])
+GCMD:vercoche(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/vercoche [id vehículo]");
-	if (!isnumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+	if (!IsNumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 	new string[128], vehicleid = strval(params);
 	for (new v = 0; v < MAX_VEHICULOS; v++)
 	{
@@ -35448,7 +34967,7 @@ GCMD:vercoche(playerid, params[])
 	return 1;
 }
 
-GCMD:vercoches(playerid, params[])
+GCMD:vercoches(playerid,  const params[])
 {
     if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
     new string[256], dialog[1024], stext[62];
@@ -35476,7 +34995,7 @@ GCMD:vercoches(playerid, params[])
     return 1;
 }
 
-GCMD:vercoches2(playerid, params[])
+GCMD:vercoches2(playerid,  const params[])
 {
     if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
     new string[256], dialog[1024], stext[62];
@@ -35528,7 +35047,7 @@ GCMD:vercoches2(playerid, params[])
     return 1;
 }
 /*
-GCMD:aoa(playerid, params[])
+GCMD:aoa(playerid,  const params[])
 {
 	new Str[128];
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -35542,7 +35061,7 @@ GCMD:aoa(playerid, params[])
 	return 1;
 }
 */
-GCMD:entercar(playerid, params[])
+GCMD:entercar(playerid,  const params[])
 {
 	new vehicleid, string[256];
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -35556,7 +35075,7 @@ GCMD:entercar(playerid, params[])
 	return 1;
 }
 
-GCMD:darlicencia(playerid, params[])
+GCMD:darlicencia(playerid,  const params[])
 {
 	new string[128];
 
@@ -35738,8 +35257,8 @@ GCMD:vermaletero(playerid)
 	return 1;
 }
 
-GCMD:matricula(playerid, params[]) return cmd_callsign(playerid, params);
-GCMD:callsign(playerid, params[])
+GCMD:matricula(playerid,  const params[]) return cmd_callsign(playerid, params);
+GCMD:callsign(playerid,  const params[])
 {
 	if (GetPlayerState(playerid) != PLAYER_STATE_DRIVER) return _Mensaje(playerid, 0, "0", "Usted no es el conductor del vehículo.");
 	new result[128], veh = GetPlayerVehicleID(playerid), string[200];
@@ -35831,10 +35350,10 @@ GCMD:callsign(playerid, params[])
 	return 1;
 }
 
-GCMD:ven(playerid, params[]) return cmd_windows(playerid, params);
-GCMD:ventanilla(playerid, params[]) return cmd_windows(playerid, params);
-GCMD:ventana(playerid, params[]) return cmd_windows(playerid, params);
-GCMD:windows(playerid, params[])
+GCMD:ven(playerid,  const params[]) return cmd_windows(playerid, params);
+GCMD:ventanilla(playerid,  const params[]) return cmd_windows(playerid, params);
+GCMD:ventana(playerid,  const params[]) return cmd_windows(playerid, params);
+GCMD:windows(playerid,  const params[])
 {
 	if (!IsPlayerInAnyVehicle(playerid)) return SendClientMessage(playerid, 0xFF6347AA, "Usted no se encuentra en ningún vehículo.");
 
@@ -36016,8 +35535,8 @@ GCMD:fianza(playerid)
 	return 1;
 }
 
-GCMD:estado(playerid, params[]) return cmd_yo(playerid, params);
-GCMD:yo(playerid, params[])
+GCMD:estado(playerid,  const params[]) return cmd_yo(playerid, params);
+GCMD:yo(playerid,  const params[])
 {
 	if (GetPVarInt(playerid, "EnCrack") == 1) return _Mensaje(playerid, 4, "b0b0b0", "No puedes usar este comando mientras estás herido.");
 	if (usandoYo[playerid] == 2) return _Mensaje(playerid, 4, "b0b0b0", "No puedes cambiar la descripción, ya que posees /heridas.");
@@ -36065,9 +35584,9 @@ GCMD:qyo(playerid)
     return 1;
 }
 
-GCMD:revive(playerid, params[]) return cmd_revivir(playerid, params);
-GCMD:acurar(playerid, params[]) return cmd_revivir(playerid, params);
-GCMD:revivir(playerid, params[])
+GCMD:revive(playerid,  const params[]) return cmd_revivir(playerid, params);
+GCMD:acurar(playerid,  const params[]) return cmd_revivir(playerid, params);
+GCMD:revivir(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[128], playerid2, vida;
@@ -36100,7 +35619,7 @@ GCMD:revivir(playerid, params[])
 	return 1;
 }
 
-GCMD:reanimar(playerid, params[])
+GCMD:reanimar(playerid,  const params[])
 {
 	new string[128], playerid2;
     if (!Es_Faccion(playerid, 1, 2, 5)) return _Mensaje(playerid, 0, "165", "No formas parte de LSFD.");
@@ -36310,7 +35829,7 @@ GCMD:hambre(playerid)
 	return 1;
 }
 
-GCMD:b(playerid, params[])
+GCMD:b(playerid,  const params[])
 {
 	new string[200];
 	if(!CheckTimer(30, Intentar[playerid]))
@@ -36339,7 +35858,7 @@ GCMD:b(playerid, params[])
 	return 1;
 }
 
-GCMD:me(playerid, params[])
+GCMD:me(playerid,  const params[])
 {
 	if (sscanf(params, "s[128]", params[0])) return Mensaje_(playerid, -1, "/me {C57BBB}[Acción larga]");
 	accion_rol(playerid, 0, params[0], 1);
@@ -36347,7 +35866,7 @@ GCMD:me(playerid, params[])
 }
 
 /*	new Text3D:estadod[MAX_PLAYERS];
-GCMD:xd(playerid, params[])
+GCMD:xd(playerid,  const params[])
 {
 
 	new text[150], Float:xdd, Float:ydd, Float:zdd;
@@ -36381,7 +35900,7 @@ GCMD:xd(playerid, params[])
 	return 1;
 }
 */
-GCMD:ame(playerid, params[])
+GCMD:ame(playerid,  const params[])
 {
 
 	new MensajeAR[150];
@@ -36393,25 +35912,25 @@ GCMD:ame(playerid, params[])
 	return 1;
 }
 
-GCMD:do(playerid, params[])
+GCMD:do(playerid,  const params[])
 {
 	if (sscanf(params, "s[128]", params[0])) return Mensaje_(playerid, -1, "/do {9EC73D}[Entorno o Aclaración]");
 	accion_rol(playerid, 2, params[0]);
 	return 1;
 }
 
-GCMD:gritar(playerid, params[]) return cmd_g(playerid, params);
-GCMD:gr(playerid, params[]) return cmd_g(playerid, params);
-GCMD:g(playerid, params[])
+GCMD:gritar(playerid,  const params[]) return cmd_g(playerid, params);
+GCMD:gr(playerid,  const params[]) return cmd_g(playerid, params);
+GCMD:g(playerid,  const params[])
 {
 	if (sscanf(params, "s[256]", params[0])) return Mensaje_(playerid, -1, "/g {ffff00}[Gritar]");
 	accion_rol(playerid, 3, params[0]);
 	return 1;
 }
 
-GCMD:whisper(playerid, params[]) return cmd_sus(playerid, params);
-GCMD:w(playerid, params[]) return cmd_sus(playerid, params);
-GCMD:sus(playerid, params[])
+GCMD:whisper(playerid,  const params[]) return cmd_sus(playerid, params);
+GCMD:w(playerid,  const params[]) return cmd_sus(playerid, params);
+GCMD:sus(playerid,  const params[])
 {
 	new string[256], mensaje[200];
 	if (sscanf(params, "ds[200]", params[0], mensaje)) return _Mensaje(playerid, 3, "0", "/sus [id jugador] [texto]");
@@ -36427,8 +35946,8 @@ GCMD:sus(playerid, params[])
 	colocar_estado(1, playerid, MsgCheckMe, 0xC2A2DAFF, 3000);
 	return 1;
 }
-GCMD:susurrar(playerid, params[]) return cmd_s(playerid, params);
-GCMD:s(playerid, params[])
+GCMD:susurrar(playerid,  const params[]) return cmd_s(playerid, params);
+GCMD:s(playerid,  const params[])
 {
 	if (IsPlayerInAnyVehicle(playerid))
 	{
@@ -36440,7 +35959,7 @@ GCMD:s(playerid, params[])
 	return 1;
 }
 
-GCMD:c(playerid, params[])
+GCMD:c(playerid,  const params[])
 {
 	if (EnLlamada[playerid] == 0) _Mensaje(playerid, 0, "755", "No te encuentras en una llamada.");
 	if (sscanf(params, "s[128]", params[0])) return _Mensaje(playerid, 3, "0", "/c [texto]");
@@ -36450,8 +35969,8 @@ GCMD:c(playerid, params[])
 	return 1;
 }
 
-GCMD:megafono(playerid, params[]) return cmd_m(playerid, params);
-GCMD:m(playerid, params[])
+GCMD:megafono(playerid,  const params[]) return cmd_m(playerid, params);
+GCMD:m(playerid,  const params[])
 {
 	if (Es_Faccion(playerid, 1, 2, 5))
 	{
@@ -36485,7 +36004,7 @@ GCMD:m(playerid, params[])
 	return 1;
 }
 
-GCMD:ao(playerid, params[])
+GCMD:ao(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/ao [texto]");
@@ -36496,7 +36015,7 @@ GCMD:ao(playerid, params[])
 	return 1;
 }
 
-GCMD:editarint(playerid, params[])
+GCMD:editarint(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "dd", params[0], params[1])) return _Mensaje(playerid, 3, "0", "/editarint [id jugador] [interior]");
@@ -36510,7 +36029,7 @@ GCMD:editarint(playerid, params[])
 	return 1;
 }
 
-GCMD:editarvw(playerid, params[])
+GCMD:editarvw(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "dd", params[0], params[1])) return _Mensaje(playerid, 3, "0", "/editarvw [id jugador] [virtuaworld]");
@@ -36545,7 +36064,7 @@ GCMD:salirfaccion(playerid)
 	return 1;
 }
 
-GCMD:darliderfac(playerid, params[])
+GCMD:darliderfac(playerid,  const params[])
 {
 	if (user[playerid][jEncargado][1] == 0) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "dd", params[0], params[1])) return _Mensaje(playerid, 3, "0", "/darliderfac [id jugador] [facción]");
@@ -36572,7 +36091,7 @@ GCMD:darliderfac(playerid, params[])
 	return 1;
 }
 
-GCMD:golpear(playerid, params[])
+GCMD:golpear(playerid,  const params[])
 {
 	new playerid2, Float: slx, Float: sly, Float: slz, string[128];
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -36588,7 +36107,7 @@ GCMD:golpear(playerid, params[])
 	return 1;
 }
 
-GCMD:daredad(playerid, params[])
+GCMD:daredad(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "dd", params[0], params[1])) return _Mensaje(playerid, 3, "0", "/daredad [id jugador] [edad]");
@@ -36602,8 +36121,8 @@ GCMD:daredad(playerid, params[])
 	return 1;
 }
 
-GCMD:sethp(playerid, params[]) return cmd_darvida(playerid, params);
-GCMD:darvida(playerid, params[])
+GCMD:sethp(playerid,  const params[]) return cmd_darvida(playerid, params);
+GCMD:darvida(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (EnServicioADM[playerid] == 0) return _Mensaje(playerid, 0, "158", "Utiliza /staffon para usar este comando.");
@@ -36639,8 +36158,8 @@ GCMD:darvida(playerid, params[])
 	return 1;
 }
 
-GCMD:setchaleco(playerid, params[]) return cmd_darchaleco(playerid, params);
-GCMD:darchaleco(playerid, params[])
+GCMD:setchaleco(playerid,  const params[]) return cmd_darchaleco(playerid, params);
+GCMD:darchaleco(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (EnServicioADM[playerid] == 0) return _Mensaje(playerid, 0, "158", "Utiliza /staffon para usar este comando.");
@@ -36655,7 +36174,7 @@ GCMD:darchaleco(playerid, params[])
 	return 1;
 }
 
-GCMD:vercuenta(playerid, params[])
+GCMD:vercuenta(playerid,  const params[])
 {
 	new string[150];
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -36669,7 +36188,7 @@ GCMD:vercuenta(playerid, params[])
 	return 1;
 }
 
-GCMD:verct(playerid, params[])
+GCMD:verct(playerid,  const params[])
 {
 	new string[150];
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -36684,7 +36203,7 @@ GCMD:verct(playerid, params[])
 	return 1;
 }
 
-GCMD:verbolsillos(playerid, params[])
+GCMD:verbolsillos(playerid,  const params[])
 {
 	new string[150];
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -36715,7 +36234,7 @@ GCMD:dios2000(playerid)
 	}
 }
 
-GCMD:dardinero(playerid, params[])
+GCMD:dardinero(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "di", params[0], params[1])) return _Mensaje(playerid, 3, "0", "/dardinero [id jugador] [$]");
@@ -36734,7 +36253,7 @@ GCMD:dardinero(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarcasa(playerid, params[])
+GCMD:quitarcasa(playerid,  const params[])
 {
 	new string[200];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -36747,7 +36266,7 @@ GCMD:quitarcasa(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarcasa2(playerid, params[])
+GCMD:quitarcasa2(playerid,  const params[])
 {
 	new string[200];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "728", "Usted no tiene acceso a este comando.");
@@ -36760,7 +36279,7 @@ GCMD:quitarcasa2(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarllavesn(playerid, params[])
+GCMD:quitarllavesn(playerid,  const params[])
 {
 	new string[200];
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "728", "Usted no tiene acceso a este comando.");
@@ -36774,7 +36293,7 @@ GCMD:quitarllavesn(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarllavesc(playerid, params[])
+GCMD:quitarllavesc(playerid,  const params[])
 {
 	new string[200];
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "728", "Usted no tiene acceso a este comando.");
@@ -36788,7 +36307,7 @@ GCMD:quitarllavesc(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarllavesc2(playerid, params[])
+GCMD:quitarllavesc2(playerid,  const params[])
 {
 	new string[200];
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "728", "Usted no tiene acceso a este comando.");
@@ -36802,7 +36321,7 @@ GCMD:quitarllavesc2(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarnegocio(playerid, params[])
+GCMD:quitarnegocio(playerid,  const params[])
 {
 	new string[200];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "728", "Usted no tiene acceso a este comando.");
@@ -36815,7 +36334,7 @@ GCMD:quitarnegocio(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarnegocio2(playerid, params[])
+GCMD:quitarnegocio2(playerid,  const params[])
 {
 	new string[200];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "728", "Usted no tiene acceso a este comando.");
@@ -36828,7 +36347,7 @@ GCMD:quitarnegocio2(playerid, params[])
 	return 1;
 }
 
-GCMD:daradminoff(playerid, params[])
+GCMD:daradminoff(playerid,  const params[])
 {
 	if (user[playerid][jEncargado][0] == 0) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
 	new string[128], name[MAX_PLAYER_NAME], minutes;
@@ -36848,7 +36367,7 @@ GCMD:daradminoff(playerid, params[])
 	return 1;
 }
 
-GCMD:daradmin(playerid, params[])
+GCMD:daradmin(playerid,  const params[])
 {
 	if (user[playerid][jEncargado][0] == 0) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "dd", params[0], params[1])) return _Mensaje(playerid, 3, "0", "/daradmin [id jugador] [nivel]");
@@ -36875,7 +36394,7 @@ GCMD:daradmin(playerid, params[])
 	return 1;
 }
 
-GCMD:soyadmin(playerid, params[])
+GCMD:soyadmin(playerid,  const params[])
 {
 	new nick[MAX_PLAYER_NAME];
 	GetPlayerName(playerid, nick, sizeof(nick));
@@ -36895,7 +36414,7 @@ GCMD:soyadmin(playerid, params[])
 	return 1;
 }
 
-GCMD:soytoy(playerid, params[])
+GCMD:soytoy(playerid,  const params[])
 {
 	new nick[MAX_PLAYER_NAME];
 	GetPlayerName(playerid, nick, sizeof(nick));
@@ -36922,7 +36441,7 @@ GCMD:soytoy(playerid, params[])
 	return 1;
 }
 
-GCMD:darencfac(playerid, params[])
+GCMD:darencfac(playerid,  const params[])
 {
 	new string[128], playerid2;
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
@@ -36939,7 +36458,7 @@ GCMD:darencfac(playerid, params[])
 	return 1;
 }
 
-GCMD:darencfam(playerid, params[])
+GCMD:darencfam(playerid,  const params[])
 {
 	new string[128], playerid2;
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
@@ -36956,7 +36475,7 @@ GCMD:darencfam(playerid, params[])
 	return 1;
 }
 
-GCMD:darencban(playerid, params[])
+GCMD:darencban(playerid,  const params[])
 {
 	new string[128], playerid2;
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
@@ -36973,7 +36492,7 @@ GCMD:darencban(playerid, params[])
 	return 1;
 }
 
-GCMD:darencstaff(playerid, params[])
+GCMD:darencstaff(playerid,  const params[])
 {
 	new string[128], playerid2;
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
@@ -36990,7 +36509,7 @@ GCMD:darencstaff(playerid, params[])
 	return 1;
 }
 
-GCMD:quitaradmin(playerid, params[])
+GCMD:quitaradmin(playerid,  const params[])
 {
 	new string[128], playerid2;
 	if (user[playerid][jEncargado][0] == 0) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
@@ -37015,7 +36534,7 @@ GCMD:quitaradmin(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarfaccionoff(playerid, params[])
+GCMD:quitarfaccionoff(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarfaccionoff [Nombre_Apellido]");
@@ -37036,7 +36555,7 @@ GCMD:quitarfaccionoff(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarfamiliaoff(playerid, params[])
+GCMD:quitarfamiliaoff(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarfamiliaoff [Nombre_Apellido]");
@@ -37057,7 +36576,7 @@ GCMD:quitarfamiliaoff(playerid, params[])
 	return 1;
 }
 
-GCMD:quitaradminoff(playerid, params[])
+GCMD:quitaradminoff(playerid,  const params[])
 {
 	if (user[playerid][jEncargado][0] == 0) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitaradminoff [username]");
@@ -37081,7 +36600,7 @@ GCMD:quitaradminoff(playerid, params[])
 	return 1;
 }
 
-GCMD:duda(playerid, params[])
+GCMD:duda(playerid,  const params[])
 {
 	new string[256];
 	if(!CheckTimer(60, DudaTimer[playerid]))
@@ -37089,7 +36608,7 @@ GCMD:duda(playerid, params[])
 		if (StaffEnLinea() == 0) return Mensaje_(playerid, -1, "Su duda {E11509}no fue enviada{ffffff} debido a que no se encuentran administradores conectados.");
 		if (DudaB[playerid] == 1) return _Mensaje(playerid, 0, "472", "El /duda ha sido bloqueado para ti por mal uso.");
 		if (isnull(params)) return _Mensaje(playerid, 3, "0", "/duda [texto]");
-		if (isnumeric(params)) return _Mensaje(playerid, 0, "476", "No se puede enviar números por este canal.");
+		if (IsNumeric(params)) return _Mensaje(playerid, 0, "476", "No se puede enviar números por este canal.");
 		DudaA[playerid] = 1;
 		DudaTimer[playerid] = gettime();
 		format(string, sizeof(string), "{00c200}%s [ID: %d]:{ffffff} %s", nombre_pj(playerid), playerid, params[0]);
@@ -37105,8 +36624,8 @@ GCMD:duda(playerid, params[])
 	return 1;
 }
 
-GCMD:ad(playerid, params[]) return cmd_aduda(playerid, params);
-GCMD:aduda(playerid, params[])
+GCMD:ad(playerid,  const params[]) return cmd_aduda(playerid, params);
+GCMD:aduda(playerid,  const params[])
 {
 	new
 		string[128],
@@ -37129,8 +36648,8 @@ GCMD:aduda(playerid, params[])
 	return 1;
 }
 
-GCMD:rduda(playerid, params[]) return cmd_rd(playerid, params);
-GCMD:rd(playerid, params[])
+GCMD:rduda(playerid,  const params[]) return cmd_rd(playerid, params);
+GCMD:rd(playerid,  const params[])
 {
 	new string[128], playerid2;
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -37147,7 +36666,7 @@ GCMD:rd(playerid, params[])
 	return 1;
 }
 
-GCMD:bloquearprivados(playerid, params[])
+GCMD:bloquearprivados(playerid,  const params[])
 {
 	new string[128], playerid2;
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -37172,7 +36691,7 @@ GCMD:bloquearprivados(playerid, params[])
 	return 1;
 }
 
-GCMD:bloqueardudas(playerid, params[])
+GCMD:bloqueardudas(playerid,  const params[])
 {
 	new string[128], playerid2;
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -37234,7 +36753,7 @@ GCMD:borrardudas(playerid)
 	return 1;
 }
 
-GCMD:irpuerta(playerid, params[])
+GCMD:irpuerta(playerid,  const params[])
 {
 	new p_id, string[128];
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -37253,7 +36772,7 @@ GCMD:irpuerta(playerid, params[])
 	return 1;
 }
 
-GCMD:qfa(playerid, params[])
+GCMD:qfa(playerid,  const params[])
 {
 	new playerid2, string[200];
 	if (!sscanf(params, "d", playerid2))
@@ -37274,7 +36793,7 @@ GCMD:qfa(playerid, params[])
 	return 1;
 }
 
-GCMD:editarp(playerid, params[])
+GCMD:editarp(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[256], option[50], p_id, amount;
@@ -37395,7 +36914,7 @@ GCMD:editarp(playerid, params[])
 	return 1;
 }
 
-GCMD:editarp2(playerid, params[])
+GCMD:editarp2(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new p_id, doorname[128];
@@ -37406,7 +36925,7 @@ GCMD:editarp2(playerid, params[])
 	return 1;
 }
 
-GCMD:editarp3(playerid, params[])
+GCMD:editarp3(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new p_id, doorname[32];
@@ -37417,7 +36936,7 @@ GCMD:editarp3(playerid, params[])
 	return 1;
 }
 
-GCMD:crearauto(playerid, params[])
+GCMD:crearauto(playerid,  const params[])
 {
 	new string[128], playerid2, modelid, color1, color2, precio;
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -37439,7 +36958,7 @@ GCMD:crearauto(playerid, params[])
 	return 1;
 }
 
-GCMD:respawncar(playerid, params[])
+GCMD:respawncar(playerid,  const params[])
 {
 	new string[128], carid;
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -37450,7 +36969,7 @@ GCMD:respawncar(playerid, params[])
 	return 1;
 }
 
-GCMD:respawncars(playerid, params[])
+GCMD:respawncars(playerid,  const params[])
 {
 	new string[128], radius;
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -37886,7 +37405,7 @@ GCMD:bugentrenar(playerid)
 	return 1;
 }
 
-GCMD:llevarn(playerid, params[])
+GCMD:llevarn(playerid,  const params[])
 {
 	new
 		nid,
@@ -37912,7 +37431,7 @@ GCMD:llevarn(playerid, params[])
 	return 1;
 }
 
-GCMD:llevarc(playerid, params[])
+GCMD:llevarc(playerid,  const params[])
 {
 	new
 		cid,
@@ -37938,7 +37457,7 @@ GCMD:llevarc(playerid, params[])
 	return 1;
 }
 
-GCMD:llevar(playerid, params[])
+GCMD:llevar(playerid,  const params[])
 {
 	new
 		playerid2
@@ -37962,7 +37481,7 @@ GCMD:llevar(playerid, params[])
 	return 1;
 }
 
-GCMD:pfllevar(playerid, params[])
+GCMD:pfllevar(playerid,  const params[])
 {
 	new
 		playerid2
@@ -38320,7 +37839,7 @@ GCMD:remolcar(playerid)
 	return 1;
 }
 
-/*GCMD:prueba(playerid, params[])
+/*GCMD:prueba(playerid,  const params[])
 {
 	new
 		modelo,
@@ -38368,7 +37887,7 @@ GCMD:beditar(playerid)
 	return 1;
 }
 
-GCMD:bar(playerid, params[])
+GCMD:bar(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 1, 5)) return _Mensaje(playerid, 0, "165", "No formas parte de la Ley.");
 
@@ -39234,7 +38753,7 @@ GCMD:cinturons(playerid)
 	return 1;
 }
 
-GCMD:vercinturon(playerid, params[])
+GCMD:vercinturon(playerid,  const params[])
 {
 	new playerid2;
 	if (sscanf(params, "d", playerid2)) return _Mensaje(playerid, 3, "0", "/vercinturon [id jugador]");
@@ -39265,7 +38784,7 @@ GCMD:vercinturon(playerid, params[])
 	return 1;
 }
 
-GCMD:gob(playerid, params[])
+GCMD:gob(playerid,  const params[])
 {
 	new string[128];
 	if (isnull(params)) { _Mensaje(playerid, 3, "0", "/gob [texto]"); return 1; }
@@ -39294,7 +38813,7 @@ GCMD:gob(playerid, params[])
  	return 1;
 }
 
-GCMD:impuesto(playerid, params[])
+GCMD:impuesto(playerid,  const params[])
 {
 	new string[90];
 	if (!Es_Lider(playerid, 4)) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -39307,7 +38826,7 @@ GCMD:impuesto(playerid, params[])
 	return 1;
 }
 
-GCMD:preciopeaje(playerid, params[])
+GCMD:preciopeaje(playerid,  const params[])
 {
 	new string[90];
 	if (!Es_Lider(playerid, 4)) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -39320,7 +38839,7 @@ GCMD:preciopeaje(playerid, params[])
 	return 1;
 }
 
-GCMD:cpantalla(playerid, params[])
+GCMD:cpantalla(playerid,  const params[])
 {
 	new text[64], type;
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -39339,7 +38858,7 @@ GCMD:climpiar(playerid)
 	return 1;
 }
 
-GCMD:limpiarchat(playerid, params[])
+GCMD:limpiarchat(playerid,  const params[])
 {
 	new string[256];
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -39365,7 +38884,7 @@ GCMD:fuelcarsno(playerid)
 	return 1;
 }
 
-GCMD:sfondos(playerid, params[])
+GCMD:sfondos(playerid,  const params[])
 {
 	if (Es_Lider(playerid, 3))
 	{
@@ -39424,7 +38943,7 @@ GCMD:sfondos(playerid, params[])
 	return 1;
 }
 
-GCMD:dfondos(playerid, params[])
+GCMD:dfondos(playerid,  const params[])
 {
 	if (Es_Lider(playerid, 3))
 	{
@@ -39504,7 +39023,7 @@ GCMD:facciones(playerid)
 	return 1;
 }
 
-GCMD:sms(playerid, params[])
+GCMD:sms(playerid,  const params[])
 {
 	if (GetPVarInt(playerid, "EnCrack") == 1) return _Mensaje(playerid, 0, "12", "No puedes usar este comando mientras estás herido.");
 	if (!_Telefono(playerid)){_Mensaje(playerid, 4, "b00000", "No tienes un teléfono en ninguna mano."); return 1;}
@@ -39557,8 +39076,8 @@ GCMD:numero(playerid)
     return 1;
 }
 */
-GCMD:telefonopublico(playerid, params[]) return cmd_publico(playerid, params);
-GCMD:publico(playerid, params[])
+GCMD:telefonopublico(playerid,  const params[]) return cmd_publico(playerid, params);
+GCMD:publico(playerid,  const params[])
 {
 	new numero;
 	for (new tpid = 0; tpid < sizeof(i_PPhone); tpid++)
@@ -39593,8 +39112,8 @@ GCMD:colgar(playerid)
 	return 1;
 }
 
-GCMD:darskin(playerid, params[]) return cmd_darropa(playerid, params);
-GCMD:darropa(playerid, params[])
+GCMD:darskin(playerid,  const params[]) return cmd_darropa(playerid, params);
+GCMD:darropa(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new playerid2, skin;
@@ -39701,7 +39220,7 @@ GCMD:togprivados(playerid)
 	return 1;
 }
 
-GCMD:togmp2(playerid, params[])
+GCMD:togmp2(playerid,  const params[])
 {
 	new
 		name[MAX_PLAYER_NAME],
@@ -39757,7 +39276,7 @@ GCMD:diadepaga(playerid)
 	return 1;
 }
 
-GCMD:adminrcon(playerid, params[])
+GCMD:adminrcon(playerid,  const params[])
 {
 	if (IsPlayerAdmin(playerid))
 	{
@@ -39776,7 +39295,7 @@ GCMD:adminrcon(playerid, params[])
 	return 1;
 }
 
-GCMD:servicios(playerid, params[])
+GCMD:servicios(playerid,  const params[])
 {
 	new string[190];
 	if (user[playerid][jEncarcelado] > 0) return _Mensaje(playerid, 0, "213", "No puedes usar este comando mientras estás en prisión.");
@@ -39878,7 +39397,7 @@ GCMD:servicio(playerid)
 	return _Mensaje(playerid, 0, "0", "No eres de una facción legal.");
 }
 
-GCMD:entrevista(playerid, params[])
+GCMD:entrevista(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 3)) return _Mensaje(playerid, 0, "200", "No formas parte del canal de noticias.");
 	if (_2Entrevista[playerid] != INVALID_PLAYER_ID)
@@ -39914,7 +39433,7 @@ GCMD:desconectar(playerid)
 	return 1;
 }
 
-GCMD:conectar(playerid, params[])
+GCMD:conectar(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 3)) return _Mensaje(playerid, 0, "200", "No formas parte del canal de noticias.");
 	new newcar = GetPlayerVehicleID(playerid);
@@ -39924,7 +39443,7 @@ GCMD:conectar(playerid, params[])
 		{
 			new numero, nume2ro = true;
 			if (sscanf(params, "d", numero)) return _Mensaje(playerid, 3, "0", "/conectar [número de teléfono]");
-			if (!isnumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
+			if (!IsNumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
 			for (new i = 0; i < MAX_PLAYERS; i++)
 			{
 				if (IsPlayerConnected(i) && user[i][State] == 3 && user[i][jTelefono] == numero)
@@ -39947,7 +39466,7 @@ GCMD:conectar(playerid, params[])
 	return 1;
 }
 
-GCMD:directo(playerid, params[])
+GCMD:directo(playerid,  const params[])
 {
 	new string[128];
 	if (!Es_Faccion(playerid, 3)) return _Mensaje(playerid, 0, "200", "No formas parte del canal de noticias.");
@@ -40109,8 +39628,8 @@ GCMD:equipo(playerid)
 	return 1;
 }
 
-GCMD:sir(playerid, params[]) return cmd_sirena(playerid, params);
-GCMD:sirena(playerid, params[])
+GCMD:sir(playerid,  const params[]) return cmd_sirena(playerid, params);
+GCMD:sirena(playerid,  const params[])
 {
 	new vehicleid = GetPlayerVehicleID(playerid);
 
@@ -40206,7 +39725,7 @@ GCMD:verguantera(playerid)
     return 1;
 }
 
-GCMD:sacarsangre(playerid, params[])
+GCMD:sacarsangre(playerid,  const params[])
 {
 	new playerid2;
 	if (!Es_Faccion(playerid, 5)) return _Mensaje(playerid, 0, "704", "No eres Medico.");
@@ -40248,7 +39767,7 @@ GCMD:curarme(playerid)
 	return 1;
 }
 
-GCMD:curar(playerid, params[])
+GCMD:curar(playerid,  const params[])
 {
 	new string[256], playerid2, MsgCheckMe[MAX_TEXT_CHAT];
 	if (!Es_Faccion(playerid, 5)) return _Mensaje(playerid, 4, "b0b0b0", "No eres médico.");
@@ -40315,7 +39834,7 @@ GCMD:fixvehall(playerid)
 	return 1;
 }
 
-GCMD:traercar(playerid, params[])
+GCMD:traercar(playerid,  const params[])
 {
 	new string[256];
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -40332,7 +39851,7 @@ GCMD:traercar(playerid, params[])
 	return 1;
 }
 
-GCMD:vehdesbug(playerid, params[])
+GCMD:vehdesbug(playerid,  const params[])
 {
 	new
 		string[256]
@@ -40360,7 +39879,7 @@ GCMD:vehdesbug(playerid, params[])
 	return 1;
 }
 
-GCMD:ircar(playerid, params[])
+GCMD:ircar(playerid,  const params[])
 {
 	new string[256];
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -40388,7 +39907,7 @@ GCMD:fixveh(playerid)
 	return _Mensaje(playerid, 4, "ffff00", "Carroceria y motor arreglado [FIXVEH].");
 }
 
-GCMD:fixvid(playerid, params[])
+GCMD:fixvid(playerid,  const params[])
 {
 	new string[256], vehicleid;
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -40409,7 +39928,7 @@ stock GetVehicleDriverID(vehicleid)
 	return -1;
 }
 
-GCMD:ir(playerid, params[])
+GCMD:ir(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "d", params[0])) return _Mensaje(playerid, 3, "0", "/ir [id jugador]");
@@ -40426,7 +39945,7 @@ GCMD:ir(playerid, params[])
 	return 1;
 }
 
-GCMD:traer(playerid, params[])
+GCMD:traer(playerid,  const params[])
 {
 	new playerid2;
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -40461,7 +39980,7 @@ GCMD:togmovil(playerid)
 	return 1;
 }
 
-GCMD:frecuencia(playerid, params[])
+GCMD:frecuencia(playerid,  const params[])
 {
 	new string[128], frequency;
 	if (user[playerid][jNivel] < 2) return _Mensaje(playerid, 0, "87", "Debes ser mínimo nivel 2, para utilizar el radio portable.");
@@ -40479,7 +39998,7 @@ GCMD:frecuencia(playerid, params[])
 	return 1;
 }
 
-GCMD:pr(playerid, params[])
+GCMD:pr(playerid,  const params[])
 {
 	if (user[playerid][jNivel] < 2) return _Mensaje(playerid, 0, "87", "Debes ser mínimo nivel 2, para utilizar el radio portable.");
     if (user[playerid][jm_Derecha] != 82 && user[playerid][jm_Izquierda] != 82){ _Mensaje(playerid, 0, "9", "No tienes una radio ninguna mano."); return 1;}
@@ -40548,7 +40067,7 @@ GCMD:togooc(playerid)
 	return 1;
 }
 
-GCMD:quitarfamiliac(playerid, params[])
+GCMD:quitarfamiliac(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "d", params[0])) return _Mensaje(playerid, 3, "0", "/quitarfamiliac [id jugador]");
@@ -40566,7 +40085,7 @@ GCMD:quitarfamiliac(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarfamilia(playerid, params[])
+GCMD:quitarfamilia(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "d", params[0])) return _Mensaje(playerid, 3, "0", "/quitarfamilia [id jugador]");
@@ -40581,8 +40100,8 @@ GCMD:quitarfamilia(playerid, params[])
 	return 1;
 }
 
-GCMD:darliderfam(playerid, params[]) return cmd_darfam(playerid, params);
-GCMD:darfam(playerid, params[])
+GCMD:darliderfam(playerid,  const params[]) return cmd_darfam(playerid, params);
+GCMD:darfam(playerid,  const params[])
 {
 	if (user[playerid][jEncargado][2] == 0) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "di", params[0], params[1])) return _Mensaje(playerid, 3, "0", "/darfam [id jugador] [familia]");
@@ -40600,7 +40119,7 @@ GCMD:darfam(playerid, params[])
 	return 1;
 }
 
-GCMD:darmiembrofam(playerid, params[])
+GCMD:darmiembrofam(playerid,  const params[])
 {
 	if (user[playerid][jEncargado][2] == 0) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "di", params[0], params[1])) return _Mensaje(playerid, 3, "0", "/darmiembrofam [id jugador] [familia]");
@@ -40691,7 +40210,7 @@ GCMD:cajafuerte(playerid)
 	return 1;
 }
 
-GCMD:editarfam(playerid, params[])
+GCMD:editarfam(playerid,  const params[])
 {
 	new string[256], option[128], ID_PFam = user[playerid][jLiderFam];
 	if (!ID_PFam) return _Mensaje(playerid, 0, "621", "No eres lider de ninguna familia.");
@@ -40729,7 +40248,7 @@ GCMD:editarfam(playerid, params[])
 	return 1;
 }
 
-GCMD:fexpulsar(playerid, params[])
+GCMD:fexpulsar(playerid,  const params[])
 {
 	new ID_PFam = user[playerid][jLiderFam], string[128];
 	if (!ID_PFam) return _Mensaje(playerid, 0, "621", "No eres lider de ninguna familia.");
@@ -40747,7 +40266,7 @@ GCMD:fexpulsar(playerid, params[])
 	return 1;
 }
 
-GCMD:fdarrango(playerid, params[])
+GCMD:fdarrango(playerid,  const params[])
 {
 	new ID_PFam = user[playerid][jLiderFam], player, Val, string[128];
 	if (!ID_PFam) return _Mensaje(playerid, 0, "621", "No eres lider de ninguna familia.");
@@ -40779,7 +40298,7 @@ GCMD:salirfamilia(playerid)
 	return 1;
 }
 
-GCMD:feditar(playerid, params[])
+GCMD:feditar(playerid,  const params[])
 {
 	new option[64], fid;
 	if (user[playerid][jEncargado][2] == 0) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -40808,7 +40327,7 @@ GCMD:feditar(playerid, params[])
 	return 1;
 }
 
-GCMD:feditar2(playerid, params[])
+GCMD:feditar2(playerid,  const params[])
 {
 	if (user[playerid][jEncargado][2] == 0) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "ddd", params[0], params[1], params[2])) return _Mensaje(playerid, 3, "0", "/feditar2 [ranura] [opción (1 miembros - 2 tipo '1 pandillero - 2 mafia')] [monto]");
@@ -40851,8 +40370,8 @@ GCMD:feditar2(playerid, params[])
 	return 1;
 }
 
-GCMD:crearfam(playerid, params[]) return cmd_crearfamilia(playerid, params);
-GCMD:crearfamilia(playerid, params[])
+GCMD:crearfam(playerid,  const params[]) return cmd_crearfamilia(playerid, params);
+GCMD:crearfamilia(playerid,  const params[])
 {
 	if (user[playerid][jEncargado][2] == 0) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "ddds[32]", params[0], params[1], params[2], params[3])) return _Mensaje(playerid, 3, "0", "/crearfamilia [id lider] [ranura] [tipo] [nombre familia]");
@@ -40873,8 +40392,8 @@ GCMD:crearfamilia(playerid, params[])
 	return 1;
 }
 
-GCMD:borrarfamilia(playerid, params[]) return cmd_borrarfam(playerid, params);
-GCMD:borrarfam(playerid, params[])
+GCMD:borrarfamilia(playerid,  const params[]) return cmd_borrarfam(playerid, params);
+GCMD:borrarfam(playerid,  const params[])
 {
 	new fid, string[256];
 	if (user[playerid][jEncargado][2] == 0) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -40957,7 +40476,7 @@ GCMD:togfac(playerid)
 	return 1;
 }
 
-GCMD:fac(playerid, params[])
+GCMD:fac(playerid,  const params[])
 {
 	if (!isnull(params))
 	{
@@ -41042,7 +40561,7 @@ GCMD:swsp(playerid)
 	return 1;
 }
 
-GCMD:gwsp(playerid, params[])
+GCMD:gwsp(playerid,  const params[])
 {
 	if (!_Telefono(playerid)){_Mensaje(playerid, 0, "9","No tienes un teléfono en ninguna mano."); return 1;}
 	if (!user[playerid][jLiderFam] && !user[playerid][jMiembroFam]) return _Mensaje(playerid, 0, "137", "No tienes ninguna familia.");
@@ -41095,7 +40614,7 @@ GCMD:togfam(playerid)
 	return 1;
 }
 
-GCMD:fam(playerid, params[])
+GCMD:fam(playerid,  const params[])
 {
 	if (!user[playerid][jLiderFam] && !user[playerid][jMiembroFam]) return _Mensaje(playerid, 0, "137", "No tienes ninguna familia.");
 	if (B_Familia[playerid] == 1) return _Mensaje(playerid, 4, "b0b0b0", "Posees el canal desactivado, usa /togfam.");
@@ -41127,7 +40646,7 @@ GCMD:fam(playerid, params[])
 	return 1;
 }
 
-GCMD:d(playerid, params[])
+GCMD:d(playerid,  const params[])
 {
 	new string[314];
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/d [radio chat]");
@@ -41156,7 +40675,7 @@ GCMD:d(playerid, params[])
 	ProxExDetector(3.0, playerid, string, 0x95939300, 0x95939300, 0x95939300, 0x95939300, 0x95939300);
 	return 1;
 }
-GCMD:r(playerid, params[])
+GCMD:r(playerid,  const params[])
 {
 	new string[314];
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/r [radio chat]");
@@ -41198,7 +40717,7 @@ GCMD:r(playerid, params[])
 	return 1;
 }
 
-ProxExDetector(Float: f_Radius, playerid, string[], col1, col2, col3, col4, col5)
+ProxExDetector(Float: f_Radius, playerid, const string[], col1, col2, col3, col4, col5)
 {
 	new Float: f_playerPos[3];
 	GetPlayerPos(playerid, f_playerPos[0], f_playerPos[1], f_playerPos[2]);
@@ -41232,7 +40751,7 @@ ProxExDetector(Float: f_Radius, playerid, string[], col1, col2, col3, col4, col5
 	return 1;
 }
 
-GCMD:pagar(playerid, params[])
+GCMD:pagar(playerid,  const params[])
 {
 	new string[128];
 	if (user[playerid][j_Horas] < 2) return _Mensaje(playerid, 0, "9", "No puedes usar el comando debido a tu restricción de dos horas de juego.");
@@ -41281,7 +40800,7 @@ GCMD:pagar(playerid, params[])
 	return 1;
 }
 
-GCMD:quitar(playerid, params[])
+GCMD:quitar(playerid,  const params[])
 {
 	new
 		string[128],
@@ -41334,7 +40853,7 @@ GCMD:quitar(playerid, params[])
 	return 1;
 }
 
-GCMD:reiniciarregalo(playerid, params[])
+GCMD:reiniciarregalo(playerid,  const params[])
 {
 	new string[128], playerid2;
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -41467,8 +40986,8 @@ GCMD:qtoys(playerid)
 	return 1;
 }
 
-GCMD:poneracc(playerid, params[]) return cmd_toy(playerid, params);
-GCMD:toy(playerid, params[])
+GCMD:poneracc(playerid,  const params[]) return cmd_toy(playerid, params);
+GCMD:toy(playerid,  const params[])
 {
 	new toyslot;
 	if (sscanf(params, "d", toyslot)) return _Mensaje(playerid, 3, "0", "/toy [slot (0-6)]");
@@ -41538,7 +41057,7 @@ GCMD:casillero(playerid)
 	return 1;
 }
 
-GCMD:darvip(playerid, params[])
+GCMD:darvip(playerid,  const params[])
 {
 	new string[128], playerid2, level, dia, mes;
 	if (user[playerid][jAdmin] < 1338) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -41616,7 +41135,7 @@ GCMD:togvip(playerid)
 	return 1;
 }
 
-GCMD:vip(playerid, params[])
+GCMD:vip(playerid,  const params[])
 {
 	if (user[playerid][jPremium] > 0 || user[playerid][jAdmin] >= 1)
 	{
@@ -41653,7 +41172,7 @@ GCMD:regaloatodos(playerid)
 	return 1;
 }
 
-GCMD:liberar(playerid, params[])
+GCMD:liberar(playerid,  const params[])
 {
 	new string[256], jugador2;
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -41672,8 +41191,8 @@ GCMD:liberar(playerid, params[])
 }
 
 new x_jail[MAX_PLAYERS], x_jail2[MAX_PLAYERS];
-GCMD:sancionarcuenta(playerid, params[]) return cmd_jailcuenta(playerid, params);
-GCMD:jailcuenta(playerid, params[])
+GCMD:sancionarcuenta(playerid,  const params[]) return cmd_jailcuenta(playerid, params);
+GCMD:jailcuenta(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[200], name[MAX_PLAYER_NAME], minutes, pID, tipo, reason[100];
@@ -41739,7 +41258,7 @@ funcion CargarJAIL(playerid, name[], value[])
 	return 1;
 }
 
-GCMD:jailtipo(playerid, params[])
+GCMD:jailtipo(playerid,  const params[])
 {
 	new string[256], time, tipo, playerid2, reason[100];
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -41849,8 +41368,8 @@ GCMD:jailtipo(playerid, params[])
 	return 1;
 }
 
-GCMD:sancionar(playerid, params[]) return cmd_jail(playerid, params);
-GCMD:jail(playerid, params[])
+GCMD:sancionar(playerid,  const params[]) return cmd_jail(playerid, params);
+GCMD:jail(playerid,  const params[])
 {
 	new string[256], time, playerid2, reason[100];
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -41905,7 +41424,7 @@ GCMD:fmiembros(playerid)
 	return 1;
 }
 
-GCMD:detener(playerid, params[])
+GCMD:detener(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 1, 2, 5)) _Mensaje(playerid, 0, "165", "No formas parte de la Ley.");
 	if (IsPlayerInAnyVehicle(playerid)) return _Mensaje(playerid, 0, "165", "ERROR: Debes estar fuera del vehículo.");
@@ -41935,8 +41454,8 @@ GCMD:detener(playerid, params[])
 	return 1;
 }
 
-GCMD:reportar(playerid, params[]) return cmd_re(playerid, params);
-GCMD:re(playerid, params[])
+GCMD:reportar(playerid,  const params[]) return cmd_re(playerid, params);
+GCMD:re(playerid,  const params[])
 {
 	new string[256];
 	if(!CheckTimer(60, TiempoReporte[playerid]))
@@ -41962,9 +41481,9 @@ GCMD:re(playerid, params[])
 	return 1;
 }
 
-GCMD:ar(playerid, params[]) return cmd_rr(playerid, params);
-GCMD:rreporte(playerid, params[]) return cmd_rr(playerid, params);
-GCMD:rr(playerid, params[])
+GCMD:ar(playerid,  const params[]) return cmd_rr(playerid, params);
+GCMD:rreporte(playerid,  const params[]) return cmd_rr(playerid, params);
+GCMD:rr(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "d", params[0])) return _Mensaje(playerid, 3, "0", "/rr [id jugador]");
@@ -41999,7 +41518,7 @@ GCMD:reportes(playerid)
 	return 1;
 }
 
-GCMD:borrarreportes(playerid, params[])
+GCMD:borrarreportes(playerid,  const params[])
 {
 	new string[128];
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -42016,7 +41535,7 @@ GCMD:borrarreportes(playerid, params[])
 	return 1;
 }
 
-GCMD:bloquearreportes(playerid, params[])
+GCMD:bloquearreportes(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[128], playerid2;
@@ -42045,9 +41564,9 @@ GCMD:bloquearreportes(playerid, params[])
 	return 1;
 }
 
-GCMD:desbanip(playerid, params[]) return cmd_unbanip(playerid, params);
-GCMD:desbanearip(playerid, params[]) return cmd_unbanip(playerid, params);
-GCMD:unbanip(playerid, params[])
+GCMD:desbanip(playerid,  const params[]) return cmd_unbanip(playerid, params);
+GCMD:desbanearip(playerid,  const params[]) return cmd_unbanip(playerid, params);
+GCMD:unbanip(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] >= 2 || user[playerid][jEncargado][3] == 1)
 	{
@@ -42068,9 +41587,9 @@ GCMD:unbanip(playerid, params[])
 	return 1;
 }
 
-GCMD:desban(playerid, params[]) return cmd_unban(playerid, params);
-GCMD:desbanear(playerid, params[]) return cmd_unban(playerid, params);
-GCMD:unban(playerid, params[])
+GCMD:desban(playerid,  const params[]) return cmd_unban(playerid, params);
+GCMD:desbanear(playerid,  const params[]) return cmd_unban(playerid, params);
+GCMD:unban(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] >= 2 || user[playerid][jEncargado][3] == 1)
 	{
@@ -42091,9 +41610,9 @@ GCMD:unban(playerid, params[])
 	return 1;
 }
 
-GCMD:bancuenta(playerid, params[]) return cmd_obanear(playerid, params);
-GCMD:banearcuenta(playerid, params[]) return cmd_obanear(playerid, params);
-GCMD:obanear(playerid, params[])
+GCMD:bancuenta(playerid,  const params[]) return cmd_obanear(playerid, params);
+GCMD:banearcuenta(playerid,  const params[]) return cmd_obanear(playerid, params);
+GCMD:obanear(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] >= 3 || user[playerid][jEncargado][3] == 1)
 	{
@@ -42122,9 +41641,9 @@ GCMD:obanear(playerid, params[])
 	} else _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	return 1;
 }
-GCMD:ban(playerid, params[]) return cmd_banear(playerid, params);
-GCMD:bloquear(playerid, params[]) return cmd_banear(playerid, params);
-GCMD:banear(playerid, params[])
+GCMD:ban(playerid,  const params[]) return cmd_banear(playerid, params);
+GCMD:bloquear(playerid,  const params[]) return cmd_banear(playerid, params);
+GCMD:banear(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] >= 3 || user[playerid][jEncargado][3] == 1)
 	{
@@ -42160,8 +41679,8 @@ GCMD:banear(playerid, params[])
 	} else _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	return 1;
 }
-GCMD:banearip(playerid, params[]) return cmd_banip(playerid, params);
-GCMD:banip(playerid, params[])
+GCMD:banearip(playerid,  const params[]) return cmd_banip(playerid, params);
+GCMD:banip(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] >= 3 || user[playerid][jEncargado][3] == 1)
 	{
@@ -42201,7 +41720,7 @@ GCMD:banip(playerid, params[])
 	} else _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	return 1;
 }
-GCMD:verip(playerid, params[])
+GCMD:verip(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] >= 3 || user[playerid][jEncargado][3] == 1)
 	{
@@ -42213,7 +41732,7 @@ GCMD:verip(playerid, params[])
 	} else _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	return 1;
 }
-GCMD:bloquearip(playerid, params[])
+GCMD:bloquearip(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] >= 3 || user[playerid][jEncargado][3] == 1)
 	{
@@ -42228,7 +41747,7 @@ GCMD:bloquearip(playerid, params[])
 	} else _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	return 1;
 }
-GCMD:kick(playerid, params[])
+GCMD:kick(playerid,  const params[])
 {
 	new string[200], playerid2, reason[128];
     if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -42254,7 +41773,7 @@ GCMD:kick(playerid, params[])
 
 funcion TimerKICK(playerid) Kick(playerid);
 
-GCMD:arrestarf(playerid, params[])
+GCMD:arrestarf(playerid,  const params[])
 {
 	new string[128], multa, tiempo, fianza, playerid2;
 	if (!Es_Faccion(playerid, 1, 2)) return _Mensaje(playerid, 0, "175", "No eres miembro de la PD o SADOC.");
@@ -42374,7 +41893,7 @@ GCMD:arrestarf(playerid, params[])
 	_Mensaje(playerid2, 1, "0", "Todo tu dinero y pertenencias estarán en una caja hasta que culmines el tiempo.");
 	return 1;
 }
-GCMD:arrestar(playerid, params[])
+GCMD:arrestar(playerid,  const params[])
 {
 	new string[128], multa, tiempo, fianza, playerid2, rand;
 	if (!Es_Faccion(playerid, 1, 2)) return _Mensaje(playerid, 0, "175", "No eres miembro de la PD o SADOC.");
@@ -42433,7 +41952,7 @@ GCMD:arrestar(playerid, params[])
 	return 1;
 }
 
-GCMD:historial(playerid, params[])
+GCMD:historial(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 1)) return _Mensaje(playerid, 0, "165", "No formas parte de la Ley.");
 	if (user[playerid][jRango] < 1) return _Mensaje(playerid, 0, "0", "ERROR: Debes ser superior a rango 1.");
@@ -42466,9 +41985,9 @@ GCMD:historial(playerid, params[])
 	return 1;
 }
 
-GCMD:antecedente(playerid, params[]) return cmd_ant(playerid, params);
-GCMD:hdelectivo(playerid, params[]) return cmd_ant(playerid, params);
-GCMD:ant(playerid, params[])
+GCMD:antecedente(playerid,  const params[]) return cmd_ant(playerid, params);
+GCMD:hdelectivo(playerid,  const params[]) return cmd_ant(playerid, params);
+GCMD:ant(playerid,  const params[])
 {
 	new playerid2, reason[64];
 
@@ -42516,7 +42035,7 @@ Colocar_Delito(playerid, playerid2, slot, razon[64])
 	return 1;
 }
 
-GCMD:su(playerid, params[])
+GCMD:su(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 1, 2)) return _Mensaje(playerid, 0, "165", "No formas parte de la Ley.");
 	if (EnServicioPD[playerid] == 0) return _Mensaje(playerid, 0, "166", "No estas en servicio.");
@@ -42540,8 +42059,8 @@ GCMD:su(playerid, params[])
 	return 1;
 }
 
-GCMD:mp(playerid, params[]) return cmd_pm(playerid, params);
-GCMD:pm(playerid, params[])
+GCMD:mp(playerid,  const params[]) return cmd_pm(playerid, params);
+GCMD:pm(playerid,  const params[])
 {
 	new string[256], string2[256], mensaje[200];
 	if (PrivadosB[playerid] == 1) return _Mensaje(playerid, 0, "472", "Tienes bloqueado el permiso de mandar /mp.");
@@ -42635,7 +42154,7 @@ GCMD:guardarservidor(playerid)
 	return 1;
 }
 
-GCMD:aguardar(playerid, params[])
+GCMD:aguardar(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "s[32]", params[0])) return _Mensaje(playerid, 3, "0", "/aguardar [sistema] - (casa - negocio - garaje - familia - puerta)");
@@ -42695,7 +42214,7 @@ GCMD:aguardar(playerid, params[])
 	return 1;
 }
 
-GCMD:congelar(playerid, params[])
+GCMD:congelar(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (EnServicioADM[playerid] == 0) return _Mensaje(playerid, 0, "158", "Utiliza /staffon para usar este comando.");
@@ -42712,7 +42231,7 @@ GCMD:congelar(playerid, params[])
 	return 1;
 }
 
-GCMD:descongelar(playerid, params[])
+GCMD:descongelar(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (EnServicioADM[playerid] == 0) return _Mensaje(playerid, 0, "158", "Utiliza /staffon para usar este comando.");
@@ -42730,7 +42249,7 @@ GCMD:descongelar(playerid, params[])
 	return 1;
 }
 
-GCMD:a(playerid, params[])
+GCMD:a(playerid,  const params[])
 {
 	new string[256];
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -42797,15 +42316,15 @@ GCMD:nuevos(playerid)
 	return 1;
 }
 
-GCMD:getid(playerid, params[]) return cmd_id(playerid, params);
-GCMD:id(playerid, params[])
+GCMD:getid(playerid,  const params[]) return cmd_id(playerid, params);
+GCMD:id(playerid,  const params[])
 {
 	new id;
 	new string[128];
 
 	if(isnull(params)) return _Mensaje(playerid, 3, "0", "/id [id o nombre]");
 
-	if(isnumeric(params))
+	if(IsNumeric(params))
 	{
 		sscanf(params, "d", id);
 
@@ -43003,7 +42522,7 @@ GCMD:robobanco(playerid)
 	return 1;
 }
 
-GCMD:ircordenada(playerid, params[])
+GCMD:ircordenada(playerid,  const params[])
 {
 	new Float: x,Float: y,Float: z,string[100];
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -43014,7 +42533,7 @@ GCMD:ircordenada(playerid, params[])
 	return 1;
 }
 
-GCMD:saludar(playerid, params[])
+GCMD:saludar(playerid,  const params[])
 {
 	new playerid2, idsaludo;
 	if (sscanf(params, "dd", playerid2, idsaludo)) return _Mensaje(playerid, 3, "0", "/saludar [id jugador] [saludo 0-7]");
@@ -43031,7 +42550,7 @@ GCMD:saludar(playerid, params[])
 	return 1;
 }
 
-GCMD:besar(playerid, params[])
+GCMD:besar(playerid,  const params[])
 {
 	new playerid2, idbeso;
 	if (sscanf(params, "dd", playerid2, idbeso)) return _Mensaje(playerid, 3, "0", "/besar [id jugador] [beso 0-1]");
@@ -43048,8 +42567,8 @@ GCMD:besar(playerid, params[])
 	return 1;
 }
 
-GCMD:eject(playerid, params[]) return cmd_expulsarveh(playerid, params);
-GCMD:expulsarveh(playerid, params[])
+GCMD:eject(playerid,  const params[]) return cmd_expulsarveh(playerid, params);
+GCMD:expulsarveh(playerid,  const params[])
 {
 	if (!IsPlayerInAnyVehicle(playerid)) _Mensaje(playerid, 0, "130", "Usted no se encuentra en ningún vehículo.");
 	new porno = GetPlayerState(playerid), playerid2;
@@ -43082,7 +42601,7 @@ GCMD:borrarauto(playerid)
 	return 1;
 }
 
-GCMD:limpiarant(playerid, params[])
+GCMD:limpiarant(playerid,  const params[])
 {
 	new playerid2, string[256];
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -43114,7 +42633,7 @@ GCMD:limpiarant(playerid, params[])
 	MensajeAdmin(string);
 	return 1;
 }
-GCMD:limpiartodo(playerid, params[])
+GCMD:limpiartodo(playerid,  const params[])
 {
 	new playerid2, string[256];
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -43130,8 +42649,8 @@ GCMD:limpiartodo(playerid, params[])
 	return 1;
 }
 
-GCMD:limpiarbol(playerid, params[]) return cmd_limpiarbolsillos(playerid, params);
-GCMD:limpiarbolsillos(playerid, params[])
+GCMD:limpiarbol(playerid,  const params[]) return cmd_limpiarbolsillos(playerid, params);
+GCMD:limpiarbolsillos(playerid,  const params[])
 {
 	new playerid2, string[256];
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -43143,7 +42662,7 @@ GCMD:limpiarbolsillos(playerid, params[])
 	MensajeAdmin(string);
 	return 1;
 }
-GCMD:limpiarmanos(playerid, params[])
+GCMD:limpiarmanos(playerid,  const params[])
 {
 	new playerid2, string[256];
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -43155,8 +42674,8 @@ GCMD:limpiarmanos(playerid, params[])
 	MensajeAdmin(string);
 	return 1;
 }
-GCMD:limpiarct(playerid, params[]) return cmd_limpiarcinturon(playerid, params);
-GCMD:limpiarcinturon(playerid, params[])
+GCMD:limpiarct(playerid,  const params[]) return cmd_limpiarcinturon(playerid, params);
+GCMD:limpiarcinturon(playerid,  const params[])
 {
 	new playerid2, string[256];
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -43237,7 +42756,7 @@ GCMD:condinero(playerid)
 	}
 	return 1;
 }
-GCMD:limpiarespalda(playerid, params[])
+GCMD:limpiarespalda(playerid,  const params[])
 {
 	new playerid2, string[256];
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -43250,7 +42769,7 @@ GCMD:limpiarespalda(playerid, params[])
 	return 1;
 }
 
-GCMD:darstat(playerid, params[])
+GCMD:darstat(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "uii", params[0], params[1], params[2]))
@@ -43350,7 +42869,7 @@ GCMD:darstat(playerid, params[])
     return 1;
 }
 
-GCMD:esposar(playerid, params[])
+GCMD:esposar(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 1, 2)) return _Mensaje(playerid, 0, "165", "No formas parte de la Ley.");
 	if (sscanf(params, "d", params[0])) return _Mensaje(playerid, 3, "0", "/esposar [id jugador]");
@@ -43409,7 +42928,7 @@ GCMD:mercado(playerid)
 	return 1;
 }
 
-GCMD:atar(playerid, params[])
+GCMD:atar(playerid,  const params[])
 {
 	new playerid2;
 	if (VendasYSoga[playerid] == 0) return _Mensaje(playerid, 0, "250", "No tienes una cuerda.");
@@ -43436,7 +42955,7 @@ GCMD:atar(playerid, params[])
 	return 1;
 }
 
-GCMD:vendar(playerid, params[])
+GCMD:vendar(playerid,  const params[])
 {
 	new playerid2;
 	if (VendasYSoga[playerid] == 0) return _Mensaje(playerid, 0, "252", "No tienes una venda.");
@@ -43528,7 +43047,7 @@ GCMD:dentrenar(playerid)
 	return 1;
 }
 
-GCMD:placa(playerid, params[])
+GCMD:placa(playerid,  const params[])
 {
 	new
 		string[128],
@@ -43548,8 +43067,8 @@ GCMD:placa(playerid, params[])
 	return 1;
 }
 
-GCMD:documentofalso(playerid, params[]) return cmd_dnifalso(playerid, params);
-GCMD:dnifalso(playerid, params[])
+GCMD:documentofalso(playerid,  const params[]) return cmd_dnifalso(playerid, params);
+GCMD:dnifalso(playerid,  const params[])
 {
 	new string[300], playerid2, sex[18], otext[36];
 	if (sscanf(params, "d", playerid2)) return _Mensaje(playerid, 3, "0", "/dnifalso [id jugador]");
@@ -43575,8 +43094,8 @@ GCMD:dnifalso(playerid, params[])
 	return 1;
 }
 
-GCMD:documento(playerid, params[]) return cmd_dni(playerid, params);
-GCMD:dni(playerid, params[])
+GCMD:documento(playerid,  const params[]) return cmd_dni(playerid, params);
+GCMD:dni(playerid,  const params[])
 {
 	new string[300], playerid2, sex[18], otext[36];
 	if (user[playerid][jDocumento] == 0) return _Mensaje(playerid, 0, "1", "No posees un documento, saca uno en el ayuntamiento.");
@@ -43602,7 +43121,7 @@ GCMD:dni(playerid, params[])
 	return 1;
 }
 
-GCMD:quitardnifalso(playerid, params[])
+GCMD:quitardnifalso(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "d", params[0])) return _Mensaje(playerid, 3, "0", "/quitardni [id jugador]");
@@ -43619,7 +43138,7 @@ GCMD:quitardnifalso(playerid, params[])
 	return 1;
 }
 
-GCMD:licencias(playerid, params[])
+GCMD:licencias(playerid,  const params[])
 {
 	new car[18], fly[18], boat[18], gun[18], string[300], playerid2;
 	if (sscanf(params, "d", playerid2)) return _Mensaje(playerid, 3, "0", "/licencias [id jugador]");
@@ -43696,7 +43215,7 @@ GCMD:peaje(playerid)
 	estaen_peaje(playerid, 0, d_peaje);
 	return 1;
 }
-GCMD:combustible(playerid, params[])
+GCMD:combustible(playerid,  const params[])
 {
 	new
 		cantidad,
@@ -43762,7 +43281,7 @@ funcion _gasolinta(playerid, id, cantidad, price)
 	if (veh_gasolina[GetPlayerVehicleID(playerid)] >= 180) veh_gasolina[GetPlayerVehicleID(playerid)] = 180;
 	return 1;
 }
-GCMD:creargasolinera(playerid, params[])
+GCMD:creargasolinera(playerid,  const params[])
 {
 	new gsid, id;
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -43776,7 +43295,7 @@ GCMD:creargasolinera(playerid, params[])
 	_Mensaje(playerid, 4, "b0b0b0", " Creado con éxito.");
 	return 1;
 }
-GCMD:borrargasolinera(playerid, params[])
+GCMD:borrargasolinera(playerid,  const params[])
 {
 	new id;
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -44183,8 +43702,8 @@ funcion CargarCoche(playerid, vid, Float: newx, Float: newy, Float: newz, Float:
 	return 0; //causa error
 }
 
-GCMD:vendercoche(playerid, params[]) return cmd_vendermicoche(playerid, params);
-GCMD:vendermicoche(playerid, params[])
+GCMD:vendercoche(playerid,  const params[]) return cmd_vendermicoche(playerid, params);
+GCMD:vendermicoche(playerid,  const params[])
 {
 	new string[128], playerid2, price;
 	for (new vid = 0; vid < MAX_VEHICULOS; vid++)
@@ -44252,8 +43771,8 @@ GCMD:guardarcuenta(playerid)
 	return 1;
 }
 
-GCMD:help(playerid, params[]) return cmd_ayuda(playerid, params);
-GCMD:ayuda(playerid, params[])
+GCMD:help(playerid,  const params[]) return cmd_ayuda(playerid, params);
+GCMD:ayuda(playerid,  const params[])
 {
 	new option[24];
 	if(sscanf(params, "s[24]", option)) return Menu_ayuda(playerid, 0);
@@ -44513,7 +44032,7 @@ GCMD:creditos(playerid)
 	return 1;
 }
 
-GCMD:darcheque(playerid, params[])
+GCMD:darcheque(playerid,  const params[])
 {
 	new money, player, text[128];
 	if (user[playerid][j_Horas] < 2) return _Mensaje(playerid, 0, "9", "No puedes usar el comando debido a tu restricción de dos horas de juego.");
@@ -44742,9 +44261,9 @@ GCMD:cpeaje(playerid)
 	return 1;
 }
 
-GCMD:refuerzos(playerid, params[]) return cmd_bk(playerid, params);
-GCMD:ref(playerid, params[]) return cmd_bk(playerid, params);
-GCMD:bk(playerid, params[])
+GCMD:refuerzos(playerid,  const params[]) return cmd_bk(playerid, params);
+GCMD:ref(playerid,  const params[]) return cmd_bk(playerid, params);
+GCMD:bk(playerid,  const params[])
 {
 	if (SolicitaRefuerzos[playerid] == 1 || BotonPanico[playerid]) return _Mensaje(playerid, 0, "229", "Ya tienes un pedido de ayuda.");
 	if (!Es_Faccion(playerid, 1)) return _Mensaje(playerid, 0, "165", "No formas parte de la Ley.");
@@ -44780,7 +44299,7 @@ GCMD:verincendios(playerid)
 	return 1;
 }
 
-GCMD:crearincendio(playerid, params[])
+GCMD:crearincendio(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 3) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "ii", params[0], params[1])) return _Mensaje(playerid, 3, "0", "/crearincendio [CASA: 0, NEGOCIO: 1], ID[CASA/NEGOCIO]");
@@ -44834,8 +44353,8 @@ GCMD:guardarct(playerid)
 	G_Cinturon(playerid, 1);
 	return 1;
 }
-GCMD:sct(playerid, params[]) return cmd_sacarct(playerid, params);
-GCMD:sacarct(playerid, params[])
+GCMD:sct(playerid,  const params[]) return cmd_sacarct(playerid, params);
+GCMD:sacarct(playerid,  const params[])
 {
 	new id;
 	if (sscanf(params, "i", id)) { _Mensaje(playerid, 3, "0", "/sacarct [espacio]"); return 1; }
@@ -44844,7 +44363,7 @@ GCMD:sacarct(playerid, params[])
 	S_Cinturon(playerid, id - 1);
 	return 1;
 }
-GCMD:sacar(playerid, params[])
+GCMD:sacar(playerid,  const params[])
 {
 	new id;
 	if (sscanf(params, "i", id)) { _Mensaje(playerid, 3, "0", "/sacar [espacio]"); return 1; }
@@ -44858,7 +44377,7 @@ GCMD:cmano(playerid)
 	C_Mano(playerid);
 	return 1;
 }
-GCMD:crearobjeto(playerid, params[])
+GCMD:crearobjeto(playerid,  const params[])
 {
 	new idobj, cantidad, string[128];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -44961,8 +44480,8 @@ GCMD:cinturon(playerid)
 	return 1;
 }
 
-GCMD:dararma(playerid, params[]) return cmd_ceder(playerid, params);
-GCMD:ceder(playerid, params[])
+GCMD:dararma(playerid,  const params[]) return cmd_ceder(playerid, params);
+GCMD:ceder(playerid,  const params[])
 {
 	new playerid2, string[256];
 	if(!CheckTimer(5, CederTiempo[playerid]))
@@ -45065,7 +44584,7 @@ GCMD:qchaleco(playerid)
 	return 1;
 }
 
-GCMD:mascarapd(playerid, params[])
+GCMD:mascarapd(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 1)) return _Mensaje(playerid, 0, "378", "No eres miembro de la PD.");
 	if (user[playerid][jRango] < 5) return _Mensaje(playerid, 0, "124", "ERROR: Debes ser superior a rango 5.");
@@ -45080,7 +44599,9 @@ GCMD:mascarapd(playerid, params[])
 			new name[MAX_PLAYER_NAME];
 			GetPlayerName(playerid, name, sizeof(name));
 			SetPVarString(playerid, "NombreP", name);
-			SetPlayerName(playerid, params);
+			new detName[MAX_PLAYER_NAME];
+			strcat(detName, params);
+			SetPlayerName(playerid, detName);
 			user[playerid][jMascaraPD] = 1;
 		} else _Mensaje(playerid, 4, "b0b0b0", "Este nombre se encuentra registrado.");
 	}
@@ -45305,7 +44826,7 @@ GCMD:comer(playerid)
 	return 1;
 }
 
-GCMD:fumar(playerid, params[])
+GCMD:fumar(playerid,  const params[])
 {
     new manoder = user[playerid][jm_Derecha];
     /*
@@ -45737,7 +45258,7 @@ GCMD:cargar(playerid) //poner cargador
 	return 1;
 }
 
-GCMD:anim(playerid, params[])
+GCMD:anim(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new
@@ -45759,7 +45280,7 @@ GCMD:anim(playerid, params[])
 	return 1;
 }
 
-GCMD:estilo(playerid, params[])
+GCMD:estilo(playerid,  const params[])
 {
 	new estilo, estilo2[50], mensaje_x[128];
 	if (sscanf(params, "d", estilo)) return _Mensaje(playerid, 3, "0", "/estilo [1-12]");
@@ -45798,7 +45319,7 @@ GCMD:cielo(playerid)
 	return 1;
 }
 
-GCMD:fumando(playerid, params[])
+GCMD:fumando(playerid,  const params[])
 {
 	new animacion;
 	if (sscanf(params, "d", animacion)) return _Mensaje(playerid, 3, "0", "/fumando [1-7]");
@@ -45816,7 +45337,7 @@ GCMD:fumando(playerid, params[])
 	return 1;
 }
 
-GCMD:pandillero(playerid, params[])
+GCMD:pandillero(playerid,  const params[])
 {
 	if (IsPlayerInAnyVehicle(playerid))
 	{
@@ -45880,7 +45401,7 @@ GCMD:hablando(playerid)
 	return 1;
 }
 
-GCMD:caminar(playerid, params[])
+GCMD:caminar(playerid,  const params[])
 {
 	new animacion;
 	if (sscanf(params, "d", animacion)) return _Mensaje(playerid, 3, "0", "/caminar [1-12]");
@@ -45903,7 +45424,7 @@ GCMD:caminar(playerid, params[])
 	return 1;
 }
 
-GCMD:adios(playerid, params[])
+GCMD:adios(playerid,  const params[])
 {
 	new anim;
 	if (sscanf(params, "d", anim)) return _Mensaje(playerid, 3, "0", "/adios [1-8]");
@@ -45922,7 +45443,7 @@ GCMD:adios(playerid, params[])
 	return 1;
 }
 
-GCMD:coche(playerid, params[])
+GCMD:coche(playerid,  const params[])
 {
 	if (!IsPlayerInAnyVehicle(playerid)) return _Mensaje(playerid, 0, "683", "Usted no se encuentra en ningún vehículo.");
 	new anim;
@@ -45955,7 +45476,7 @@ GCMD:coche(playerid, params[])
 
 //animaciones viejas
 
-GCMD:camara(playerid, params[])
+GCMD:camara(playerid,  const params[])
 {
 	new anim;
 	if (sscanf(params, "d", anim)) return _Mensaje(playerid, 3, "0", "/camara [1-14]");
@@ -45980,7 +45501,7 @@ GCMD:camara(playerid, params[])
 	return 1;
 }
 
-GCMD:discutir(playerid, params[])
+GCMD:discutir(playerid,  const params[])
 {
 	new anim;
 	if (sscanf(params, "d", anim)) return _Mensaje(playerid, 3, "0", "/discutir [1-6]");
@@ -45997,7 +45518,7 @@ GCMD:discutir(playerid, params[])
 	return 1;
 }
 
-GCMD:policia(playerid, params[])
+GCMD:policia(playerid,  const params[])
 {
 	new anim;
 	if (sscanf(params, "d", anim)) return _Mensaje(playerid, 3, "0", "/policia [1-9]");
@@ -46017,7 +45538,7 @@ GCMD:policia(playerid, params[])
 	return 1;
 }
 
-GCMD:espada(playerid, params[])
+GCMD:espada(playerid,  const params[])
 {
 	new anim;
 	if (sscanf(params, "d", anim)) return _Mensaje(playerid, 3, "0", "/espada [1-2]");
@@ -46030,7 +45551,7 @@ GCMD:espada(playerid, params[])
 	return 1;
 }
 
-GCMD:herido(playerid, params[])
+GCMD:herido(playerid,  const params[])
 {
 	new anim;
 	if (sscanf(params, "d", anim)) return _Mensaje(playerid, 3, "0", "/herido [1-10]");
@@ -46051,7 +45572,7 @@ GCMD:herido(playerid, params[])
 	return 1;
 }
 
-GCMD:oralsex(playerid, params[])
+GCMD:oralsex(playerid,  const params[])
 {
 	new anim;
 	if (sscanf(params, "d", anim)) return _Mensaje(playerid, 3, "0", "/oralsex [1-12]");
@@ -46074,7 +45595,7 @@ GCMD:oralsex(playerid, params[])
 	return 1;
 }
 
-GCMD:oralsexcar(playerid, params[])
+GCMD:oralsexcar(playerid,  const params[])
 {
 	if (!IsPlayerInAnyVehicle(playerid)) return _Mensaje(playerid, 0, "683", "Usted no se encuentra en ningún vehículo.");
 	new anim;
@@ -46093,7 +45614,7 @@ GCMD:oralsexcar(playerid, params[])
 	return 1;
 }
 
-GCMD:dildosex(playerid, params[])
+GCMD:dildosex(playerid,  const params[])
 {
 	new anim;
 	if (sscanf(params, "d", anim)) return _Mensaje(playerid, 3, "0", "/dildosex [1-8]");
@@ -46112,7 +45633,7 @@ GCMD:dildosex(playerid, params[])
 	return 1;
 }
 
-GCMD:apuntar(playerid, params[])
+GCMD:apuntar(playerid,  const params[])
 {
 	new anim;
 	if (sscanf(params, "d", anim)) return _Mensaje(playerid, 3, "0", "/apuntar [1-7]");
@@ -46130,7 +45651,7 @@ GCMD:apuntar(playerid, params[])
 	return 1;
 }
 
-GCMD:oficinaanim(playerid, params[])
+GCMD:oficinaanim(playerid,  const params[])
 {
 	new anim;
 	if (sscanf(params, "d", anim)) return _Mensaje(playerid, 3, "0", "/oficinaanim [1-10]");
@@ -46250,7 +45771,7 @@ GCMD:stopanim(playerid)
 	return 1;
 }
 
-GCMD:cansado(playerid, params[])
+GCMD:cansado(playerid,  const params[])
 {
 	new S;
 	if (sscanf(params, "i", S)) return _Mensaje(playerid, 3, "0", "/cansado [1 - 2]");
@@ -46259,7 +45780,7 @@ GCMD:cansado(playerid, params[])
 	else return _Mensaje(playerid, 3, "0", "/cansado [1 - 2]");
 }
 
-GCMD:danzar(playerid, params[])
+GCMD:danzar(playerid,  const params[])
 {
 	new S;
 	if (sscanf(params, "i", S)) return _Mensaje(playerid, 3, "0", "/danzar [1 - 13]");
@@ -46279,7 +45800,7 @@ GCMD:danzar(playerid, params[])
 	else return _Mensaje(playerid, 3, "0", "/danzar [1 - 13]");
 }
 
-GCMD:brazos(playerid, params[])
+GCMD:brazos(playerid,  const params[])
 {
 	new animacion;
 	if (sscanf(params, "d", animacion)) return _Mensaje(playerid, 3, "0", "/brazos [1-6]");
@@ -46296,7 +45817,7 @@ GCMD:brazos(playerid, params[])
 	return 1;
 }
 
-GCMD:crack(playerid, params[])
+GCMD:crack(playerid,  const params[])
 {
 	new animacion;
 	if (sscanf(params, "d", animacion)) return _Mensaje(playerid, 3, "0", "/crack [1-9]");
@@ -46316,7 +45837,7 @@ GCMD:crack(playerid, params[])
 	return 1;
 }
 
-GCMD:asiento(playerid, params[])
+GCMD:asiento(playerid,  const params[])
 {
 	new anim;
 	if (sscanf(params, "d", anim)) return _Mensaje(playerid, 3, "0", "/asiento [1-9]");
@@ -46337,7 +45858,7 @@ GCMD:asiento(playerid, params[])
 	return 1;
 }
 
-GCMD:bate(playerid, params[])
+GCMD:bate(playerid,  const params[])
 {
 	new animacion;
 	if (sscanf(params, "d", animacion)) return _Mensaje(playerid, 3, "0", "/bate [1-2]");
@@ -46350,7 +45871,7 @@ GCMD:bate(playerid, params[])
 	return 1;
 }
 
-GCMD:basket(playerid, params[])
+GCMD:basket(playerid,  const params[])
 {
 	new animacion;
 	if (sscanf(params, "d", animacion)) return _Mensaje(playerid, 3, "0", "/basket [1-7]");
@@ -46368,7 +45889,7 @@ GCMD:basket(playerid, params[])
 	return 1;
 }
 
-GCMD:trafico(playerid, params[])
+GCMD:trafico(playerid,  const params[])
 {
 	new animacion;
 	if (sscanf(params, "d", animacion)) return _Mensaje(playerid, 3, "0", "/trafico [1-4]");
@@ -46383,7 +45904,7 @@ GCMD:trafico(playerid, params[])
 	return 1;
 }
 
-GCMD:apoyarse(playerid, params[])
+GCMD:apoyarse(playerid,  const params[])
 {
 	new animacion;
 	if  (sscanf(params, "d", animacion)) return _Mensaje(playerid, 3, "0", "/apoyarse [1-2]");
@@ -46396,7 +45917,7 @@ GCMD:apoyarse(playerid, params[])
 	return 1;
 }
 
-GCMD:billar(playerid, params[])
+GCMD:billar(playerid,  const params[])
 {
 	new animacion;
 	if (sscanf(params, "d", animacion)) return _Mensaje(playerid, 3, "0", "/billar [1-3]");
@@ -46410,7 +45931,7 @@ GCMD:billar(playerid, params[])
 	return 1;
 }
 
-GCMD:correr(playerid, params[])
+GCMD:correr(playerid,  const params[])
 {
 	new animacion;
 	if (sscanf(params, "d", animacion)) return _Mensaje(playerid, 3, "0", "/correr [1-6]");
@@ -46427,7 +45948,7 @@ GCMD:correr(playerid, params[])
 	return 1;
 }
 
-GCMD:strip(playerid, params[])
+GCMD:strip(playerid,  const params[])
 {
 	new animacion;
 	if (sscanf(params, "d", animacion)) return _Mensaje(playerid, 3, "0", "/strip [1-7]");
@@ -46445,7 +45966,7 @@ GCMD:strip(playerid, params[])
 	return 1;
 }
 
-GCMD:tumbarse(playerid, params[])
+GCMD:tumbarse(playerid,  const params[])
 {
 	new animacion;
 	if (sscanf(params, "d", animacion)) return _Mensaje(playerid, 3, "0", "/tumbarse [1-5]");
@@ -46461,7 +45982,7 @@ GCMD:tumbarse(playerid, params[])
 	return 1;
 }
 
-GCMD:mecanico(playerid, params[])
+GCMD:mecanico(playerid,  const params[])
 {
 	new animacion;
 	if (sscanf(params, "d", animacion)) return _Mensaje(playerid, 3, "0", "/mecanico [1-2]");
@@ -46474,7 +45995,7 @@ GCMD:mecanico(playerid, params[])
 	return 1;
 }
 
-GCMD:consola(playerid, params[])
+GCMD:consola(playerid,  const params[])
 {
 	new animacion;
 	if (sscanf(params, "d", animacion)) return _Mensaje(playerid, 3, "0", "/consola [1-3]");
@@ -46488,7 +46009,7 @@ GCMD:consola(playerid, params[])
 	return 1;
 }
 
-GCMD:bailar(playerid, params[])
+GCMD:bailar(playerid,  const params[])
 {
 	if (GetPVarInt(playerid, "HaciendoMueble") == 1) return _Mensaje(playerid, 0, "148", "No puedes utilizar una animación en este momento.");
 	if (IsPlayerInAnyVehicle(playerid)) return _Mensaje(playerid, 0, "151", "No puedes hacer una animación en un vehículo.");
@@ -46508,7 +46029,7 @@ GCMD:bailar(playerid, params[])
 }
 
 //- Sistema de teléfonos públicos
-GCMD:creartelf(playerid, params[])
+GCMD:creartelf(playerid,  const params[])
 {
 	new tpid;
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -46525,7 +46046,7 @@ GCMD:creartelf(playerid, params[])
 	return 1;
 }
 
-GCMD:borrartelf(playerid, params[])
+GCMD:borrartelf(playerid,  const params[])
 {
 	new tpid;
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -46545,7 +46066,7 @@ GCMD:borrartelf(playerid, params[])
 	return 1;
 }
 
-GCMD:editarcoche(playerid, params[])
+GCMD:editarcoche(playerid,  const params[])
 {
 	new carsaleid, input;
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -46588,7 +46109,7 @@ GCMD:practicar(playerid)
 	return 1;
 }
 
-GCMD:nombreadmin(playerid, params[])
+GCMD:nombreadmin(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 
@@ -46605,7 +46126,9 @@ GCMD:nombreadmin(playerid, params[])
 			new name[MAX_PLAYER_NAME];
 			GetPlayerName(playerid, name, sizeof(name));
 			SetPVarString(playerid, "NombreP", name);
-			SetPlayerName(playerid, params);
+			new admName[MAX_PLAYER_NAME];
+			strcat(admName, params);
+			SetPlayerName(playerid, admName);
 			user[playerid][jMascaraPD] = 1;
 
 		} else  _Mensaje(playerid, 0, "1", "Este nombre se encuentra registrado.");
@@ -47223,7 +46746,7 @@ vender_neg(nid)
 
 	return 1;
 }
-GCMD:venderminegocio(playerid, params[])
+GCMD:venderminegocio(playerid,  const params[])
 {
 	new nid = user[playerid][jNegocioKey];
 	if (nid == INVALID_NEGOCIO_ID) return _Mensaje(playerid, 0, "736", "No tienes un negocio.");
@@ -47277,7 +46800,7 @@ GCMD:minegocio(playerid)
 	return 1;
 }
 
-GCMD:editarn(playerid, params[])
+GCMD:editarn(playerid,  const params[])
 {
 	new nid, string[256], input;
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -47354,7 +46877,7 @@ GCMD:editarn(playerid, params[])
 	return 1;
 }
 
-GCMD:irnegocio(playerid, params[])
+GCMD:irnegocio(playerid,  const params[])
 {
 	new nid, string[128];
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -47371,7 +46894,7 @@ GCMD:irnegocio(playerid, params[])
 	return 1;
 }
 
-GCMD:avenegocio(playerid, params[])
+GCMD:avenegocio(playerid,  const params[])
 {
 	new nid, string[256];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -47512,7 +47035,7 @@ GCMD:rellenarnegocios(playerid)
 	return 1;
 }
 
-GCMD:crearnegocio(playerid, params[])
+GCMD:crearnegocio(playerid,  const params[])
 {
 	new tipo, string[128];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -47760,7 +47283,7 @@ GCMD:crearnegocio(playerid, params[])
 	return 1;
 }
 
-GCMD:borrarnegocio(playerid, params[])
+GCMD:borrarnegocio(playerid,  const params[])
 {
 	new id, string[128];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -47924,7 +47447,7 @@ GCMD:moneda(playerid)
 	return 1;
 }
 
-GCMD:multar(playerid, params[])
+GCMD:multar(playerid,  const params[])
 {
 	new string[256];
 	if (!Es_Faccion(playerid, 1)) return _Mensaje(playerid, 0, "1", "No eres policía.");
@@ -48337,7 +47860,7 @@ GCMD:dios1(playerid)
     return 1;
 }
 
-GCMD:embargar(playerid, params[])
+GCMD:embargar(playerid,  const params[])
 {
 	new string[129];
 	if (!en_pos(playerid,100,-522.0949, -480.8566, 27.0515)) return _Mensaje(playerid, 0, "126", "No estás en la zona de embargos (deposito).");
@@ -48447,7 +47970,7 @@ GCMD:desnganchar(playerid)
 	return 1;
 }
 
-GCMD:dejarmulta(playerid, params[])
+GCMD:dejarmulta(playerid,  const params[])
 {
 	if (!Es_Faccion(playerid, 1)) return _Mensaje(playerid, 0, "1", "No eres policía.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/dejarmulta [id vehículo]");
@@ -48474,7 +47997,7 @@ GCMD:dejarmulta(playerid, params[])
 }
 
 //comandos de garages
-GCMD:creargarage(playerid, params[])
+GCMD:creargarage(playerid,  const params[])
 {
 	new tipo,extra,string[128];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -48528,7 +48051,7 @@ GCMD:creargarage(playerid, params[])
 	return 1;
 }
 
-GCMD:borrargarage(playerid, params[])
+GCMD:borrargarage(playerid,  const params[])
 {
 	new id;
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -48706,7 +48229,7 @@ GCMD:salirg(playerid)
 }
 
 //comandos de casas
-GCMD:editarcasa(playerid, params[])
+GCMD:editarcasa(playerid,  const params[])
 {
 	new cid, input;
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -48756,7 +48279,7 @@ GCMD:editarcasa(playerid, params[])
 	return 1;
 }
 
-GCMD:ainterior(playerid, params[])
+GCMD:ainterior(playerid,  const params[])
 {
 	new
 		interior
@@ -48769,7 +48292,7 @@ GCMD:ainterior(playerid, params[])
 	return 1;
 }
 
-GCMD:crearcasa(playerid, params[])
+GCMD:crearcasa(playerid,  const params[])
 {
 	new
 		interior,
@@ -48800,7 +48323,7 @@ GCMD:crearcasa(playerid, params[])
 	return 1;
 }
 
-GCMD:changear(playerid, params[])
+GCMD:changear(playerid,  const params[])
 {
 	new
 	    cid,
@@ -48817,7 +48340,7 @@ GCMD:changear(playerid, params[])
 	return 1;
 }
 
-GCMD:borrarcasa(playerid, params[])
+GCMD:borrarcasa(playerid,  const params[])
 {
 	new id, string[128];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -48918,7 +48441,7 @@ GCMD:borrarcasa(playerid, params[])
 	return 1;
 }
 
-GCMD:avecasa(playerid, params[])
+GCMD:avecasa(playerid,  const params[])
 {
 	new casaid, string[128];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -48976,7 +48499,7 @@ GCMD:avecasa(playerid, params[])
 	return N;
 }
 
-GCMD:ncasa(playerid, params[])
+GCMD:ncasa(playerid,  const params[])
 {
 	new
 		string[128],
@@ -49013,7 +48536,7 @@ funcion CARGARDinero(playerid, name[], value[])
 	return 1;
 }
 
-GCMD:test_1(playerid, params[])
+GCMD:test_1(playerid,  const params[])
 {
 	new string[128];
 	for (new i = 0; i < MAX_CASAS; i++) //- Sistema de casas
@@ -49093,7 +48616,7 @@ GCMD:comprarcasa(playerid)
     return 1;
 }
 
-GCMD:darllaves(playerid, params[])
+GCMD:darllaves(playerid,  const params[])
 {
 	new string[256];
 	if (sscanf(params, "ds[128]", params[0], params[1])) return _Mensaje(playerid, 3, "0", "/darllaves [id jugador] [casa - negocio - empresa]");
@@ -49156,7 +48679,7 @@ GCMD:darllaves(playerid, params[])
 	return 1;
 }
 
-GCMD:quitarllaves(playerid, params[])
+GCMD:quitarllaves(playerid,  const params[])
 {
 	new string[256];
 	if (sscanf(params, "ds[128]", params[0], params[1])) return _Mensaje(playerid, 3, "0", "/quitarllaves [id jugador] [casa - negocio - empresa]");
@@ -49248,7 +48771,7 @@ GCMD:vendercasa2(playerid)
 	return 1;
 }
 
-GCMD:vendermicasa(playerid, params[])
+GCMD:vendermicasa(playerid,  const params[])
 {
 	if (user[playerid][jCasaKey] == INVALID_CASA_ID) return _Mensaje(playerid, 0, "2", "No tienes una casa en la ranura 1.");
 	new string[128], playerid2, price;
@@ -49721,7 +49244,7 @@ GCMD:timbre(playerid)
 	return 1;
 }
 
-GCMD:iicasa(playerid, params[])
+GCMD:iicasa(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new housenum;
@@ -49737,7 +49260,7 @@ GCMD:iicasa(playerid, params[])
 	return 1;
 }
 
-GCMD:ircasa(playerid, params[])
+GCMD:ircasa(playerid,  const params[])
 {
 	new cid, string[128];
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -49769,8 +49292,8 @@ GCMD:eliminarcheckpoint(playerid)
 	return 1;
 }
 
-GCMD:recon(playerid, params[]) return cmd_spec(playerid, params);
-GCMD:spec(playerid, params[])
+GCMD:recon(playerid,  const params[]) return cmd_spec(playerid, params);
+GCMD:spec(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new tmp[32];
@@ -49856,13 +49379,13 @@ GCMD:spec(playerid, params[])
 	return 1;
 }
 
-GCMD:cambiarhora(playerid, params[])
+GCMD:cambiarhora(playerid,  const params[])
 {
 	SendClientMessage(playerid, -1, "no existe el comando amigo.");
 	return 1;
 }
 
-GCMD:cambiarclima(playerid, params[])
+GCMD:cambiarclima(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new weather, string[128];
@@ -49885,7 +49408,7 @@ GCMD:adminevento(playerid)
 	return 1;
 }
 
-GCMD:tipoevento(playerid, params[])
+GCMD:tipoevento(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params))
@@ -49912,7 +49435,7 @@ GCMD:tipoevento(playerid, params[])
     return 1;
 }
 
-GCMD:editarevento(playerid, params[])
+GCMD:editarevento(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (InfoEvento[iTipo] == 0) return _Mensaje(playerid, 0, "1", "No se ha establecido un tipo de evento.");
@@ -50179,7 +49702,7 @@ GCMD:repetir(playerid)
 	return 1;
 }
 
-GCMD:explotarv(playerid, params[])
+GCMD:explotarv(playerid,  const params[])
 {
 	new string[128];
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -50266,7 +49789,7 @@ funcion EventoVBomba()
 	iVehiculo[39] = CreateVehicle(490, 1374.4858, 2150.1909, 11.1791, -48.4800, -1, -1, -1);
 }
 
-GCMD:crearalquiler(playerid, params[])
+GCMD:crearalquiler(playerid,  const params[])
 {
 	new
 	    cid,
@@ -50759,19 +50282,19 @@ public OnPlayerEnterRaceCheckpoint(playerid)
 
 /////////////////////////////---------------------------
 
-stock EscucharMusica(playerid, url[], Float: posX = 0.0, Float: posY = 0.0, Float: posZ = 0.0, Float: distance = 50.0, usepos = 0)
+stock EscucharMusica(playerid, const url[], Float: posX = 0.0, Float: posY = 0.0, Float: posZ = 0.0, Float: distance = 50.0, usepos = 0)
 {
 	if(user[playerid][j_uAudio] == 0) PlayAudioStreamForPlayer(playerid, url, posX, posY, posZ, distance, usepos);
 }
 
-stock PlayStream(playerid, url[], Float: posX = 0.0, Float: posY = 0.0, Float: posZ = 0.0, Float: distance = 50.0, usepos = 0)
+stock PlayStream(playerid, const url[], Float: posX = 0.0, Float: posY = 0.0, Float: posZ = 0.0, Float: distance = 50.0, usepos = 0)
 {
 	if(GetPVarType(playerid, "MusBB")) StopAudioStreamForPlayer(playerid);
 	else SetPVarInt(playerid, "MusBB", 1);
 	if(user[playerid][j_uAudio] == 0) PlayAudioStreamForPlayer(playerid, url, posX, posY, posZ, distance, usepos);
 }
 
-stock ReproducirMVeh(playerid, url[], Float: posX = 0.0, Float: posY = 0.0, Float: posZ = 0.0, Float: distance = 50.0, usepos = 0)
+stock ReproducirMVeh(playerid, const url[], Float: posX = 0.0, Float: posY = 0.0, Float: posZ = 0.0, Float: distance = 50.0, usepos = 0)
 {
 	if(GetPVarType(playerid, "MusVeh")) StopAudioStreamForPlayer(playerid);
 	else SetPVarInt(playerid, "MusVeh", 1);
@@ -51016,7 +50539,7 @@ StaffEnLinea()
 	return count;
 }
 
-funcion CheckBan(ip[])
+funcion CheckBan(const ip[])
 {
 	new string[20];
 	new File: file = fopen("Baneados.rp", io_read);
@@ -51032,7 +50555,7 @@ funcion CheckBan(ip[])
 	return 0;
 }
 
-stock ban_ip(ip[], razon[] = "x razón", baneador[] = "x baneador")
+stock ban_ip(const ip[], const razon[] = "x razón", const baneador[] = "x baneador")
 {
 	new elban[128];
 	format(elban, 128, "Baneados/%s.rp", ip);
@@ -51044,7 +50567,7 @@ stock ban_ip(ip[], razon[] = "x razón", baneador[] = "x baneador")
 	INI_Close(File);
 }
 
-funcion unban_ip(ip[])
+funcion unban_ip(const ip[])
 {
 	if(veri_ip(ip))
 	{
@@ -51079,7 +50602,7 @@ funcion AddBan(ip[])
 	return 0;
 }
 
-funcion RemoveBan(ip[])
+funcion RemoveBan(const ip[])
 {
 	if(CheckBan(ip) == 1)
 	{
@@ -51949,7 +51472,7 @@ stock Admin(lvl, playerid)
 	return 0;
 }
 
-stock ApplyAnimationEx(playerid, animlib[], animname[], Float: Speed, looping, lockx, locky, lockz, lp, rep = 1, bool:Veh = false)
+stock ApplyAnimationEx(playerid, const animlib[], const animname[], Float: Speed, looping, lockx, locky, lockz, lp, rep = 1, bool:Veh = false)
 {
 	if (en_lenador[playerid] == 1)
 		return SendClientMessage(playerid, 0xFF6347AA, "No puedes usar animaciones en este momento.");
@@ -52076,7 +51599,7 @@ funcion RevisarVIP(playerid)
 	return 1;
 }
 
-stock m_radioP(playerid, string[])
+stock m_radioP(playerid, const string[])
 {
 	new MiscString[256], Float: aaaPositions[3];
 	foreach(new i: Player)
@@ -52092,7 +51615,7 @@ stock m_radioP(playerid, string[])
 	ProxExDetector(3.0, playerid, MiscString, 0x95939300, 0x95939300, 0x95939300, 0x95939300, 0x95939300);
 }
 
-stock fcreate(filename[])
+stock fcreate(const filename[])
 {
 	if(fexist(filename)) return false;
 	new File: fhnd;
@@ -52128,7 +51651,7 @@ IsKeyJustDown(key, newkeys, oldkeys)
 	return 0;
 }
 
-funcion IsValidIP(ip[]) {
+funcion IsValidIP(const ip[]) {
     new a;
     for(new i = 0; i < strlen(ip); i++) {
         if(ip[i] == '.') {
@@ -54803,7 +54326,7 @@ new C_MESSAGES[6] =
 	0x1EB032FF // 5 - Verde.
 };
 
-funcion _Mensaje(playerid, type, optional[], message[])
+funcion _Mensaje(playerid, type, const optional[], const message[])
 {
 	new InfoMsg[150];
 	switch (type)
@@ -54819,7 +54342,7 @@ funcion _Mensaje(playerid, type, optional[], message[])
 	return 1;
 }
 
-stock colocar_estado(tipo = 0, playerid, text[], color, tiempo = -1)
+stock colocar_estado(tipo = 0, playerid, const text[], color, tiempo = -1)
 {
 	if (usandoYo[playerid] != 0) return 1;
 	switch (tipo)
@@ -54840,13 +54363,13 @@ funcion quitarestado(playerid)
 	mensaje_bubble(playerid, "", 0xBFC0C2FF, 1.0, 1000, 1);
 }
 
-stock mensaje_bubble(playerid, text[], color, Float: distancia, tiempo = 999999, tipo = 0)
+stock mensaje_bubble(playerid, const text[], color, Float: distancia, tiempo = 999999, tipo = 0)
 {
 	SetPlayerChatBubble(playerid, text, color, distancia, tiempo);
 	if (tipo == 1) contador_balas[playerid] = 0;
 }
 
-stock accion_rol(playerid, type, text[], extra = 0)
+stock accion_rol(playerid, type, const text[], extra = 0)
 {
 	new MensajeAR[150];
 	switch (type)
@@ -55168,7 +54691,7 @@ GCMD:graffiti(playerid)
 	return 1;
 }
 
-GCMD:creargraffito(playerid, params[])
+GCMD:creargraffito(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new objeto = -1;
@@ -56111,7 +55634,7 @@ stock SeleccionSkin(skinid)
 	return true;
 }
 
-stock _text(string[])
+stock _text(const string[])
 {
 	new szFixed[1024], iPos, iLen;
 	for (iLen = strlen(string); iPos < iLen; iPos ++)
@@ -56179,7 +55702,7 @@ CreateTextDraws(playerid)
 	PlayerTextDrawSetProportional(playerid, playerfooter, 1);
 	PlayerTextDrawSetSelectable(playerid, playerfooter, 0);
 }
-stock ShowPlayerFooter(playerid, string[], time = 5000) {
+stock ShowPlayerFooter(playerid, const string[], time = 5000) {
 	if (user[playerid][pMostrarTexto]) {
 	    PlayerTextDrawHide(playerid, playerfooter);
 	    KillTimer(user[playerid][pFooterTimer]);

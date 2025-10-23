@@ -1,0 +1,127 @@
+name: Compile Pawn Scripts
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      COMPILER_URL: https://github.com/openmultiplayer/compiler/releases/download/v3.10.11/pawnc-3.10.11-windows.zip
+      OUTPUT_DIR: amx
+      MAIN_OUT_DIR: amx/main_scripts
+      SIDE_OUT_DIR: amx/side_scripts
+      PAWN_FLAGS: >
+        -d3 -;+ -(+ -Z+
+        -iinclude
+        -isrc/main_scripts
+        -isrc/side_scripts
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Download and extract compiler
+      - name: Download and setup Pawn compiler
+        shell: pwsh
+        run: |
+          echo "Downloading Pawn compiler..."
+          Invoke-WebRequest -Uri $env:COMPILER_URL -OutFile compiler.zip
+          echo "Extracting archive..."
+          Expand-Archive -Path compiler.zip -DestinationPath compiler -Force
+
+          # Move files from bin to compiler root
+          $bin = Get-ChildItem -Recurse -Directory -Path compiler | Where-Object { $_.Name -eq "bin" } | Select-Object -First 1
+          if ($bin) {
+            Write-Host "Found bin folder at: $($bin.FullName)"
+            Move-Item -Path "$($bin.FullName)\*" -Destination "compiler" -Force
+          } else {
+            Write-Error "No bin folder found inside compiler archive!"
+            exit 1
+          }
+
+          Write-Host "Compiler contents after move:"
+          Get-ChildItem compiler
+
+      # Create output directories
+      - name: Create output folders
+        shell: pwsh
+        run: |
+          mkdir -p $env:MAIN_OUT_DIR
+          mkdir -p $env:SIDE_OUT_DIR
+          Get-ChildItem -Path $env:OUTPUT_DIR
+
+      # Find main scripts
+      - name: Detect main scripts
+        id: main_files
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Recurse -Path "src/main_scripts" -Filter *.pwn | ForEach-Object { $_.FullName }
+          if (-not $files) {
+            if (Test-Path "src/main.pwn") { $files = @("src/main.pwn") }
+          }
+          echo "files=$($files -join ',')" >> $env:GITHUB_OUTPUT
+
+      # Find side scripts
+      - name: Detect side scripts
+        id: side_files
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Recurse -Path "src/side_scripts" -Filter *.pwn | ForEach-Object { $_.FullName }
+          echo "files=$($files -join ',')" >> $env:GITHUB_OUTPUT
+
+      # Compile main scripts
+      - name: Compile main scripts
+        shell: pwsh
+        run: |
+          $pawncc = "compiler/pawncc.exe"
+          $flags = $env:PAWN_FLAGS -split ' '
+          $main_files = "${{ steps.main_files.outputs.files }}"
+          if (-not $main_files) {
+            Write-Host "No main scripts found."
+            exit 0
+          }
+
+          foreach ($file in $main_files.Split(',')) {
+            $name = [IO.Path]::GetFileNameWithoutExtension($file)
+            Write-Host "Compiling main script: $file"
+            & $pawncc $file @flags -Dmain_scripts -o"$env:MAIN_OUT_DIR\$name.amx"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      # Compile side scripts
+      - name: Compile side scripts
+        shell: pwsh
+        run: |
+          $pawncc = "compiler/pawncc.exe"
+          $flags = $env:PAWN_FLAGS -split ' '
+          $side_files = "${{ steps.side_files.outputs.files }}"
+          if (-not $side_files) {
+            Write-Host "No side scripts found."
+            exit 0
+          }
+
+          foreach ($file in $side_files.Split(',')) {
+            $name = [IO.Path]::GetFileNameWithoutExtension($file)
+            Write-Host "Compiling side script: $file"
+            & $pawncc $file @flags -Dside_scripts -o"$env:SIDE_OUT_DIR\$name.amx"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      # List compiled output
+      - name: List compiled files
+        shell: pwsh
+        run: |
+          echo "Compiled scripts:"
+          Get-ChildItem -Path $env:OUTPUT_DIR -Recurse -Name
+
+      # Upload the compiled AMX files
+      - name: Upload compiled scripts
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-scripts
+          path: amx/**
+          if-no-files-found: warn
+          compression-level: 6
