@@ -803,7 +803,7 @@ accountSave(playerid)
 	if(accountORM[playerid] != MYSQL_INVALID_ORM){
         new log[96];
 		new err = await orm_async_update(accountORM[playerid]);
-		if(err != ERROR_OK){
+		if(err != _:ERROR_OK){
 			
 			format(log, sizeof(log), "Ocurrió un error al guardar los datos del usuario %s. (err %d)", username[playerid], err);
 			serverLogRegister(log, "account");
@@ -836,7 +836,7 @@ characterSave(playerid)
 	if(charORM[playerid] != MYSQL_INVALID_ORM){
         new log[96];
 		new err = await orm_async_update(charORM[playerid]);
-		if(err != ERROR_OK){
+		if(err != _:ERROR_OK){
 			
 			format(log, sizeof(log), "Ocurrió un error al guardar los datos del personaje %s. (err %d)", user[playerid][jNombrePJ], err);
 			serverLogRegister(log, "account");
