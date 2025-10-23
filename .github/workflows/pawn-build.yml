@@ -1,0 +1,95 @@
+name: Build Pawn Scripts
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Compile Pawn Scripts
+    runs-on: windows-latest
+
+    env:
+      PAWN_FLAGS: -d3 -;+ -(+ -Z+ -Iinclude -Isrc/main_scripts -Isrc/side_scripts
+      OUTPUT_DIR: amx
+      MAIN_OUT_DIR: amx/main_scripts
+      SIDE_OUT_DIR: amx/side_scripts
+      COMPILER_URL: https://github.com/openmultiplayer/compiler/releases/download/v3.10.11/pawnc-3.10.11-windows.zip
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Pawn compiler
+        run: |
+          echo "Downloading Pawn compiler..."
+          curl -L $env:COMPILER_URL -o compiler.zip
+          echo "Extracting compiler..."
+          tar -xf compiler.zip -C .
+          if (Test-Path "pawnc.exe") {
+            mkdir compiler
+            Move-Item pawnc.exe compiler/pawncc.exe
+          } elseif (Test-Path "pawncc.exe") {
+            mkdir compiler
+            Move-Item pawncc.exe compiler/
+          }
+          echo "Compiler ready at ./compiler/pawncc.exe"
+
+      - name: Create output directories
+        run: |
+          mkdir -p $env:MAIN_OUT_DIR
+          mkdir -p $env:SIDE_OUT_DIR
+
+      - name: Find main scripts
+        id: find_main
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Recurse -Path "src/main_scripts" -Filter *.pwn | ForEach-Object { $_.FullName }
+          if (-not $files) {
+            if (Test-Path "src/main.pwn") { $files = @("src/main.pwn") }
+          }
+          echo "files=$($files -join ',')" >> $env:GITHUB_OUTPUT
+
+      - name: Find side scripts
+        id: find_side
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Recurse -Path "src/side_scripts" -Filter *.pwn | ForEach-Object { $_.FullName }
+          echo "files=$($files -join ',')" >> $env:GITHUB_OUTPUT
+
+      - name: Compile main scripts
+        if: steps.find_main.outputs.files != ''
+        shell: pwsh
+        run: |
+          $pawncc = "compiler/pawncc.exe"
+          foreach ($file in "${{ steps.find_main.outputs.files }}".Split(',')) {
+            $name = [IO.Path]::GetFileNameWithoutExtension($file)
+            Write-Host "Compiling main script: $file"
+            & $pawncc $file $env:PAWN_FLAGS -Dmain_scripts -o$env:MAIN_OUT_DIR\$name.amx
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: Compile side scripts
+        if: steps.find_side.outputs.files != ''
+        shell: pwsh
+        run: |
+          $pawncc = "compiler/pawncc.exe"
+          foreach ($file in "${{ steps.find_side.outputs.files }}".Split(',')) {
+            $name = [IO.Path]::GetFileNameWithoutExtension($file)
+            Write-Host "Compiling side script: $file"
+            & $pawncc $file $env:PAWN_FLAGS -Dside_scripts -o$env:SIDE_OUT_DIR\$name.amx
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: List compiled files
+        run: |
+          echo "Compiled scripts:"
+          dir $env:OUTPUT_DIR /s /b
+
+      - name: Upload compiled AMX files
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-scripts
+          path: amx/**
