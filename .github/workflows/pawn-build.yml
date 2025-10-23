@@ -63,7 +63,7 @@ jobs:
         if: steps.find_main.outputs.files != ''
         shell: pwsh
         run: |
-          $pawncc = "compiler/pawncc.exe"
+          $pawncc = "./compiler/pawncc.exe"
           foreach ($file in "${{ steps.find_main.outputs.files }}".Split(',')) {
             $name = [IO.Path]::GetFileNameWithoutExtension($file)
             Write-Host "Compiling main script: $file"
@@ -75,7 +75,7 @@ jobs:
         if: steps.find_side.outputs.files != ''
         shell: pwsh
         run: |
-          $pawncc = "compiler/pawncc.exe"
+          $pawncc = "./compiler/pawncc.exe"
           foreach ($file in "${{ steps.find_side.outputs.files }}".Split(',')) {
             $name = [IO.Path]::GetFileNameWithoutExtension($file)
             Write-Host "Compiling side script: $file"
