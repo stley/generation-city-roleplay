@@ -127,14 +127,7 @@ static const point_spawn[][spawn_point] =
 {
 	{0,	0000.0000	, 0000.0000	, 0000.0000	, 0000.0000	,	"none_none"},		//
 	/*  	X   -       Y   	-   	Z	-     R     -	NAME  */
-	{1,	8721.9043	, 14167.8594 , 6.7237	, 165.6276	,	"Tienda de bicis"}, // tienda de bicis
-	{2,	8834.7734	, 14160.7129, 6.7442	, 90.2685	,	"Bullworth"}, // estatua
-	{3,	8621.3340	, 14386.2354, 5.9996	, 5.1796	,	"Farmacia Easy Drugs"}, // farmacia
-	{4,	8812.9365	, 14227.4141, 6.5771	, 196.3155	,	"Gasolinera de bullworth"}, // gasolinera
-	{5,	8699.6631	, 14052.3311, 4.3719	, 283.0177	,	"Motel In and Out"}, // motel
-	{6,	2111.3154	, 2098.2959	, 10.8203	, 208.2435	,	"Las venturas"},	// LAS VENTURAS
-	{7,	-2245.4099	, 245.1576	, 35.3203	, 111.4694	,	"San fierro"},		// SAN FIERRO
-	{8,	1519.2094	, -1676.844	, 13.5469	, 268.6089	,	"Los santos"}		// LOS SANTOS
+	{1,	1519.2094	, -1676.844	, 13.5469	, 268.6089	,	"Los santos"}		// LOS SANTOS
 };
 
 /* ANTICHEAT simple */
@@ -9124,22 +9117,28 @@ stock save_stuff()
 	return 1;
 }
 
-funcion GuardarCuentas()
-{
-	for (new i = 0; i < MAX_PLAYERS; i++)
-	{
-		if (IsPlayerConnected(i))
-		{
-			characterSave(i);
-		}
+funcion GuardarCuentas(){
+	yield 1;
+	foreach(new playerid: Player){
+		if(charLoggedIn[playerid])
+			characterSave(playerid);
 	}
 	return 1;
+}
+
+funcion GuardarUsuarios(){
+	yield 1;
+	foreach(new playerid: Player){
+		if(LoggedIn[playerid])
+			accountSave(playerid);
+	}
 }
 
 public OnGameModeExit()
 {
     AntiAmx();
     GuardarCuentas();
+	GuardarUsuarios();
     save_stuff();
     save_incendios();
     save_bindon();
@@ -9149,9 +9148,9 @@ public OnGameModeExit()
 public OnPlayerRequestClass(playerid, classid)
 {
 	if (IsPlayerNPC(playerid)) return 1;
-
 	if (user[playerid][State] == 0)
 	{
+		PreloadAnimations(playerid);												// —— Cargado de animaciones
 		//_cIniciales(playerid, 2);
 		PlayerPlaySound(playerid, 19800, 0, 0, 0);
 		TextDrawHideForPlayer(playerid, D_LOGIN);
@@ -9179,7 +9178,7 @@ public OnPlayerRequestClass(playerid, classid)
 			ExPlayerDialog(playerid, D_REGISTRO, DIALOG_STYLE_PASSWORD, "Registro", cuenta2, "Registrar", "Salir");
 		}
 	}
-	return 1;
+	return 0;
 }
 
 public OnPlayerConnect(playerid)
@@ -9553,7 +9552,7 @@ public OnPlayerDisconnect(playerid, reason)
 	PlayerTextDrawDestroy(playerid, info_w[playerid][Velocimetro]);
 	secuencia_veh(playerid);
 	characterSave(playerid);
-
+	accountSave(playerid);
 	SetPlayerName(playerid, username[playerid]);
 	return 1;
 }
@@ -10735,35 +10734,56 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_INGRESO:
 		{
 			if (!response) return _Expulsar(playerid, 1, "Ingreso falso");
+			yield 1;
+			new check = await bcrypt_averify(playerid, inputtext, user[playerid][jClave]);
+			if(check){
+        		LoggedIn[playerid] = 1;
+        		ver_personajes(playerid);
+			}
 			else
 			{
-				bcrypt_hash(playerid, "accountPasswordHash", inputtext, BCRYPT_COST, "d", playerid);
 				if (_Logeo[playerid] == 3)
 				{
 					_Expulsar(playerid, 1, "Ingreso falso");
 					return 1;
 				}
-			}
+				new cuenta2[200];
+				format(cuenta2, sizeof(cuenta2), "%s, la contraseña escrita no es válida\nPor favor intente de nuevo.\n\nIntroduzca su contraseña:", username[playerid]);
+				ExPlayerDialog(playerid, D_INGRESO, DIALOG_STYLE_PASSWORD, "Iniciar Sesión", cuenta2, "Ingresar", "Salir");
+				_Logeo[playerid] += 1;
+			}				
 		}
 
 		case D_REGISTRO:
 		{
 			if (!response) return _Expulsar(playerid, 1, "Cancelar registro");
+			new cuenta2[200];
 			if (strlen(inputtext) < 5)
 			{
-				new cuenta2[200];
 				format(cuenta2, sizeof(cuenta2), "%s, la contraseña es inferior a 4 carácteres\nPor favor intente con una más larga.\n\nIntroduzca una contraseña:", username[playerid]);
 				ExPlayerDialog(playerid, D_REGISTRO, DIALOG_STYLE_PASSWORD, "Registro", cuenta2, "Registrar", "Salir");
 				return 1;
 			}
 			if(strlen(inputtext) > 18)
-			{
-				new cuenta2[200];
+			{	
 				format(cuenta2, sizeof(cuenta2), "%s, la contraseña sobrepasa los 18 carácteres\nPor favor intente con una más corta.\n\nIntroduzca una contraseña:", username[playerid]);
 				ExPlayerDialog(playerid, D_REGISTRO, DIALOG_STYLE_PASSWORD, "Registro", cuenta2, "Registrar", "Salir");
 				return 1;
 			}
-			bcrypt_hash(playerid, "accountPasswordHash", inputtext, BCRYPT_COST, "d", playerid);
+			yield 1;
+			await_str(user[playerid][jClave]) bcrypt_ahash(playerid, inputtext);
+			if(strlen(user[playerid][jClave])){
+				print(user[playerid][jClave]);
+				new check = await bcrypt_averify(playerid, inputtext, user[playerid][jClave]);
+				if(!check){
+					format(cuenta2, sizeof(cuenta2), "Bienvenido %s\n\nPor favor introduzca una contraseña:", username[playerid]);
+					ExPlayerDialog(playerid, D_REGISTRO, DIALOG_STYLE_PASSWORD, "Registro", cuenta2, "Registrar", "Salir");
+					return 1;
+				}
+				StopAudioStreamForPlayer(playerid);
+				ExPlayerDialog(playerid, D_EMAIL, DIALOG_STYLE_INPUT, "Correo electrónico:",
+				"Escribe tu correo electrónico\n\nFormato: email@dominio.com\n", "Continuar", "Salir");
+			}
 			return 1;
 		}
 
@@ -10786,12 +10806,15 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					new year, month, day, code_1[128];
 					getdate(year, month, day);
 					format(code_1, sizeof(code_1), "%02d de %s del %02d", day, GetMonth(month), year);
-					user[playerid][pfechareg] = code_1;
+					alm(user[playerid][pfechaUreg], code_1);
 					c_cuentas++;
 					save_stuff();
 					accountORMInit(playerid);
 					yield 1;
 					new err = await orm_async_insert(accountORM[playerid]);
+					print("Insert:\n");
+					print(user[playerid][jClave]);
+					print("\n");
 					if(err == ERROR_OK)
 						ver_personajes(playerid);
 					else{
@@ -10840,7 +10863,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				new year, month, day, code_1[128];
 				getdate(year, month, day);
 				format(code_1, sizeof(code_1), "%02d de %s del %02d", day, GetMonth(month), year);
-				alm(user[playerid][pfechareg], code_1);
+				alm(user[playerid][pfechaUreg], code_1);
+				alm(user[playerid][jNombre], username[playerid]);
 				c_cuentas++;
 				save_stuff();
 				accountORMInit(playerid);
@@ -10949,7 +10973,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					JugadorEnSeccion {playerid} = 1;
 					SetPVarInt(playerid, "crear_pj", personaje);
 					new query[96];
-					mysql_format(mainDatabase, query, sizeof(query), "SELECT * FROM characters WHERE Nombre = '%e' LIMIT 1", user[playerid][jCuenta_1]);
+					mysql_format(mainDatabase, query, sizeof(query), "SELECT * FROM characters WHERE NombrePJ = '%e' LIMIT 1", playername);
 					yield 1;
 					await mysql_aquery(mainDatabase, query);
 					charORMInit(playerid);
@@ -11279,11 +11303,20 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 			switch (personaje)
 			{
-			    case 1: SetPlayerName(playerid, user[playerid][jCuenta_1]);
-			    case 2: SetPlayerName(playerid, user[playerid][jCuenta_2]);
-			    case 3: SetPlayerName(playerid, user[playerid][jCuenta_3]);
+			    case 1:{
+					SetPlayerName(playerid, user[playerid][jCuenta_1]);
+					alm(user[playerid][jNombrePJ], user[playerid][jCuenta_1]);
+				}
+			    case 2:{
+					SetPlayerName(playerid, user[playerid][jCuenta_2]);
+					alm(user[playerid][jNombrePJ], user[playerid][jCuenta_2]);
+				}
+			    case 3:{
+					SetPlayerName(playerid, user[playerid][jCuenta_3]);
+					alm(user[playerid][jNombrePJ], user[playerid][jCuenta_3]);
+				}
 			}
-			new id = random(5)+1;
+			new id = 1;
 			user[playerid][jFuerza] = 50;
 			user[playerid][jm_Derecha] = 80;
 			user[playerid][jm_DerechaCant] = 1;
@@ -11299,7 +11332,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			SetCameraBehindPlayer(playerid);
 			if(user[playerid][jSexo] == 1) Skin_(playerid, 155);
 			else if(user[playerid][jSexo] == 2) Skin_(playerid, 93);
-
+			
 			new
 				year,
 				month,
@@ -11315,17 +11348,21 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 			format(code_1, sizeof(code_1), "%02d de %s del %02d", day, GetMonth(month), year);
 			user[playerid][pfechareg] = code_1;
-	
+			user[playerid][charOwner] = user[playerid][jSQLID];
+			yield 1;
+
 			charORMInit(playerid);
 			new err = await orm_async_insert(charORM[playerid]);
-
-			if(err == ERROR_OK)
-				ver_personajes(playerid);
-			else{
+			if(err != ERROR_OK){
 				SendClientMessage(playerid, C_ROJO2, "Ocurrió un error al crear tu cuenta, contacta con administración.");
 				task_wait(1000);
 				Kick(playerid);
+				format(code_1, sizeof(code_1), "Ocurrió un error al crear el personaje %s del usuario %s (SQLID %d)", user[playerid][jNombrePJ], username[playerid], user[playerid][jSQLID]);
+				return 1;
 			}
+			format(code_1, sizeof(code_1), "Se creo el personaje %s (SQLID %d) del usuario %s (SQLID %d)", user[playerid][jNombrePJ], user[playerid][charSQLID], username[playerid], user[playerid][jSQLID]);
+			serverLogRegister(code_1, "account");
+			accountSave(playerid);
 			cmd_climpiar(playerid);
 			format(string, sizeof(string), "Bienvenido %s, acabas de iniciar en %s.", nombre_pj(playerid), point_spawn[id][name_spawn]); Mensaje_(playerid, 0x7593F5FF, string);
 			Mensaje_(playerid, 0x7593F5FF, "Utiliza /lugares para ayudarte a ubicar los puntos más importantes de Los Santos.");
@@ -11616,8 +11653,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					}
 					else
 					{
-						bcrypt_hash(playerid, "accountPasswordHash", inputtext, BCRYPT_COST, "d", playerid);
-						strmid(user[playerid][jClave], inputtext, 0, strlen(inputtext), 24);
+						yield 1;
+						await_str(user[playerid][jClave]) bcrypt_ahash(playerid, inputtext);
 						format(string, sizeof(string), "Cambiaste tu contraseña satisfactoriamente. Cual es: {90C3D4}%s", inputtext);
 						_Mensaje(playerid, 1, "0", string);
 						accountSave(playerid);
@@ -15540,7 +15577,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						SolicitaRefuerzos[playerid] = 1;
 						format(string, sizeof(string), "CENTRAL: A todas las unidades, el oficial (%s) requiere apoyo en su posición.", nombre_pj(playerid, 0));
 						_MensajeRfac(1, C_COLORRADIO, string);
-						for (new i = 0; i < MAX_PLAYERS; i++)
+						foreach(new i: Player)
 						{
 							if (IsPlayerConnected(i))
 							{
@@ -15556,7 +15593,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					{
 						SolicitaRefuerzos[playerid] = 0;
 						_MensajeRfac(1, C_COLORRADIO, "CENTRAL: A todas las unidades que están de apoyo, se ha cancelado el pedido.");
-						for (new i = 0; i < MAX_PLAYERS; i++)
+						foreach(new i: Player)
 						{
 							if (IsPlayerConnected(i))
 							{
@@ -20146,7 +20183,7 @@ stock TieneNumeros(str[])
 funcion Loteria(number)
 {
 	new DineroLoteriaFallen = 0, string[128], winner[50 + MAX_PLAYER_NAME];
-	for(new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if(IsPlayerConnected(i))
 		{
@@ -20194,6 +20231,10 @@ funcion Loteria(number)
 
 funcion user_clean(playerid)
 {
+	orm_clear_vars(accountORM[playerid]);
+	orm_clear_vars(charORM[playerid]);
+	orm_destroy(accountORM[playerid]);
+	orm_destroy(charORM[playerid]);
 	p_bank[playerid][0] = -1;
 	p_bank[playerid][1] = -1;
 	un_rent[playerid] = 0;
@@ -21525,7 +21566,6 @@ stock cargar_pj(playerid)
 	SetPlayerScore(playerid, user[playerid][jNivel]);
 	SetPlayerFightingStyle(playerid, user[playerid][jPelea]);
 	user[playerid][State] = 3;
-	PreloadAnimations(playerid);												// —— Cargado de animaciones
 	Caminar(playerid);
 	new hora_s, minuto_s, segundo_s;
 	gettime(hora_s, minuto_s, segundo_s);
@@ -25409,7 +25449,7 @@ stock mensaje_admin(const string[], color, dale = 0)
 
 stock MensajeAdmins(color, const string[])
 {
-	for(new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (user[i][State] != 0)
 		{
@@ -25423,7 +25463,7 @@ stock MensajeAdmins(color, const string[])
 
 stock MensajeMPS(color, const string[])
 {
-	for(new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (user[i][State] != 0)
 		{
@@ -26721,7 +26761,7 @@ GCMD:carteles(playerid)
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[128], c_tel[60];
 	_Mensaje(playerid, 4, "90C3D4", "Carteles:");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -28418,7 +28458,7 @@ GCMD:rcar(playerid)
 GCMD:specs(playerid)
 {
 	if (user[playerid][jAdmin] < 1337) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -31587,7 +31627,7 @@ GCMD:bp(playerid)
 	accion_rol(playerid, 0, "pulsó el botón de pánico.");
 	format(string, sizeof(string), "CENTRAL: %s ha pulsado el botón de pánico, se requiere asistencia urgente en su posición.", nombre_pj(playerid, 0));
 	_MensajeRfac(1, C_COLORRADIO, string);
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -31611,7 +31651,7 @@ GCMD:bkc(playerid)
 	if (SolicitaRefuerzos[playerid] == 1) SolicitaRefuerzos[playerid] = 0;
 	else BotonPanico[playerid] = 0;
 	_MensajeRfac(1, C_COLORRADIO, "CENTRAL: A todas las unidades que están de apoyo, se ha cancelado el pedido.");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -35783,7 +35823,7 @@ GCMD:daradmin(playerid,  const params[])
 	return 1;
 }
 
-GCMD:soyadmin(playerid,  const params[])
+/*GCMD:soyadmin(playerid,  const params[])
 {
 	new nick[MAX_PLAYER_NAME];
 	GetPlayerName(playerid, nick, sizeof(nick));
@@ -35828,7 +35868,7 @@ GCMD:soytoy(playerid,  const params[])
 		return 1;
 	} else _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
 	return 1;
-}
+}*/
 
 GCMD:darencfac(playerid,  const params[])
 {
@@ -36114,7 +36154,7 @@ GCMD:dudas(playerid)
 	new string[200];
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	_Mensaje(playerid, 4, "00c200", "» {ffffff}Dudas:");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i) && DudaA[i] == 1)
 		{
@@ -36129,7 +36169,7 @@ GCMD:borrardudas(playerid)
 {
 	new string[128];
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i) && DudaA[i] == 1)
 		{
@@ -36997,7 +37037,7 @@ GCMD:conmirilla(playerid)
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 
 	_Mensaje(playerid, 4, "33CCFF", "Jugadores con mirilla:");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -37016,7 +37056,7 @@ GCMD:enmascarados(playerid)
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 
 	_Mensaje(playerid, 4, "33CCFF", "Jugadores con máscara:");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -37035,7 +37075,7 @@ GCMD:enmascaradospd(playerid)
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 
 	_Mensaje(playerid, 4, "33CCFF", "Jugadores con máscara pd:");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -38234,7 +38274,7 @@ GCMD:cpantalla(playerid,  const params[])
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "is", type, text)) return _Mensaje(playerid, 3, "0", "/cpantalla [tipo] [texto]");
 	if (type == 2) return _Mensaje(playerid, 0, "306", "No puedes elegir el #2.");
-	for (new i = 0; i < MAX_PLAYERS; i++) { if (JugadorEnSeccion {i}) { textgame_player(i, text, 5000, type); } }
+	foreach(new i: Player) { if (JugadorEnSeccion {i}) { textgame_player(i, text, 5000, type); } }
 	new string[128];
 	format(string, sizeof(string), "[Administración]{FFFFFF} %s usó el comando /cpantalla.", nombre_pj(playerid));
 	MensajeAdmin(string);
@@ -38654,7 +38694,7 @@ GCMD:togmp(playerid)
 GCMD:diadepaga(playerid)
 {
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	for(new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (user[i][State] == 3)
 		{
@@ -38833,7 +38873,7 @@ GCMD:conectar(playerid,  const params[])
 			new numero, nume2ro = true;
 			if (sscanf(params, "d", numero)) return _Mensaje(playerid, 3, "0", "/conectar [número de teléfono]");
 			if (!IsNumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
-			for (new i = 0; i < MAX_PLAYERS; i++)
+			foreach(new i: Player)
 			{
 				if (IsPlayerConnected(i) && user[i][State] == 3 && user[i][jTelefono] == numero)
 				{
@@ -40896,7 +40936,7 @@ GCMD:reportes(playerid)
 	new string[256];
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	_Mensaje(playerid, 4, "E11509", "» {ffffff}Reportes:");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i) && ReporteA[i] == 1)
 		{
@@ -40911,7 +40951,7 @@ GCMD:borrarreportes(playerid,  const params[])
 {
 	new string[128];
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i) && ReporteA[i] == 1)
 		{
@@ -41527,6 +41567,7 @@ GCMD:guardarservidor(playerid)
 {
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	GuardarCuentas();
+	GuardarUsuarios();
 	save_stuff();
 	save_incendios();
 	save_bindon();
@@ -42131,7 +42172,7 @@ GCMD:condinero(playerid)
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	_Mensaje(playerid, 4, "FFFFFF", "Usuarios con más de 8,500$");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -43665,7 +43706,7 @@ GCMD:bk(playerid,  const params[])
 	SolicitaRefuerzos[playerid] = 1;
 	format(string, sizeof(string), "CENTRAL: A todas las unidades, el oficial (%s) requiere apoyo en su posición.", nombre_pj(playerid, 0));
 	_MensajeRfac(1, C_COLORRADIO, string);
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -51970,9 +52011,9 @@ funcion PagoDiario(i)
 
 funcion A_MedioSegundo()
 {
-    for(new playerid; playerid < MAX_PLAYERS; playerid++)
+    foreach(new playerid: Player)
 	{
-        for(new i = 0; i < MAX_PLAYERS; i++)
+        foreach(new i: Player)
 		{
 			if(IsPlayerConnected(i))
 			{
@@ -52646,7 +52687,7 @@ funcion A_Hora()
     //incendio_random();
     //save_incendios();
     Regalo = 1;
-    for (new i = 0; i < MAX_PLAYERS; i++)
+    foreach(new i: Player)
 	{
 		if (EnServicioADM[i] == 0)
 		{
@@ -53785,7 +53826,7 @@ stock accion_rol(playerid, type, const text[], extra = 0)
 	}
 	new Float: PosMensajeX, Float: PosMensajeY, Float: PosMensajeZ, MyWorrld = GetPlayerVirtualWorld(playerid);
 	GetPlayerPos(playerid, Float: PosMensajeX, Float: PosMensajeY, Float: PosMensajeZ);
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i) && en_pos(i,AccionesRadios[type],Float: PosMensajeX,Float: PosMensajeY, Float: PosMensajeZ) && GetPlayerVirtualWorld(i) == MyWorrld && user[i][State] == 3)
 		{

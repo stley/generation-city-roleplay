@@ -14,7 +14,7 @@ new
     RetryTimer
 ;
 #pragma dynamic 500
-#pragma option -O2
+#pragma option -o1
 
 native Node:JsonString_s(ConstAmxString:value) = JsonString; //PawnPlus implementation of pawn-requests native, supporting PP strings.
 

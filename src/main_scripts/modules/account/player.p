@@ -16,8 +16,9 @@ enum jInfo
 
 
 	//———————— personaje
-	jNombrePJ[32], // Nombre_Apellido
+	jNombrePJ[MAX_PLAYER_NAME], // Nombre_Apellido
     charSQLID,
+	charOwner,
 	jRegistrado, // Registrado
 	Float: jPosicion_X, // PosX
 	Float: jPosicion_Y, // PosY
@@ -466,7 +467,9 @@ accountORMInit(playerid){
 
 charORMInit(playerid){
     new ORM:ormpj = charORM[playerid] = orm_create("characters", mainDatabase);
+	orm_addvar_int(ormpj, user[playerid][charOwner], "charOwner");
     orm_addvar_int(ormpj, user[playerid][charSQLID], "SQLID");
+	orm_addvar_string(ormpj, user[playerid][jNombrePJ], MAX_PLAYER_NAME, "NombrePJ");
 	orm_addvar_int(ormpj, user[playerid][jRegistrado], "Registrado");
 	orm_addvar_int(ormpj, user[playerid][ptimegame], "Time_Game");
 	orm_addvar_string(ormpj, user[playerid][pfechareg], 128, "Fecha_reg");
@@ -755,44 +758,6 @@ charORMInit(playerid){
     orm_setkey(ormpj, "SQLID");
 }
 
-
-
-forward accountPasswordHash(playerid);
-
-
-public accountPasswordHash(playerid){
-    if(LoggedIn[playerid])
-		bcrypt_get_hash(user[playerid][jClave]);
-    if(accountORM[playerid] != MYSQL_INVALID_ORM){
-        new hash[BCRYPT_HASH_LENGTH];
-        bcrypt_get_hash(hash);
-        bcrypt_verify(playerid, "accountPasswordVerify", hash, user[playerid][jClave], "d", playerid);
-        return 1;
-    }
-    else{
-        bcrypt_get_hash(user[playerid][jClave]);
-		StopAudioStreamForPlayer(playerid);
-		ExPlayerDialog(playerid, D_EMAIL, DIALOG_STYLE_INPUT, "Correo electrónico:",
-		"Escribe tu correo electrónico\n\nFormato: email@dominio.com\n", "Continuar", "Salir");
-        return 1;
-    }
-    
-}
-
-forward accountPasswordVerify(playerid, bool:success);
-public accountPasswordVerify(playerid, bool:success){
-    if(success){
-        LoggedIn[playerid] = 1;
-        ver_personajes(playerid);
-    }
-    else{
-        new cuenta2[200];
-		format(cuenta2, sizeof(cuenta2), "%s, la contraseña escrita no es válida\nPor favor intente de nuevo.\n\nIntroduzca su contraseña:", username[playerid]);
-		ExPlayerDialog(playerid, D_INGRESO, DIALOG_STYLE_PASSWORD, "Iniciar Sesión", cuenta2, "Ingresar", "Salir");
-		_Logeo[playerid] += 1;
-    }
-    return 1;
-}
 
 
 accountSave(playerid)

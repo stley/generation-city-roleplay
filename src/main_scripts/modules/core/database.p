@@ -19,8 +19,11 @@ hook OnGameModeInit(){
         serverLogSend(error, "MySQL-ERROR");
         SendRconCommand("exit");
     }
-    else
+    else{
         serverLogSend("Conectado a la base de datos.", "MySQL");
+        mysql_log(ALL);
+    }
+    
 }
 hook OnGameModeExit(){
     mysql_close(mainDatabase);
