@@ -10773,7 +10773,6 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			yield 1;
 			await_str(user[playerid][jClave]) bcrypt_ahash(playerid, inputtext);
 			if(strlen(user[playerid][jClave])){
-				print(user[playerid][jClave]);
 				new check = await bcrypt_averify(playerid, inputtext, user[playerid][jClave]);
 				if(!check){
 					format(cuenta2, sizeof(cuenta2), "Bienvenido %s\n\nPor favor introduzca una contraseña:", username[playerid]);
@@ -10812,9 +10811,6 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					accountORMInit(playerid);
 					yield 1;
 					new err = await orm_async_insert(accountORM[playerid]);
-					print("Insert:\n");
-					print(user[playerid][jClave]);
-					print("\n");
 					if(err == ERROR_OK)
 						ver_personajes(playerid);
 					else{

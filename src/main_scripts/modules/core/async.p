@@ -60,7 +60,6 @@ forward OnAsyncHashVerify(playerid, bool:success, Task:t);
 
 stock Task:bcrypt_ahash(playerid, const input[]){
     new Task:t = task_new();
-    printf("Hashing for playerid %d...", playerid);
     bcrypt_hash(playerid, "OnAsyncHash", input, BCRYPT_COST, "d", _:t);
     return t;
 }
@@ -80,7 +79,6 @@ stock Task:bcrypt_averify(playerid, const input[], const hash[]){
 }
 
 public OnAsyncHashVerify(playerid, bool:success, Task:t){
-    printf("Async verified: playerid %d %s", playerid,(success) ? "succeded" : "failed");
     task_set_result(t, success);
     return 1;
 }
