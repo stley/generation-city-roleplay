@@ -126,7 +126,7 @@ stock const
 	#define _Y_INI_STATIC static
 #endif
 
-#include "..\..\YSI_Coding\y_hooks"
+//#include "..\..\YSI_Coding\y_hooks"
 
 #include "y_ini_impl"
 

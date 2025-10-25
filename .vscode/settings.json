@@ -1,4 +1,6 @@
 {
     "editor.fontSize": 12,
-    "files.encoding": "windows1252"
+    "files.encoding": "windows1252",
+    "workbench.localHistory.enabled": true,
+    "workbench.localHistory.maxFileSize": 10000
 }
