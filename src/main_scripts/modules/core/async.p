@@ -5,6 +5,9 @@ forward OnORMTaskUpdate(Task:t, ORM:id);
 forward Task:orm_async_insert(ORM:id); //orm_insert
 forward OnORMTaskInsert(Task:t, ORM:id);
 
+forward Task:orm_async_select(ORM:id); //orm_select
+forward OnORMTaskSelect(Task:t, ORM:id);
+
 native orm_addvar_string_s(ORM:id, var[], var_maxlen, AmxString:columnname) = orm_addvar_string;
 
 stock Task:orm_async_update(ORM:id){
@@ -33,6 +36,20 @@ public OnORMTaskInsert(Task:t, ORM:id){
     else task_set_result(t, _:ERROR_INVALID);
     return 1;
 }
+
+stock Task:orm_async_select(ORM:id){
+    new Task:t = task_new();
+    orm_select(id, "OnORMTaskSelect", "dd", _:t, _:id);
+    return t;
+}
+
+public OnORMTaskSelect(Task:t, ORM:id){
+    if(id != MYSQL_INVALID_ORM)
+        task_set_result(t, _:orm_errno(id));
+    else task_set_result(t, _:ERROR_INVALID);
+    return 1;
+}
+
 
 hook native orm_destroy(&ORM:id){
     new ret = orm_destroy(id);

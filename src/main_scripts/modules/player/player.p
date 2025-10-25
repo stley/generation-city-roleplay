@@ -1,3 +1,5 @@
+#include <hook>
+
 enum jInfo
 {
 	//	———————— username
@@ -328,8 +330,6 @@ new
 	_mirilla[MAX_PLAYERS],
 	tipo_m[MAX_PLAYERS],
 	xMeses[MAX_PLAYERS],
-	xDias[MAX_PLAYERS],
-	xAnos[MAX_PLAYERS],
 	algomas[MAX_PLAYERS],
 	Taximetro[MAX_PLAYERS],
 	EnTaxi[MAX_PLAYERS],
@@ -441,6 +441,7 @@ new
 	MostrarNombre[MAX_PLAYERS],
     UsandoGym2[MAX_PLAYERS]
 ;
+
 
 
 accountORMInit(playerid){
@@ -813,3 +814,20 @@ characterSave(playerid)
 	}
 	return 1;
 }
+
+accountCheck(const account[])
+{
+	new check[MAX_PLAYER_NAME];
+	mysql_escape_string(account, check);
+	await mysql_aquery_s(mainDatabase, str_format("SELECT `SQLID` FROM accounts WHERE Nombre = '%s' LIMIT 1;", check));
+	return cache_num_rows();
+}
+
+characterCheck(const account[]){
+	new check[MAX_PLAYER_NAME];
+	mysql_escape_string(account, check);
+	await mysql_aquery_s(mainDatabase, str_format("SELECT `SQLID` FROM characters WHERE NombrePJ = '%s' LIMIT 1;", check));
+	return cache_num_rows();
+}
+
+

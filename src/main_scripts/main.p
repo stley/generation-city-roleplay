@@ -12,8 +12,8 @@ AntiAmx()
 
 //- Scriptfiles
 #define beta_version			"1.7.34"
-#define DATOS_CUENTAS			"Cuentas/%s.rp"
-#define DATOS_Personajes		"Personajes/%s.rp"
+//#define DATOS_CUENTAS			"Cuentas/%s.rp"
+//#define DATOS_Personajes		"Personajes/%s.rp"
 #define DATOS_VEHICULOS			"Vehiculos/Veh_%d.rp"
 #define DATOS_CASAS				"Casas/Casa_%d.rp"
 #define DATOS_GARAGES			"Garages/Garage_%d.rp"
@@ -475,4 +475,6 @@ new WalkStyle[MAX_PLAYERS];
 #include "core/other.p"
 #include "almacenes/almacenes.p"
 #include "anuncios/anuncios.p"
-#include "account/player.p"
+#include "player/player.p"
+#include "vehicles/vehicle.p"
+#include "player/admin.p"
