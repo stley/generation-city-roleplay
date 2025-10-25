@@ -817,17 +817,16 @@ characterSave(playerid)
 
 accountCheck(const account[])
 {
-	new check[MAX_PLAYER_NAME];
-	mysql_escape_string(account, check);
-	await mysql_aquery_s(mainDatabase, str_format("SELECT `SQLID` FROM accounts WHERE Nombre = '%s' LIMIT 1;", check));
+	new query[96];
+	mysql_format(mainDatabase, query, sizeof(query), "SELECT `SQLID` FROM account WHERE NombrePJ = '%e' LIMIT 1;", account);
+	await mysql_aquery(mainDatabase, query);
 	return cache_num_rows();
 }
 
 characterCheck(const account[]){
-	new check[MAX_PLAYER_NAME];
-	mysql_escape_string(account, check);
-	await mysql_aquery_s(mainDatabase, str_format("SELECT `SQLID` FROM characters WHERE NombrePJ = '%s' LIMIT 1;", check));
+	new query[96];
+	mysql_format(mainDatabase, query, sizeof(query), "SELECT `SQLID` FROM characters WHERE NombrePJ = '%e' LIMIT 1;", account);
+	await mysql_aquery(mainDatabase, query);
 	return cache_num_rows();
 }
-
 

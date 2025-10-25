@@ -18,3 +18,8 @@ public adminRefresh(playerid){
     return 1;
 }
 
+
+forward getAdminLevel(playerid);
+public getAdminLevel(playerid){
+    return user[playerid][jAdmin];
+}

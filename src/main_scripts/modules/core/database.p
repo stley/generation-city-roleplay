@@ -8,6 +8,7 @@ new MySQL:mainDatabase;
 #include <hook>
 
 
+
 hook OnGameModeInit(){
     new MySQLOpt:options = mysql_init_options();
     mysql_set_option(options, AUTO_RECONNECT, true);

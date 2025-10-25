@@ -31,6 +31,7 @@
 
 
 
+
 new random_veh[MAX_VEHICLES];
 
 /* trabajo de carpintero*/
@@ -10623,8 +10624,10 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				accountORMInit(playerid);
 				yield 1;
 				new err = await orm_async_insert(accountORM[playerid]);
-				if(err == ERROR_OK)
+				if(err == ERROR_OK){
+					LoggedIn[playerid] = 1;
 					ver_personajes(playerid);
+				}
 				else{
 					SendClientMessage(playerid, C_ROJO2, "Ocurrió un error al crear tu cuenta, contacta con administración.");
 					wait_ms(1000);
@@ -11055,6 +11058,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				}
 			}
 			new id = 1;
+			charLoggedIn[playerid] = 1;
 			user[playerid][jFuerza] = 50;
 			user[playerid][jm_Derecha] = 80;
 			user[playerid][jm_DerechaCant] = 1;
@@ -11098,6 +11102,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				format(code_1, sizeof(code_1), "Ocurrió un error al crear el personaje %s del usuario %s (SQLID %d)", user[playerid][jNombrePJ], username[playerid], user[playerid][jSQLID]);
 				return 1;
 			}
+
 			format(code_1, sizeof(code_1), "Se creo el personaje %s (SQLID %d) del usuario %s (SQLID %d)", user[playerid][jNombrePJ], user[playerid][charSQLID], username[playerid], user[playerid][jSQLID]);
 			serverLogRegister(code_1, "account");
 			accountSave(playerid);
@@ -21205,6 +21210,7 @@ stock _cIniciales(playerid, tipo)
 
 stock cargar_pj(playerid)
 {
+	charLoggedIn[playerid] = 1;
     StopAudioStreamForPlayer(playerid);
     ResetPlayerMoney(playerid);
     JugadorEnSeccion {playerid} = 1;
@@ -30625,22 +30631,31 @@ GCMD:expulsarfaccion(playerid, const params[])
 	yield 1;
 	if (characterCheck(nomExFacc))
 	{
-		new string[128];
-		new ORM:ex_fac = orm_create("characters");
-		orm_addvar_string(ex_fac, nomExFacc, MAX_PLAYER_NAME, "NombrePJ");
-		orm_setkey(ex_fac, "NombrePJ");
-		static val_ZERO = 0;
 		new
-			exMiembro
+			string[128],
+			ORM:ex_fac = orm_create("characters")
 		;
-		orm_addvar_int(ex_fac, exMiembro, "Miembro");
-		yield 1;
-		if((task_await(orm_async_select(ex_fac))) != _:ERROR_OK){
-			_Mensaje(playerid, 4, "b0b0b0", "Ocurrió un error al recuperar los datos del personaje.");
-			orm_destroy(ex_fac);
-			return 1;
+		static
+			exMiembro,
+			val_ZERO = 0
+		;
+		while(exMiembro){
+			yield 1;
+			exMiembro ^= 0;
 		}
+			
+
+		orm_addvar_string(ex_fac, nomExFacc, MAX_PLAYER_NAME, "NombrePJ");
+		orm_addvar_int(ex_fac, exMiembro, "Miembro");
+		orm_setkey(ex_fac, "NombrePJ");
+		if((task_await(orm_async_select(ex_fac))) != _:ERROR_OK){
+			exMiembro = 0;
+			orm_destroy(ex_fac);
+			return _Mensaje(playerid, 4, "b0b0b0", "Ocurrió un error al recuperar los datos del personaje.");
+		}
+		if(exMiembro != user[playerid][jMiembro]) return _Mensaje(playerid, 4, "b0b0b0", "Ese jugador no es de tu facción.");
 		orm_addvar_int(ex_fac, val_ZERO, "Lider");
+		orm_addvar_int(ex_fac, val_ZERO, "Miembro");
 		orm_addvar_int(ex_fac, val_ZERO, "Rango");
 		for(new i = 0; i < 10; i++)
 		{
@@ -30665,7 +30680,7 @@ GCMD:expulsarfaccion(playerid, const params[])
 			orm_addvar_int(ex_fac, val_ZERO, sql);
 		}
 		
-		if(exMiembro != user[playerid][jMiembro]) return _Mensaje(playerid, 4, "b0b0b0", "Ese jugador no es de tu facción.");
+		
 		if((task_await(orm_async_update(ex_fac))) == _:ERROR_OK){
 			format(string, sizeof(string), "Líder %s expulsó de la facción a %s. (OFF)", nombre_pj(playerid), nomExFacc);
 			mensaje_faccion(user[playerid][jMiembro], C_LIGHTBLUE, string);
@@ -31912,12 +31927,12 @@ GCMD:tbanoff(playerid,  const params[])
 		orm_addvar_int(tbanorm, ban_type, "Baneado");
 		
 		new ret = await orm_async_update(tbanorm);
-		orm_destroy(tbanorm);
 		if(ret == _:ERROR_OK){
 			new fcuenta[128];
 			format(fcuenta, 128, "Administración: %s ha sido bloqueado por %s, Razón:[%s], Tiempo:[%d horas] (OFFLINE)", nombrexdd, nombre_pj(playerid), razon, tiempo/3600);
 			_MensajeOOC(0xFF6347FF, fcuenta);
 		}
+		orm_destroy(tbanorm);
     }
 	else _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	return 1;
@@ -31941,14 +31956,21 @@ IsCharConnected(const character[]){
 GCMD:estaban(playerid, const params[])
 {
 	if(user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
+	if(isnull(params)) return _Mensaje(playerid, 0, "0", "USO: /estaban [Nombre_Apellido]");
 	new nomban[MAX_PLAYER_NAME];
 	sscanf(params, "s[32]", nomban);
 	yield 1;
 	if (!characterCheck(nomban)) return _Mensaje(playerid, 0, "75", "Ese personaje no existe.");
-	if (IsCharConnected(nomban)) return _Mensaje(playerid, 0, "75", "Ese jugador está conectado.");
+	if (IsCharConnected(nomban) != -1) return _Mensaje(playerid, 0, "75", "Ese jugador está conectado.");
 	new fcuenta[256];
 	new ORM:esta_ban = orm_create("characters");
-	new _ban[2], ban1[32], ban2[128], ban3[150];
+	static
+		_ban[2],
+		ban1[32], 
+		ban2[128], 
+		ban3[150]
+	;
+	while(_ban[1]) task_yield(1);
 	orm_addvar_string(esta_ban, nomban, MAX_PLAYER_NAME, "NombrePJ");
 	orm_setkey(esta_ban, "NombrePJ");
 	orm_addvar_int(esta_ban, _ban[0], "Baneado");
@@ -31958,8 +31980,11 @@ GCMD:estaban(playerid, const params[])
 	orm_addvar_string(esta_ban, ban3, 150, "bMomento");
 	
 	new check = await orm_async_select(esta_ban);
-	orm_destroy(esta_ban);
-	if(check != _:ERROR_OK) return _Mensaje(playerid, 0, "0", "No se pudo cargar la información de ese personaje.");
+	if(check != _:ERROR_OK){
+		orm_destroy(esta_ban);
+		_ban[1] = 0;
+		return _Mensaje(playerid, 0, "0", "No se pudo cargar la información de ese personaje.");
+	}
 	if(_ban[0] == 0) return Mensaje_(playerid, C_UGRP, "Ese personaje no está baneado/bloqueado.");
 	if(_ban[0] == 10)
 	{
@@ -31976,23 +32001,31 @@ GCMD:estaban(playerid, const params[])
 		SendClientMessage(playerid, 0xffffffff, fcuenta);
 	}
 	else SendClientMessage(playerid, 0xffffffff, "un bloqueo no existente... na, usa /unban boboXD1");
+	orm_destroy(esta_ban);
+	_ban[1] = 0;
 	return 1;
 }
 
 
 GCMD:estajail(playerid,  const params[])
 {
+	yield 1;
 	if(user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new
 		pID,
-		nomban[MAX_PLAYER_NAME],
+		ORM:esta_jail,
+		nomban[MAX_PLAYER_NAME]
+	;
+	static
 		ban1[51],
 		ejJail,
 		ejJailTime,
 		ejTiempito,
-		ban2[51],
-		fcuenta[256]
+		ban2[51]
 	;
+	
+
+	if(isnull(params)) return _Mensaje(playerid, 0, "0", "USO: /estajail [Nombre_Apellido]" );
 	sscanf(params, "s[32]", nomban);
 	if (!characterCheck(params)) return _Mensaje(playerid, 0, "75", "Ese personaje no existe.");
 	if ((pID = IsCharConnected(nomban)) != -1){
@@ -32003,7 +32036,11 @@ GCMD:estajail(playerid,  const params[])
 		ejTiempito = user[pID][jtiempito];
 	}
 	else{
-		new ORM:esta_jail = orm_create("characters");
+		while(ejJailTime){
+			yield 1;
+			ejJailTime ^= 0;
+		}
+		esta_jail = orm_create("characters");
 		orm_addvar_string(esta_jail, nomban, MAX_PLAYER_NAME, "NombrePJ");
 		orm_setkey(esta_jail, "NombrePJ");
 		orm_addvar_string(esta_jail, ban1, 50, "jCulpable");
@@ -32011,32 +32048,26 @@ GCMD:estajail(playerid,  const params[])
 		orm_addvar_int(esta_jail, ejJailTime, "TiempoCarcel");
 		orm_addvar_int(esta_jail, ejTiempito, "tiempito");
 		orm_addvar_string(esta_jail, ban2, 50, "jRazon");
-		yield 1;
-		if((task_await(orm_async_select(esta_jail))) != _:ERROR_OK) _Mensaje(playerid, 0, "0", "No se pudo cargar la información del jail.");
-		orm_destroy(esta_jail);
+		
+		if((task_await(orm_async_select(esta_jail))) != _:ERROR_OK){
+			ejJailTime = 0;
+			orm_destroy(esta_jail);
+			return _Mensaje(playerid, 0, "0", "No se pudo cargar la información del jail.");
+		}
 	}
 	switch (ejJail)
 	{
 		case 1:
-		{
-			format(fcuenta, sizeof(fcuenta), "OOC: Tiempo %d minutos - Responsable: %s - Razón: %s", ejJailTime, ban1, ban2);
-			SendSplitMessage(playerid, 0xffffffff, fcuenta);
-		}
+			SendClientMessage(playerid, 0xffffffff, "OOC: Tiempo %d minutos - Responsable: %s - Razón: %s", ejJailTime, ban1, ban2);
 		case 2:
-		{
-			format(fcuenta, sizeof(fcuenta), "Comisaría: Tiempo %d minutos.", ejJailTime);
-			SendClientMessage(playerid, 0xffffffff, fcuenta);
-		}
+			SendClientMessage(playerid, 0xffffffff, "Comisaría: Tiempo %d minutos.", ejJailTime);
 		case 3:
-		{
-			format(fcuenta, sizeof(fcuenta), "PF: Tiempo %s.", tiempo_minuto(playerid, ejTiempito - gettime(), 1));
-			SendClientMessage(playerid, 0xffffffff, fcuenta);
-		}
+			SendClientMessage(playerid, 0xffffffff, "PF: Tiempo %s.", tiempo_minuto(playerid, ejTiempito - gettime(), 1));
 		default:
-		{
 			Mensaje_(playerid, C_UGRP, "Ese personaje no está sancionado.");
-		}
 	}
+	ejJailTime = 0;
+	orm_destroy(esta_jail);
 	return 1;
 }
 
@@ -32061,7 +32092,7 @@ GCMD:desbugear(playerid,  const params[])
 	new dbgName[MAX_PLAYER_NAME];
 	if(sscanf(params, "s[25]", dbgName)) return _Mensaje(playerid, 0, "0", "USO: /desbugear [Nombre_Apellido]");
 	yield 1;
-	if(characterCheck(dbgName)) return _Mensaje(playerid, 0, "0", "Ese personaje no existe.");
+	if(!characterCheck(dbgName)) return _Mensaje(playerid, 0, "0", "Ese personaje no existe.");
 	new fcuenta[120];
 	new ORM:desbugero = orm_create("characters");
 	orm_addvar_string(desbugero, dbgName, MAX_PLAYER_NAME, "NombrePJ");
@@ -32489,7 +32520,9 @@ GCMD:coff(playerid,  const params[])
 	new ORM:c_off = orm_create("characters");
 	orm_addvar_string(c_off, charCheck, MAX_PLAYER_NAME, "NombrePJ");
 	orm_setkey(c_off, "NombrePJ");
-	new cuenta_[9];
+	static cuenta_[9] = {-1, ...}; // Declaramos una static, para que al usar yield, la parte asíncrona continúe teniendo los punteros.
+	while(cuenta_[0] != -1) //static es un global, si alguien llega a utilizar el comando mientras se procesa otro, aguantar los ticks hasta que las variables se liberen
+		yield 1;
 	orm_addvar_int(c_off, cuenta_[0], "Nivel");
 	orm_addvar_int(c_off, cuenta_[1], "Horas");
 	orm_addvar_int(c_off, cuenta_[2], "Dinero");
@@ -32501,20 +32534,23 @@ GCMD:coff(playerid,  const params[])
     orm_addvar_int(c_off, cuenta_[8], "Experiencia");
 
 	
-	if( (task_await(orm_async_select(c_off))) != _:ERROR_OK) return _Mensaje(playerid, 0, "0", "Ocurrió un error al recuperar los datos del personaje.");
+	if( (task_await(orm_async_select(c_off))) != _:ERROR_OK){
+		cuenta_[0] = -1; //Marcamos el indice 0 del arreglo estático como "libre"
+		orm_destroy(c_off);
+		return _Mensaje(playerid, 0, "0", "Ocurrió un error al recuperar los datos del personaje.");
+	}
 
 	new proximonvl = cuenta_[0] + 1, cantidadexp = proximonvl * nivelexp;
 	new fcuenta[200];
-	format(fcuenta, sizeof(fcuenta), "%s - Nivel: %d (%d/%d) | Horas de juego: %d | Dinero: %d | Banco: %d | Casas: %d / %d | Negocios: %d / %d", params,
+	printf("%s - Nivel: %d (%d/%d) | Horas de juego: %d | Dinero: %d | Banco: %d | Casas: %d / %d | Negocios: %d / %d", charCheck,
+	cuenta_[0], cuenta_[8], cantidadexp, cuenta_[1], cuenta_[2], cuenta_[3],
+	cuenta_[4], cuenta_[5], cuenta_[6], cuenta_[7]);
+	format(fcuenta, sizeof(fcuenta), "%s - Nivel: %d (%d/%d) | Horas de juego: %d | Dinero: %d | Banco: %d | Casas: %d / %d | Negocios: %d / %d", charCheck,
 	cuenta_[0], cuenta_[8], cantidadexp, cuenta_[1], cuenta_[2], cuenta_[3],
 	cuenta_[4], cuenta_[5], cuenta_[6], cuenta_[7]);
 	_Mensaje(playerid, 4, "ffffff", fcuenta);
-	return 1;
-}
-
-funcion CargarCuentaOff(playerid, name[], value[])
-{
-	
+	cuenta_[0] = -1; //Marcamos el indice 0 del arreglo estático como "libre"
+	orm_destroy(c_off);
 	return 1;
 }
 
@@ -32523,27 +32559,40 @@ GCMD:ultimaconexion(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return Mensaje_(playerid, -1, "/ultimaconexion [Nombre_Apellido]");
+	new
+		pjName[MAX_PLAYER_NAME];
+	sscanf(params, "s[25]", pjName);
 	yield 1;
 	if(!characterCheck(params)) return _Mensaje(playerid, 0, "0", "Ese personaje no existe.");
 	new
-		pjName[MAX_PLAYER_NAME],
-		fcuenta[120],
+		fcuenta[120]
+	;
+	static
 		xDias,
 	 	xMes,
 	 	xAno
 	;
+	// MSVC: xDias updated asynchronously
+	while(xDias){
+		yield 1;
+		xDias ^= 0;
+	}
+
 	new ORM:cmd_ultima_conexion = orm_create("characters");
 	orm_addvar_string(cmd_ultima_conexion, pjName, MAX_PLAYER_NAME, "NombrePJ");
 	orm_setkey(cmd_ultima_conexion, "NombrePJ");
 	orm_addvar_int(cmd_ultima_conexion, xDias, "uDia");
 	orm_addvar_int(cmd_ultima_conexion, xMes, "uMes");
 	orm_addvar_int(cmd_ultima_conexion, xAno, "uAno");
-	
-	if((task_await(orm_async_select(cmd_ultima_conexion))) != _:ERROR_OK) return _Mensaje(playerid, 0, "0", "Hubo un error cargando los datos del personaje.");
-	orm_destroy(cmd_ultima_conexion);
+	if((task_await(orm_async_select(cmd_ultima_conexion))) != _:ERROR_OK){
+		xDias = 0;
+		orm_destroy(cmd_ultima_conexion);
+		return _Mensaje(playerid, 0, "0", "Hubo un error cargando los datos del personaje.");
+	}
 	format(fcuenta, sizeof(fcuenta), "%s última conexión: %d de %s del %d.", pjName, xDias, GetMonth(xMes), xAno);
 	_Mensaje(playerid, 4, "ffffff", fcuenta);
-
+	
+	orm_destroy(cmd_ultima_conexion);
 	return 1;
 }
 
@@ -35426,7 +35475,6 @@ GCMD:quitarnegocio(playerid,  const params[])
 {
 	new string[200];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "728", "Usted no tiene acceso a este comando.");
-	if (!IsPlayerConnected(params[0])) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
 	new quitarName[MAX_PLAYER_NAME];
 	if (sscanf(params, "s[25]", quitarName)) return _Mensaje(playerid, 3, "0", "/quitarnegocio [Nombre_Apellido]");
 	if(new target = IsCharConnected(quitarName) != -1){
@@ -35457,7 +35505,6 @@ GCMD:quitarnegocio2(playerid,  const params[])
 	new string[200];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "728", "Usted no tiene acceso a este comando.");
 	new quitarName[MAX_PLAYER_NAME];
-	if (!IsPlayerConnected(params[0])) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarnegocio2 [id jugador]");
 	sscanf(params, "s[25]", quitarName);
 	if(new target = IsCharConnected(quitarName) != -1){
@@ -35515,14 +35562,28 @@ GCMD:daradmin(playerid,  const params[])
 		if (playerid != id) Log("Registros/DarAdmin.log", string);
 		return 1;
 	}
-	yield 1;
-	new ORM:dar_admin = orm_create("accounts");
+
+	new
+		ORM:dar_admin = orm_create("accounts");
+
+	static
+		rank;
+	
+	while(rank){
+		yield 1;
+		rank ^= 0;
+	}
 	orm_addvar_string(dar_admin, target, MAX_PLAYER_NAME, "Nombre");
-	new rank;
 	orm_setkey(dar_admin, "Nombre");
 	orm_addvar_int(dar_admin, rank, "Admin");
-	if((task_await(orm_async_select(dar_admin))) != _:ERROR_OK)
+
+	if((task_await(orm_async_select(dar_admin))) != _:ERROR_OK){
+		rank = 0;
+		orm_destroy(dar_admin);
 		return _Mensaje(playerid, 1, "0", "Ocurrió un error al cargar los datos de la cuenta.");
+	}
+		
+
 	if(rank >= user[playerid][jAdmin]) return _Mensaje(playerid, 1, "0", "¡No puedes cambiar el rango de un superior o un usuario de tu mismo rango!");
 	rank = level;
 	if (!level){
@@ -35533,12 +35594,14 @@ GCMD:daradmin(playerid,  const params[])
     	orm_addvar_int(dar_admin, val_ZERO, "Encargado4");
     	orm_addvar_int(dar_admin, val_ZERO, "Encargado5");
 	}
+
 	if((task_await(orm_async_update(dar_admin))) == _:ERROR_OK){
 		format(string, sizeof(string), "[Administración]{FFFFFF} %s le otorgo a %s un puesto en el Staff nivel %d.", nombre_pj(playerid), target, rank);
 		MensajeAdmin(string);
 		format(string, sizeof(string), "Registros: El administrador %s le otorgo a %s un puesto en el Staff nivel %d.",  username[playerid], target, rank);
 		if (playerid != id) Log("Registros/DarAdmin.log", string);
 	}
+	rank = 0;
 	orm_destroy(dar_admin);
 	return 1;
 }
@@ -40320,9 +40383,12 @@ GCMD:jailcuenta(playerid,  const params[])
 	if (tipo == 3) if (minutes < 1 || minutes > 20) { _Mensaje(playerid, 0, "174", "Horas: 1 a 20 horas."); return 1; }
 	else { if (minutes < 1 || minutes > 900) { _Mensaje(playerid, 0, "174", "Tiempo: 1 a 900 minutos."); return 1; } }
 	
-	new
+	static
 		x_jail,
-		x_jail2,
+		x_jail2
+	;
+
+	new
 		tipos[5],
 		timejl[92],
 		resp[MAX_PLAYER_NAME],
@@ -40333,9 +40399,19 @@ GCMD:jailcuenta(playerid,  const params[])
 	orm_setkey(jlcORM, "NombrePJ");
 	orm_addvar_int(jlcORM, x_jail, "Sanciones");
 	orm_addvar_int(jlcORM, x_jail2, "Arrestos");
-	
+
+	while(x_jail || x_jail2){
+		x_jail ^= 0;
+		x_jail2 ^= 0;
+		task_yield(1);
+	}
+		
+
+
 	if( (task_await(orm_async_select(jlcORM))) != _:ERROR_OK ){
 		orm_destroy(jlcORM);
+		x_jail = 0;
+		x_jail2 = 0;
 		return _Mensaje(playerid, 0, "0", "Ocurrió un error al cargar los datos del personaje a sancionar.");
 	}
 	
@@ -40394,6 +40470,8 @@ GCMD:jailcuenta(playerid,  const params[])
 		MensajeAdmin(string);
 	}
 	orm_destroy(jlcORM);
+	x_jail = 0;
+	x_jail2 = 0;
 	return 1;
 	
 }
@@ -40762,7 +40840,8 @@ adminCheck(acc[]){
 		await mysql_aquery(mainDatabase, query);
 		if(cache_num_rows()){
 			cache_get_value_name_int(0, "charOwner", account_id);
-			await mysql_aquery_s(mainDatabase, str_format("SELECT Admin FROM accounts WHERE SQLID = %d LIMIT 1", account_id));
+			mysql_format(mainDatabase, query, sizeof(query), "SELECT Admin FROM accounts WHERE SQLID = %d  LIMIT 1", account_id);
+			await mysql_aquery(mainDatabase, query);
 			if(cache_num_rows())
 				cache_get_value_name_int(0, "Admin", ret);
 		}

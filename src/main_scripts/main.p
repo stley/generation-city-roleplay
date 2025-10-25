@@ -469,6 +469,8 @@ new WalkStyle[MAX_PLAYERS];
 #define C_COLORPOLICIA   		(0x8D8DFFFF)
 #define C_COLORRADIO    		(0x9B9BFFFF)
 
+#define RET_HANDLED_ASYNC	10
+
 
 #include "core/database.p"
 #include "core/async.p"
