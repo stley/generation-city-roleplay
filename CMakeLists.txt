@@ -9,16 +9,15 @@ find_program(PAWNCC NAMES pawncc pawncc.exe)
 set(PAWN_FLAGS
   "-d3"
   "-\;+" "-\(+"
-  "-Z+"
+  "-Z-"
   "-i${CMAKE_SOURCE_DIR}/include"
-  "-i${CMAKE_SOURCE_DIR}/src/main_scripts/modules"
-  "-i${CMAKE_SOURCE_DIR}/src/side_scripts/modules"
+  "-i${CMAKE_SOURCE_DIR}/src/modules/"
 )
 
 # Output directories
 set(OUTPUT_DIR        "${CMAKE_BINARY_DIR}/amx")
-set(MAIN_OUT_DIR      "${OUTPUT_DIR}/main_scripts")
-set(SIDE_OUT_DIR      "${OUTPUT_DIR}/side_scripts")
+set(MAIN_OUT_DIR      "${OUTPUT_DIR}/main_scripts/")
+set(SIDE_OUT_DIR      "${OUTPUT_DIR}/side_scripts/")
 file(MAKE_DIRECTORY "${MAIN_OUT_DIR}" "${SIDE_OUT_DIR}")
 
 
