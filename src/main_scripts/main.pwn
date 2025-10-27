@@ -27,7 +27,7 @@
 #include <bcrypt>
 #include <serverLog>
 
-#include "../main.p"
+#include "../main_scripts/main.p"
 
 
 
@@ -18878,7 +18878,7 @@ stock estado_civil(playerid)
 public OnGameModeInit()
 {
 	AntiAmx();
-
+	
 	SanMusic = 0;
 
 	//» Anticheat Jorge.

@@ -8,8 +8,7 @@ new MySQL:mainDatabase;
 #include <hook>
 
 
-
-hook OnGameModeInit(){
+hook ret OnGameModeInit(&ret){
     new MySQLOpt:options = mysql_init_options();
     mysql_set_option(options, AUTO_RECONNECT, true);
     mainDatabase = mysql_connect(db_host, db_user, db_password, db_database, options);
@@ -24,10 +23,11 @@ hook OnGameModeInit(){
         serverLogSend("Conectado a la base de datos.", "MySQL");
         mysql_log(ALL);
     }
-    
+    return 1;
 }
-hook OnGameModeExit(){
+hook ret OnGameModeExit(&ret){
     mysql_close(mainDatabase);
+    return 1;
 }
 
 
