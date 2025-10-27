@@ -1,15 +1,4 @@
-#include <PawnPlus>
-#include <Pawn.RakNet>
-#include <sscanf2>
-#include <streamer>
-#include <cmd>
-#include <foreach>
-#include <m_selection>
-#include <yom_buttons>
-#include <mapeos>
-#include <JunkBuster>
-#include <YSI_Storage\y_ini>
-#include <ecm>
+
 
 //- Anti amx
 AntiAmx()
@@ -23,8 +12,8 @@ AntiAmx()
 
 //- Scriptfiles
 #define beta_version			"1.7.34"
-#define DATOS_CUENTAS			"Cuentas/%s.rp"
-#define DATOS_Personajes		"Personajes/%s.rp"
+//#define DATOS_CUENTAS			"Cuentas/%s.rp"
+//#define DATOS_Personajes		"Personajes/%s.rp"
 #define DATOS_VEHICULOS			"Vehiculos/Veh_%d.rp"
 #define DATOS_CASAS				"Casas/Casa_%d.rp"
 #define DATOS_GARAGES			"Garages/Garage_%d.rp"
@@ -479,3 +468,15 @@ new WalkStyle[MAX_PLAYERS];
 #define C_AMARILLO 	     	    (0xFFF000FF)
 #define C_COLORPOLICIA   		(0x8D8DFFFF)
 #define C_COLORRADIO    		(0x9B9BFFFF)
+
+#define RET_HANDLED_ASYNC	10
+
+
+#include "core/database.p"
+#include "core/async.p"
+#include "core/other.p"
+#include "almacenes/almacenes.p"
+#include "anuncios/anuncios.p"
+#include "player/player.p"
+#include "vehicles/vehicle.p"
+#include "player/admin.p"

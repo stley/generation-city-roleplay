@@ -8,138 +8,29 @@
 #undef MAX_PLAYERS
 #define MAX_PLAYERS			(500)
 
-#include "main.p"
+#define PP_SYNTAX_AWAIT
+#define PP_SYNTAX_YIELD
+#include <PawnPlus>
+#include <Pawn.RakNet>
+#include <sscanf2>
+#include <streamer>
+#include <cmd>
+#include <foreach>
+#include <m_selection>
+#include <yom_buttons>
+#include <mapeos>
+#include <JunkBuster>
+#include <a_mysql>
+#include <YSI_Storage\y_ini>
+#include <ecm>
+#include <pp-mysql>
+#include <bcrypt>
+#include <serverLog>
 
-//texto abajo
+#include "../main_scripts/main.p"
 
-/* sistema de almacenes */
-enum alm_Info
-{
-	aComprado,
-	aComprador[32],
-	aSeguro,
-	aTipo,
-	aDinero,
-	a_Int,
-	a_VW,
-	Float: aExteriorX,
-	Float: aExteriorY,
-	Float: aExteriorZ,
-	Float: aExteriorA,
-	Float: aExteriorX_V,
-	Float: aExteriorY_V,
-	Float: aInteriorX,
-	Float: aInteriorY,
-	Float: aInteriorZ,
-	Float: aInteriorA,
-	aArmario[50],
-	aArmarioCant[50],
-};
 
-new
-	i_Almacen[MAX_ALMACENES][alm_Info]
-;
 
-stock save_Almacen(id, bool:Todo = true, ranura = -1)
-{
-	new almd[64];
-	format(almd, 64, DATOS_ALMACENES, id);
-	new INI: File = INI_Open(almd);
-	INI_SetTag(File, "Informacion");
-	if(Todo)
-	{
-		INI_WriteString(File, "Dueño", i_Almacen[id][aComprador]);
-		INI_WriteInt(File, "Comprado", i_Almacen[id][aComprado]);
-		INI_WriteInt(File, "Seguro", i_Almacen[id][aSeguro]);
-		INI_WriteInt(File, "Tipo", i_Almacen[id][aTipo]);
-		INI_WriteInt(File, "Dinero", i_Almacen[id][aDinero]);
-		INI_WriteInt(File, "Interior", i_Almacen[id][a_Int]);
-		INI_WriteInt(File, "VirtualWorld", i_Almacen[id][a_VW]);
-		INI_WriteFloat(File, "ExteriorX", i_Almacen[id][aExteriorX]);
-		INI_WriteFloat(File, "ExteriorY", i_Almacen[id][aExteriorY]);
-		INI_WriteFloat(File, "ExteriorZ", i_Almacen[id][aExteriorZ]);
-		INI_WriteFloat(File, "ExteriorA", i_Almacen[id][aExteriorA]);
-		INI_WriteFloat(File, "ExteriorX_V", i_Almacen[id][aExteriorX_V]);
-		INI_WriteFloat(File, "ExteriorY_V", i_Almacen[id][aExteriorY_V]);
-		INI_WriteFloat(File, "InteriorX", i_Almacen[id][aInteriorX]);
-		INI_WriteFloat(File, "InteriorY", i_Almacen[id][aInteriorY]);
-		INI_WriteFloat(File, "InteriorZ", i_Almacen[id][aInteriorZ]);
-		INI_WriteFloat(File, "InteriorA", i_Almacen[id][aInteriorA]);
-
-	}
-	if(ranura != -1 && ranura < 50)
-	{
-		new sql[100];
-		format(sql, sizeof(sql), "Armario_%d", ranura);
-		INI_WriteInt(File, sql, i_Almacen[id][aArmario][ranura]);
-		format(sql, sizeof(sql), "ArmarioCant_%d", ranura);
-		INI_WriteInt(File, sql, i_Almacen[id][aArmarioCant][ranura]);
-	}
-	INI_Close(File);
-	return 1;
-}
-
-new totalalmacenes;
-funcion cargar_almacenes()
-{
-	new almd[64];
-	for (new id = 0; id < sizeof(i_Almacen); id++)
-	{
-		format(almd, 64, DATOS_ALMACENES, id);
-		INI_ParseFile(almd, "CargarAlmacenes_data", .bExtra = true, .extra = id);
-		if (i_Almacen[id][aTipo] != 0)
-		{
-			totalalmacenes++;
-		}
-	}
-	printf("|- Almacenes [%d]", totalalmacenes);
-	return 1;
-}
-
-funcion CargarAlmacenes_data(id, name[], value[])
-{
-	INI_String("Dueño", i_Almacen[id][aComprador], 32);
-	INI_Int("Comprado", i_Almacen[id][aComprado]);
-	INI_Int("Seguro", i_Almacen[id][aSeguro]);
-	INI_Int("Tipo", i_Almacen[id][aTipo]);
-	INI_Int("Dinero", i_Almacen[id][aDinero]);
-	INI_Int("Interior", i_Almacen[id][a_Int]);
-	INI_Int("VirtualWorld", i_Almacen[id][a_VW]);
-	INI_Float("ExteriorX", i_Almacen[id][aExteriorX]);
-	INI_Float("ExteriorY", i_Almacen[id][aExteriorY]);
-	INI_Float("ExteriorZ", i_Almacen[id][aExteriorZ]);
-	INI_Float("ExteriorA", i_Almacen[id][aExteriorA]);
-	INI_Float("ExteriorX_V", i_Almacen[id][aExteriorX_V]);
-	INI_Float("ExteriorY_V", i_Almacen[id][aExteriorY_V]);
-	INI_Float("InteriorX", i_Almacen[id][aInteriorX]);
-	INI_Float("InteriorY", i_Almacen[id][aInteriorY]);
-	INI_Float("InteriorZ", i_Almacen[id][aInteriorZ]);
-	INI_Float("InteriorA", i_Almacen[id][aInteriorA]);
-	for(new i = 0; i < 50; i++)
-	{
-		new sql[100];
-		format(sql, sizeof(sql), "Armario_%d", i);
-		INI_Int(sql, i_Almacen[id][aArmario][i]);
-		format(sql, sizeof(sql), "ArmarioCant_%d", i);
-		INI_Int(sql, i_Almacen[id][aArmarioCant][i]);
-	}
-	return 1;
-}
-
-/* sistema de anuncios */
-new
-	id_ultimo
-;
-#define MAX_ANUNCIOS (10)
-
-enum ad_left
-{
-	num_ad,
-	tiempo_ad,
-	por_ad[32],
-	texto_ad[256],
-};
-new ad_info[MAX_ANUNCIOS][ad_left];
 
 new random_veh[MAX_VEHICLES];
 
@@ -237,14 +128,7 @@ static const point_spawn[][spawn_point] =
 {
 	{0,	0000.0000	, 0000.0000	, 0000.0000	, 0000.0000	,	"none_none"},		//
 	/*  	X   -       Y   	-   	Z	-     R     -	NAME  */
-	{1,	8721.9043	, 14167.8594 , 6.7237	, 165.6276	,	"Tienda de bicis"}, // tienda de bicis
-	{2,	8834.7734	, 14160.7129, 6.7442	, 90.2685	,	"Bullworth"}, // estatua
-	{3,	8621.3340	, 14386.2354, 5.9996	, 5.1796	,	"Farmacia Easy Drugs"}, // farmacia
-	{4,	8812.9365	, 14227.4141, 6.5771	, 196.3155	,	"Gasolinera de bullworth"}, // gasolinera
-	{5,	8699.6631	, 14052.3311, 4.3719	, 283.0177	,	"Motel In and Out"}, // motel
-	{6,	2111.3154	, 2098.2959	, 10.8203	, 208.2435	,	"Las venturas"},	// LAS VENTURAS
-	{7,	-2245.4099	, 245.1576	, 35.3203	, 111.4694	,	"San fierro"},		// SAN FIERRO
-	{8,	1519.2094	, -1676.844	, 13.5469	, 268.6089	,	"Los santos"}		// LOS SANTOS
+	{1,	1519.2094	, -1676.844	, 13.5469	, 268.6089	,	"Los santos"}		// LOS SANTOS
 };
 
 /* ANTICHEAT simple */
@@ -257,11 +141,7 @@ funcion tp_timers(playerid)
     tp_trabajo[playerid] = 0;
 }
 
-new
-	username[MAX_PLAYERS][MAX_PLAYER_NAME],
-	tipo_carga[MAX_PLAYERS],
-	conectado[MAX_PLAYERS]
-;
+
 
 //vehiculos rentables
 enum rent_i
@@ -546,191 +426,16 @@ new
 	ActRegistro = 1,
 	ActTest = 1,
 	UsandoGym[9] = 0,
-	UsandoGym2[MAX_PLAYERS],
 	nivelexp = 10,
 	RobarBanco = 0,
 	Regalo = 1,
 	CajadeRegalo,
 	Text3D: dynamicgift3DText,
-	_Logeo[MAX_PLAYERS],
-	_rVeh[MAX_PLAYERS],
-	usandoYo[MAX_PLAYERS],
-	pescando[MAX_PLAYERS],
-	pescador[MAX_PLAYERS],
-	pesca[MAX_PLAYERS],
-	_Pesca[MAX_PLAYERS],
-	cocherobo[MAX_PLAYERS],
-	checkcoche[MAX_PLAYERS],
-	veh_robo[MAX_PLAYERS],
-	veh_asiento[MAX_PLAYERS],
-	r_negocio[MAX_PLAYERS],
-	tipo_reparto[MAX_PLAYERS],
-	r_vehiculo[MAX_PLAYERS],
-	compra_Veh[MAX_PLAYERS],
-	Float:TallerX[MAX_VEHICLES],
-	Float:TallerY[MAX_VEHICLES],
-	Float:TallerZ[MAX_VEHICLES],
-	Float:TallerAngulo[MAX_VEHICLES],
-	EnTaller[MAX_PLAYERS],
-	IsTaller[MAX_PLAYERS],
-	asesino[MAX_PLAYERS],
-	p_drogas[MAX_PLAYERS],
-	p_armas[MAX_PLAYERS],
-	_arma[MAX_PLAYERS],
-	PrestadorCoche[MAX_PLAYERS],
-	LlavePrestada[MAX_PLAYERS],
-	PlayerText:TextTrabajo[MAX_PLAYERS],
-	NumeroMensaje[MAX_PLAYERS],
-	EnLlamada[MAX_PLAYERS],
-	ToqueLlamada[MAX_PLAYERS],
-	PersonaEnLlamada[MAX_PLAYERS],
-	ToqueLlamadaTimer[MAX_PLAYERS],
-	Altavoz[MAX_PLAYERS],
-	CasaActual[MAX_PLAYERS] = {INVALID_CASA_ID, ...},
-	OBJ_MuebleC[MAX_PLAYERS][MAX_MUEBLES_C],
-	NegocioActual[MAX_PLAYERS] = {INVALID_NEGOCIO_ID, ...},
-	OBJ_MuebleN[MAX_PLAYERS][MAX_MUEBLES_N],
-	GarageActual[MAX_PLAYERS] = {INVALID_CASA_ID, ...},
-	OBJ_MuebleG[MAX_PLAYERS][MAX_MUEBLES_G],
-	EmpresaActual[MAX_PLAYERS] = {INVALID_CASA_ID, ...},
-	OBJ_MuebleE[MAX_PLAYERS][MAX_MUEBLES_E],
-	DentroCasa[MAX_PLAYERS],
-	DentroAlmacen[MAX_PLAYERS],
-	DentroNegocio[MAX_PLAYERS],
-	DentroEmpresa[MAX_PLAYERS],
-	DentroGarage[MAX_PLAYERS],
-	IDNegocio[MAX_PLAYERS],
-	BuscarTrabajo[MAX_PLAYERS],
-	YaAviso[MAX_PLAYERS],
-	TipoTunning[MAX_PLAYERS][TOTAL_MODS],
-	TestErrores[MAX_PLAYERS],
-	JugadorEnSeccion[MAX_PLAYERS char],
-	VehCallSign[MAX_VEHICLES],
-	Text3D:TextCallSign[MAX_VEHICLES],
-	estacionp[MAX_PLAYERS],
-	escuchandop[MAX_PLAYERS],
-	estacionveh[MAX_VEHICLES],
-	Esposado[MAX_PLAYERS],
-	RecargarTiempo[MAX_PLAYERS],
-	VehiculoGasolina[MAX_PLAYERS],
-	veh_gasolina[MAX_VEHICLES] = 200,
-	arr_Engine[MAX_VEHICLES char],
-	Float: _vVelocidad[MAX_PLAYERS],
-	Taseado[MAX_PLAYERS],
-	_Gomas[MAX_PLAYERS],
-	TaserRecarga[MAX_PLAYERS],
-	RanuraSeleccionadaA[MAX_PLAYERS],
-	EditandoObjetoJ[MAX_PLAYERS],
-	RanuraSeleccionada[MAX_PLAYERS],
-	MultaPrecio[MAX_PLAYERS],
-	MultaOfrecer[MAX_PLAYERS],
-	FacturaMulta[MAX_PLAYERS],
-	MostrarNombre[MAX_PLAYERS],
 	PressBancaBarraObjeto[9],
-	HaciendoPressBanca[MAX_PLAYERS],
-	ProgresoPressBanca[MAX_PLAYERS],
-	RepeticionesPressBanca[MAX_PLAYERS],
-	Spectando[MAX_PLAYERS],
-	Spectate[MAX_PLAYERS],
-	SpectadorID[MAX_PLAYERS],
-	Atado[MAX_PLAYERS],
-	Vendado[MAX_PLAYERS],
-	VendasYSoga[MAX_PLAYERS],
-	ReporteA[MAX_PLAYERS],
-	ReporteB[MAX_PLAYERS],
-	TiempoReporte[MAX_PLAYERS],
-	ReporteT[MAX_PLAYERS][128],
-	DudaTimer[MAX_PLAYERS],
-	DudaA[MAX_PLAYERS] = 0,
-	DudaB[MAX_PLAYERS] = 0,
-	DudaT[MAX_PLAYERS][128],
-	Casco[MAX_PLAYERS],
-	VisitaTimer[MAX_PLAYERS],
-	VisitaTimer2[MAX_PLAYERS],
-	MuebleActual[MAX_PLAYERS],
-	Granjero[MAX_PLAYERS],
-	Carguero[MAX_PLAYERS],
-	VehSeguro[MAX_VEHICLES],
-	TruckDeliver[MAX_PLAYERS],
-	_Contenido[MAX_VEHICLES] = 0,
-	_CamVeh[MAX_PLAYERS] = INVALID_VEHICLE_ID,
 	members_fd = 0,
 	_MedicCall = 999,
-	_MedicAcept[MAX_PLAYERS],
-	_Medic2Call[MAX_PLAYERS],
-	_BombCall = 999,
-	_BombAcept[MAX_PLAYERS],
-	_Bomb2Call[MAX_PLAYERS],
-	NumeroFaccion[MAX_PLAYERS],
-	NumeroFamilia[MAX_PLAYERS],
-	NumeroEmpresa[MAX_PLAYERS],
-	NombreFaccion[MAX_PLAYERS][40],
-	TomandoTrabajo[MAX_PLAYERS],
-	fInvitadoP[MAX_PLAYERS],
-	fIDfamilia[MAX_PLAYERS],
-	VehicleWindows[MAX_VEHICLES] = 0,
-	PrivadosB[MAX_PLAYERS] = 0,
-	B_Pecho[MAX_PLAYERS],
-	B_VIP[MAX_PLAYERS],
-	B_Admin[MAX_PLAYERS],
-	B_Radito[MAX_PLAYERS],
-	B_Faccion[MAX_PLAYERS],
-	B_Familia[MAX_PLAYERS],
-	B_WSP[MAX_PLAYERS],
-	VerPrivados[MAX_PLAYERS],
-	B_SANMUSIC[MAX_PLAYERS],
-	JugadorSentado[MAX_PLAYERS],
-	EnGarajeID[MAX_PLAYERS],
-	EnCasaID[MAX_PLAYERS],
-	Saludo_ID[MAX_PLAYERS],
-	Saludo2_ID[MAX_PLAYERS],
-	Beso_ID[MAX_PLAYERS],
-	Beso2_ID[MAX_PLAYERS],
-	alcoholemia[MAX_PLAYERS],
-	EnServicio[MAX_PLAYERS],
-	EnServicioPD[MAX_PLAYERS],
-	EnServicioADM[MAX_PLAYERS],
-	CasaOffer[MAX_PLAYERS],
-	CasaPrice[MAX_PLAYERS],
-	NegocioOffer[MAX_PLAYERS],
-	NegocioPrice[MAX_PLAYERS],
-	_VehID[MAX_PLAYERS],
-	_Vehprecio[MAX_PLAYERS],
-	_Vehdueno[MAX_PLAYERS],
-	QuienManejo[MAX_PLAYERS],
-	PagarTiempo[MAX_PLAYERS],
-	CederTiempo[MAX_PLAYERS],
-	QuienMato[MAX_PLAYERS][24],
-	MusicaEsc[MAX_PLAYERS],
-	VehGuanteraPlayer[MAX_PLAYERS],
-	VehMaleteroPlayer[MAX_PLAYERS],
-	SolicitaRefuerzos[MAX_PLAYERS],
-	BotonPanico[MAX_PLAYERS],
-	_Entrevista[MAX_PLAYERS],
-	_2Entrevista[MAX_PLAYERS],
-	con_animacion[MAX_PLAYERS],
-	es_hablando[MAX_PLAYERS],
-	SirenObject[MAX_VEHICLES], //objeto
-	bool:SirenOn[MAX_VEHICLES], //bool sirena
-	JetPack[MAX_PLAYERS],
-	CurrentMoney[MAX_PLAYERS],
-	Intentar[MAX_PLAYERS],
-	Intentar2[MAX_PLAYERS],
-	IntentarD[MAX_PLAYERS],
-	UsandoOptiwand[MAX_PLAYERS],
-	TipoOptiwand[MAX_PLAYERS],
-	_mirilla[MAX_PLAYERS],
-	tipo_m[MAX_PLAYERS],
-	xMeses[MAX_PLAYERS],
-	xDias[MAX_PLAYERS],
-	xAnos[MAX_PLAYERS],
-	algomas[MAX_PLAYERS],
-	Taximetro[MAX_PLAYERS],
-	EnTaxi[MAX_PLAYERS],
-	PasajeroTaxi[MAX_PLAYERS],
-	bool:EnServicioTaxi[MAX_PLAYERS],
-	EmpresaLlamada[MAX_PLAYERS]
-	;
+	_BombCall = 999
+;
 
 enum textdraw
 {
@@ -789,241 +494,9 @@ new Float: AccionesRadios[20] =
 };
 
 //<=================================> información de jugadores
-enum jInfo
-{
-	//	———————— username
-	jSQLID, // ID base datos
-	jNombre[MAX_PLAYER_NAME], // username
-	jAdmin, // Admin
-	jStaff[32], // Variable Admin
-	jEncargado[5], // Variables de encargado
-	jClave[24], // Contraseña
-	jEmail[255], // Correo
-	jIP[16], // IP
-	jCuenta_1[MAX_PLAYER_NAME], // personaje 1
-	jCuenta_2[MAX_PLAYER_NAME], // personaje 2
-	jCuenta_3[MAX_PLAYER_NAME], // personaje 3
-	pfechaUreg[32],
 
 
-	//———————— personaje
-	jNombrePJ[32], // Nombre_Apellido
-	jRegistrado, // Registrado
-	Float: jPosicion_X, // PosX
-	Float: jPosicion_Y, // PosY
-	Float: jPosicion_Z, // PosZ
-	Float: jPosicion_R, // PosR
-	Float: jSangre, // Vida
-	Float: jChaleco, // Chaleco
-	jInterior, // Interior
-	jVirtualWorld, // VirtualWorld
-	jSexo, // Sexo
-	jRaza, //Raza
-	jEdad, // Edad
-	jCiudad, // Ciudad
-	jHablar, // Estilo de hablar
-	jEstilo, // Estilo de caminar
-	jPelea, // Estilo de pelea
-	jSed, // Sed
-	Float: jHambre, // Hambre
-	jAlcohol, // Alcohol
-	jFuerza, // Fuerza
-	jDinero, // Dinero
-	jBanco, // Dinero Banco
-	jCheques, // Paga de cheque
-	jDebito, // Número tarjeta de débito
-	jPuntosRol[2],
-	jNivel, // Nivel
-	jExperiencia, // Experiencia
-	j_Horas, // Horas Conectado
-	jMulticuenta, // .
-	jBaneado, // Baneado
-	jBtiempo,
-	jBculpable[32],
-	jBrazon[128],
-	jBmomento[150],
-	jAlmacen,
-	jCasaKey, // Casa
-	jCasaKey2, // Casa 2
-	jAlquiler, // Casa en renta
-	j_timeunrent, // Casa en renta
-	jCasaLlaves, // Llaves de casa
-	jCasa2Llaves, // Llaves de casa
-	j2CasaLlaves, // Llaves de casa 2
-	j2Casa2Llaves, // Llaves de casa 2
-	jNegocioKey, // Negocio
-	jNegocioKey2, // Negocio 2
-	jNegocioLlaves, // Llaves de casa
-	jNegocio2Llaves, // Llaves de casa
-	jEmpresaKey, // Empresa
-	jEmpresaLlaves, // Llaves de empresa
-	jEmpresa2Llaves, // Llaves de empresa
-	jContrato, // Contrato en empresa
-	jHorasE,
-	jLlaveCoche[6],
-	j2Vehiculos[6],
-	j2Vehixculos[6],
-	jPremium, // Sistema vip
-	jColorP, // Color vip
-	jD_premium, // Día del fin del vip
-	jM_premium, // Mes del fin del vip
-	jBolsillo[10], //
-	jBolsilloCant[10], //
-	jm_Izquierda, //
-	jm_IzquierdaCant, //
-	jm_Derecha, //
-	jm_DerechaCant, //
-	jEspalda, //
-	jEspaldaCant, //
-	jCinturon[6], //
-	jCinturonCant[6], //
-	jRopa, // Ropa
-	jSkin, // Ropa
-	jRopaArmario[MAX_ROPA], // Ropa armarios
-	jPayday, // Tiempo payday
-	jtimeP, // Tiempo payday
-	jLider, // Lider fac
-	jMiembro, // Miembro fac
-	jRango, // Rango fac
-	jLiderFam, // Lider fam
-	jMiembroFam, // Miembro fam
-	jRangoFam, // Rango fam
-	jMuerto, // Muerto
-	jMuerto2, // Muerto
-	jTelefono, // Número de teléfono
-	jSaldo, // Saldo de teléfono
-	jFrecuencia, // Frecuencia de radio
-	jBoombox, // Equipo de sonido
-	jLoteria, // número de loteria
-	jMascara, // Mascara
-	jEstrellas, // Busqueda policial
-	jArrestos, // Arrestos IC
-	jPuntosLic,
-	jSanciones, // Arrestos OOC
-	jEncarcelado, // Encarcelado
-	jJrazon[128],
-	jJmomento[150],
-	jJculpable[50], //- Sancionador ooc
-	jTiempoCarcel, // Tiempo de arresto
-	jtiempito, // tiempo pf
-	jCargas, // Cargas realizadas
-	jTroncos, // troncos
-	jPescados, // Pescados
-	jMuebles, // Cosechas de granjero
-	jCosechas, // Cosechas de granjero
-	jTrabajo1, // Trabajo 1
-	jTrabajo2, // Trabajo 2
-	jTrabajo3, // Trabajo 3
-	jLicencias[7], // Licencias
-	jHabilidad[10], // Habilidades
-	jHabilidad2[10], // Habilidades
-	jAdiccion[10],
-	jEstado[128], // Estado - Texto
-	jDocumento, // Documento legal
-	jCasado[32], // Casado
-	jf_Edad, // Edad ilegal
-	jf_Dni, // Documento ilegal
-	jf_Nombre[32], // Nombre del documento ilegal
-	jDelito[10], // Antecedente
-	jContacto[20], // Contactos de agenda telefónica
-	jContactoN1[32], // Contactos de agenda telefónica
-	jContactoN2[32], // Contactos de agenda telefónica
-	jContactoN3[32], // Contactos de agenda telefónica
-	jContactoN4[32], // Contactos de agenda telefónica
-	jContactoN5[32], // Contactos de agenda telefónica
-	jContactoN6[32], // Contactos de agenda telefónica
-	jContactoN7[32], // Contactos de agenda telefónica
-	jContactoN8[32], // Contactos de agenda telefónica
-	jContactoN9[32], // Contactos de agenda telefónica
-	jContactoN10[32], // Contactos de agenda telefónica
-	jContactoN11[32], // Contactos de agenda telefónica
-	jContactoN12[32], // Contactos de agenda telefónica
-	jContactoN13[32], // Contactos de agenda telefónica
-	jContactoN14[32], // Contactos de agenda telefónica
-	jContactoN15[32], // Contactos de agenda telefónica
-	jContactoN16[32], // Contactos de agenda telefónica
-	jContactoN17[32], // Contactos de agenda telefónica
-	jContactoN18[32], // Contactos de agenda telefónica
-	jContactoN19[32], // Contactos de agenda telefónica
-	jContactoN20[32], // Contactos de agenda telefónica
-	jTiempos[22], // Tiempos
-	jHoras, // Última hora conectado
-	jMinutos, // Último minuto conectado
-	jSegundos, // Último segundo conectado
-	jDias, // Último día conectado
-	jMeses, // Último mes conectado
-	jAnos, // Último Año conectado
-	jEmpeno[5],
-	jEmpeno2[5],
-	job_PF[12], //
-	job_PFCant[12], //
-	jDineroPF, //
-	ObjetosRep,
-	jDtipo,
-	jDtiempo,
-	jDpower,
-	jDbonus[2],
-	pAbstinenceEffect,
-	pAbstinenceTime,
 
-	/*jPDR_1[128],
-	jPDR_2[128],
-	jPDR_3[128],
-	jPDR_4[128],
-	jPDR_5[128],
-	jPDR_6[128],
-	jPDR_7[128],
-	jPDR_8[128],
-	jPDR_9[128],
-	jPDR_10[128],*/
-
-	pHud, // 0 = tipo, 1 = ?, 2 = ?
-	jFianza,
-
-	j_uTelefono,
-	j_uManos,
-	j_uMP,
-	j_uMP2[32],
-	j_uRadio,
-	j_uAudio,
-	j_uSAN,
-	j_uOOC,
-	pUseHud,
-	ptimegame,
-	pfechareg[128],
-	jCoche[2],
-	jGraffito,
-	
-
-	//- no guardable
-	jMascaraPD, // Mascara usando
-	jRescatePolicial, // Llamado policial
-	jTiempoGuardado, // Tiempo de guardado
-	jTiempoCurar, // Tiempo en curar
-	j_Mascara, // Mascara usando
-	jTiempoServicio, // Tiempo en servicio
-	//-
-	State,
-	pLenador_free,
-	Float:pLenador_free_PROG,
-	bool:pt_PLAYER_CARRYING_TREE,
-	//licencias
-    bool:Started,
-    Vehicle,
-	Type,
-	Checkpoint,
-	pEditingMode,
-	pSelectedItem,
-	EditandoM,
-	pAFKTime,
-	pUseGUI,
-	pMostrarTexto,
-	pFooterTimer,
-};
-new user[MAX_PLAYERS][jInfo];
-
-//---antecendentes
-new p_delito[MAX_PLAYERS][10][80];
 
 //<=================================> vehículos de facciones
 #define max_malfac 150
@@ -1109,236 +582,8 @@ funcion load_fv_data(vehid, name[], value[])
 	return 1;
 }
 
-//<=================================> sistema de vehículos
-enum vInfo
-{
-	vID,
-	vPatente,
-	vDueno[32],
-	vLlave,
-	vModelo,
-	Float: vVida,
-	Float: vPosicionX,
-	Float: vPosicionY,
-	Float: vPosicionZ,
-	Float: vPosicionR,
-	vVirtualWorld,
-	vInterior,
-	vPrecio,
-	vGuantera[6],
-	vGuanteraCantidad[6],
-	vMaletero[15],
-	vMaleteroCantidad[15],
-	vMaxMaletero,
-	vUSeguro,
-	vPaintJob,
-	vColor_1,
-	vColor_2,
-	vStereo,
-	vNeon,
-	vGasolina,
-	vEnDeposito,
-	vMulta,
-	vDanioSuperficie,
-	vDanioPuertas,
-	vDanioLuces,
-	vDanioRuedas,
-	vModificaciones[MAX_MODVEHICULOS],
-	vSpawned,
-	v_Guantera,
-	v_reload,
-	//
-	v_timer,
-	v_robo,
-};
-new i_Vehiculo[MAX_VEHICULOS][vInfo];
 
-stock save_vehiculo(vid, todo = 1)
-{
-	new vehd[64];
-	format(vehd, 64, DATOS_VEHICULOS, vid);
-	new INI: File = INI_Open(vehd);
-	INI_SetTag(File, "Informacion");
-	if (todo == 0)
-	{
-		INI_WriteInt(File, "VirtualWorld", i_Vehiculo[vid][vVirtualWorld]);
-		INI_WriteInt(File, "Interior", i_Vehiculo[vid][vInterior]);
-	}
-	if (todo == 1)
-	{
-		INI_WriteInt(File, "Patente", i_Vehiculo[vid][vPatente]);
-		INI_WriteString(File, "Dueño", i_Vehiculo[vid][vDueno]);
-		INI_WriteInt(File, "Llave", i_Vehiculo[vid][vLlave]);
-		INI_WriteInt(File, "Modelo", i_Vehiculo[vid][vModelo]);
-		INI_WriteFloat(File, "Vida", i_Vehiculo[vid][vVida]);
-		INI_WriteFloat(File, "PosicionX", i_Vehiculo[vid][vPosicionX]);
-		INI_WriteFloat(File, "PosicionY", i_Vehiculo[vid][vPosicionY]);
-		INI_WriteFloat(File, "PosicionZ", i_Vehiculo[vid][vPosicionZ]);
-		INI_WriteFloat(File, "PosicionR", i_Vehiculo[vid][vPosicionR]);
-		INI_WriteInt(File, "VirtualWorld", i_Vehiculo[vid][vVirtualWorld]);
-		INI_WriteInt(File, "Interior", i_Vehiculo[vid][vInterior]);
-		INI_WriteInt(File, "Precio", i_Vehiculo[vid][vPrecio]);
-		INI_WriteInt(File, "Guantera_1", i_Vehiculo[vid][vGuantera][0]);
-		INI_WriteInt(File, "Guantera_2", i_Vehiculo[vid][vGuantera][1]);
-		INI_WriteInt(File, "Guantera_3", i_Vehiculo[vid][vGuantera][2]);
-		INI_WriteInt(File, "Guantera_4", i_Vehiculo[vid][vGuantera][3]);
-		INI_WriteInt(File, "Guantera_5", i_Vehiculo[vid][vGuantera][4]);
-		INI_WriteInt(File, "Guantera_6", i_Vehiculo[vid][vGuantera][5]);
-		INI_WriteInt(File, "Guantera_Cantidad_1", i_Vehiculo[vid][vGuanteraCantidad][0]);
-		INI_WriteInt(File, "Guantera_Cantidad_2", i_Vehiculo[vid][vGuanteraCantidad][1]);
-		INI_WriteInt(File, "Guantera_Cantidad_3", i_Vehiculo[vid][vGuanteraCantidad][2]);
-		INI_WriteInt(File, "Guantera_Cantidad_4", i_Vehiculo[vid][vGuanteraCantidad][3]);
-		INI_WriteInt(File, "Guantera_Cantidad_5", i_Vehiculo[vid][vGuanteraCantidad][4]);
-		INI_WriteInt(File, "Guantera_Cantidad_6", i_Vehiculo[vid][vGuanteraCantidad][5]);
-		INI_WriteInt(File, "Maletero_1", i_Vehiculo[vid][vMaletero][0]);
-		INI_WriteInt(File, "Maletero_2", i_Vehiculo[vid][vMaletero][1]);
-		INI_WriteInt(File, "Maletero_3", i_Vehiculo[vid][vMaletero][2]);
-		INI_WriteInt(File, "Maletero_4", i_Vehiculo[vid][vMaletero][3]);
-		INI_WriteInt(File, "Maletero_5", i_Vehiculo[vid][vMaletero][4]);
-		INI_WriteInt(File, "Maletero_6", i_Vehiculo[vid][vMaletero][5]);
-		INI_WriteInt(File, "Maletero_7", i_Vehiculo[vid][vMaletero][6]);
-		INI_WriteInt(File, "Maletero_8", i_Vehiculo[vid][vMaletero][7]);
-		INI_WriteInt(File, "Maletero_9", i_Vehiculo[vid][vMaletero][8]);
-		INI_WriteInt(File, "Maletero_10", i_Vehiculo[vid][vMaletero][9]);
-		INI_WriteInt(File, "Maletero_11", i_Vehiculo[vid][vMaletero][10]);
-		INI_WriteInt(File, "Maletero_12", i_Vehiculo[vid][vMaletero][11]);
-		INI_WriteInt(File, "Maletero_13", i_Vehiculo[vid][vMaletero][12]);
-		INI_WriteInt(File, "Maletero_14", i_Vehiculo[vid][vMaletero][13]);
-		INI_WriteInt(File, "Maletero_15", i_Vehiculo[vid][vMaletero][14]);
-		INI_WriteInt(File, "Maletero_Cantidad_1", i_Vehiculo[vid][vMaleteroCantidad][0]);
-		INI_WriteInt(File, "Maletero_Cantidad_2", i_Vehiculo[vid][vMaleteroCantidad][1]);
-		INI_WriteInt(File, "Maletero_Cantidad_3", i_Vehiculo[vid][vMaleteroCantidad][2]);
-		INI_WriteInt(File, "Maletero_Cantidad_4", i_Vehiculo[vid][vMaleteroCantidad][3]);
-		INI_WriteInt(File, "Maletero_Cantidad_5", i_Vehiculo[vid][vMaleteroCantidad][4]);
-		INI_WriteInt(File, "Maletero_Cantidad_6", i_Vehiculo[vid][vMaleteroCantidad][5]);
-		INI_WriteInt(File, "Maletero_Cantidad_7", i_Vehiculo[vid][vMaleteroCantidad][6]);
-		INI_WriteInt(File, "Maletero_Cantidad_8", i_Vehiculo[vid][vMaleteroCantidad][7]);
-		INI_WriteInt(File, "Maletero_Cantidad_9", i_Vehiculo[vid][vMaleteroCantidad][8]);
-		INI_WriteInt(File, "Maletero_Cantidad_10", i_Vehiculo[vid][vMaleteroCantidad][9]);
-		INI_WriteInt(File, "Maletero_Cantidad_11", i_Vehiculo[vid][vMaleteroCantidad][10]);
-		INI_WriteInt(File, "Maletero_Cantidad_12", i_Vehiculo[vid][vMaleteroCantidad][11]);
-		INI_WriteInt(File, "Maletero_Cantidad_13", i_Vehiculo[vid][vMaleteroCantidad][12]);
-		INI_WriteInt(File, "Maletero_Cantidad_14", i_Vehiculo[vid][vMaleteroCantidad][13]);
-		INI_WriteInt(File, "Maletero_Cantidad_15", i_Vehiculo[vid][vMaleteroCantidad][14]);
-		INI_WriteInt(File, "USeguro", i_Vehiculo[vid][vUSeguro]);
-		INI_WriteInt(File, "PaintJob", i_Vehiculo[vid][vPaintJob]);
-		INI_WriteInt(File, "Color_1", i_Vehiculo[vid][vColor_1]);
-		INI_WriteInt(File, "Color_2", i_Vehiculo[vid][vColor_2]);
-		INI_WriteInt(File, "Stereo", i_Vehiculo[vid][vStereo]);
-		INI_WriteInt(File, "Neon", i_Vehiculo[vid][vNeon]);
-		INI_WriteInt(File, "Gasolina", i_Vehiculo[vid][vGasolina]);
-		INI_WriteInt(File, "EnDeposito", i_Vehiculo[vid][vEnDeposito]);
-		INI_WriteInt(File, "Multa", i_Vehiculo[vid][vMulta]);
-		INI_WriteInt(File, "DañoSuperficie", i_Vehiculo[vid][vDanioSuperficie]);
-		INI_WriteInt(File, "DañoPuertas", i_Vehiculo[vid][vDanioPuertas]);
-		INI_WriteInt(File, "DañoLuces", i_Vehiculo[vid][vDanioLuces]);
-		INI_WriteInt(File, "DañoRuedas", i_Vehiculo[vid][vDanioRuedas]);
-		for(new m = 0; m < MAX_MODVEHICULOS; m++)
-		{
-			new key[64];
-			format(key, 64, "Modificacion_%d", m);
-			INI_WriteInt(File, key, i_Vehiculo[vid][vModificaciones][m]);
-		}
-		INI_WriteInt(File, "v_reload", i_Vehiculo[vid][v_reload]);
-	}
-	INI_Close(File);
-	return 1;
-}
 
-funcion CargarVehiculos()
-{
-	new Totalvehs, vehd[64];
-	for (new vid = 0; vid < sizeof(i_Vehiculo); vid++)
-	{
-		format(vehd, 64, DATOS_VEHICULOS, vid);
-		INI_ParseFile(vehd, "CargarVehiculos_data", .bExtra = true, .extra = vid);
-		if (i_Vehiculo[vid][vModelo] > 0)
-		{
-			Totalvehs++;
-		}
-	}
-	printf("» Sistema de vehículos cargado (%d).",Totalvehs);
-	return 1;
-}
-
-funcion CargarVehiculos_data(vid, name[], value[])
-{
-	INI_Int("Patente", i_Vehiculo[vid][vPatente]);
-	INI_String("Dueño", i_Vehiculo[vid][vDueno], 32);
-	INI_Int("Llave", i_Vehiculo[vid][vLlave]);
-	INI_Int("Modelo", i_Vehiculo[vid][vModelo]);
-	INI_Float("Vida", i_Vehiculo[vid][vVida]);
-	INI_Float("PosicionX", i_Vehiculo[vid][vPosicionX]);
-	INI_Float("PosicionY", i_Vehiculo[vid][vPosicionY]);
-	INI_Float("PosicionZ", i_Vehiculo[vid][vPosicionZ]);
-	INI_Float("PosicionR", i_Vehiculo[vid][vPosicionR]);
-	INI_Int("VirtualWorld", i_Vehiculo[vid][vVirtualWorld]);
-	INI_Int("Interior", i_Vehiculo[vid][vInterior]);
-	INI_Int("Precio", i_Vehiculo[vid][vPrecio]);
-	INI_Int("Guantera_1", i_Vehiculo[vid][vGuantera][0]);
-	INI_Int("Guantera_2", i_Vehiculo[vid][vGuantera][1]);
-	INI_Int("Guantera_3", i_Vehiculo[vid][vGuantera][2]);
-	INI_Int("Guantera_4", i_Vehiculo[vid][vGuantera][3]);
-	INI_Int("Guantera_5", i_Vehiculo[vid][vGuantera][4]);
-	INI_Int("Guantera_6", i_Vehiculo[vid][vGuantera][5]);
-	INI_Int("Guantera_Cantidad_1", i_Vehiculo[vid][vGuanteraCantidad][0]);
-	INI_Int("Guantera_Cantidad_2", i_Vehiculo[vid][vGuanteraCantidad][1]);
-	INI_Int("Guantera_Cantidad_3", i_Vehiculo[vid][vGuanteraCantidad][2]);
-	INI_Int("Guantera_Cantidad_4", i_Vehiculo[vid][vGuanteraCantidad][3]);
-	INI_Int("Guantera_Cantidad_5", i_Vehiculo[vid][vGuanteraCantidad][4]);
-	INI_Int("Guantera_Cantidad_6", i_Vehiculo[vid][vGuanteraCantidad][5]);
-	INI_Int("Maletero_1", i_Vehiculo[vid][vMaletero][0]);
-	INI_Int("Maletero_2", i_Vehiculo[vid][vMaletero][1]);
-	INI_Int("Maletero_3", i_Vehiculo[vid][vMaletero][2]);
-	INI_Int("Maletero_4", i_Vehiculo[vid][vMaletero][3]);
-	INI_Int("Maletero_5", i_Vehiculo[vid][vMaletero][4]);
-	INI_Int("Maletero_6", i_Vehiculo[vid][vMaletero][5]);
-	INI_Int("Maletero_7", i_Vehiculo[vid][vMaletero][6]);
-	INI_Int("Maletero_8", i_Vehiculo[vid][vMaletero][7]);
-	INI_Int("Maletero_9", i_Vehiculo[vid][vMaletero][8]);
-	INI_Int("Maletero_10", i_Vehiculo[vid][vMaletero][9]);
-	INI_Int("Maletero_11", i_Vehiculo[vid][vMaletero][10]);
-	INI_Int("Maletero_12", i_Vehiculo[vid][vMaletero][11]);
-	INI_Int("Maletero_13", i_Vehiculo[vid][vMaletero][12]);
-	INI_Int("Maletero_14", i_Vehiculo[vid][vMaletero][13]);
-	INI_Int("Maletero_15", i_Vehiculo[vid][vMaletero][14]);
-	INI_Int("Maletero_Cantidad_1", i_Vehiculo[vid][vMaleteroCantidad][0]);
-	INI_Int("Maletero_Cantidad_2", i_Vehiculo[vid][vMaleteroCantidad][1]);
-	INI_Int("Maletero_Cantidad_3", i_Vehiculo[vid][vMaleteroCantidad][2]);
-	INI_Int("Maletero_Cantidad_4", i_Vehiculo[vid][vMaleteroCantidad][3]);
-	INI_Int("Maletero_Cantidad_5", i_Vehiculo[vid][vMaleteroCantidad][4]);
-	INI_Int("Maletero_Cantidad_6", i_Vehiculo[vid][vMaleteroCantidad][5]);
-	INI_Int("Maletero_Cantidad_7", i_Vehiculo[vid][vMaleteroCantidad][6]);
-	INI_Int("Maletero_Cantidad_8", i_Vehiculo[vid][vMaleteroCantidad][7]);
-	INI_Int("Maletero_Cantidad_9", i_Vehiculo[vid][vMaleteroCantidad][8]);
-	INI_Int("Maletero_Cantidad_10", i_Vehiculo[vid][vMaleteroCantidad][9]);
-	INI_Int("Maletero_Cantidad_11", i_Vehiculo[vid][vMaleteroCantidad][10]);
-	INI_Int("Maletero_Cantidad_12", i_Vehiculo[vid][vMaleteroCantidad][11]);
-	INI_Int("Maletero_Cantidad_13", i_Vehiculo[vid][vMaleteroCantidad][12]);
-	INI_Int("Maletero_Cantidad_14", i_Vehiculo[vid][vMaleteroCantidad][13]);
-	INI_Int("Maletero_Cantidad_15", i_Vehiculo[vid][vMaleteroCantidad][14]);
-	INI_Int("USeguro", i_Vehiculo[vid][vUSeguro]);
-	INI_Int("PaintJob", i_Vehiculo[vid][vPaintJob]);
-	INI_Int("Color_1", i_Vehiculo[vid][vColor_1]);
-	INI_Int("Color_2", i_Vehiculo[vid][vColor_2]);
-	INI_Int("Stereo", i_Vehiculo[vid][vStereo]);
-	INI_Int("Neon", i_Vehiculo[vid][vNeon]);
-	INI_Int("Gasolina", i_Vehiculo[vid][vGasolina]);
-	INI_Int("EnDeposito", i_Vehiculo[vid][vEnDeposito]);
-	INI_Int("Multa", i_Vehiculo[vid][vMulta]);
-	INI_Int("DañoSuperficie", i_Vehiculo[vid][vDanioSuperficie]);
-	INI_Int("DañoPuertas", i_Vehiculo[vid][vDanioPuertas]);
-	INI_Int("DañoLuces", i_Vehiculo[vid][vDanioLuces]);
-	INI_Int("DañoRuedas", i_Vehiculo[vid][vDanioRuedas]);
-	for(new m = 0; m < MAX_MODVEHICULOS; m++)
-	{
-		new key[64];
-		format(key, 64, "Modificacion_%d", m);
-		INI_Int(key, i_Vehiculo[vid][vModificaciones][m]);
-	}
-	INI_Int("v_reload", i_Vehiculo[vid][v_reload]);
-	return 1;
-}
 
 //<=================================> registro de ban por ip - edinsonwalker
 new eBculpable[MAX_PLAYERS][32],
@@ -4618,23 +3863,7 @@ stock ActualizarFamilia(fid)
 	INI_Close(File);
 	return 1;
 }
-//<=================================> sistema de accesorios
-enum aInfo
-{
-	aModelo,
-	aParte,
-	Float: aPosicionX,
-	Float: aPosicionY,
-	Float: aPosicionZ,
-	Float: aRotacionX,
-	Float: aRotacionY,
-	Float: aRotacionZ,
-	Float: aEscalaX,
-	Float: aEscalaY,
-	Float: aEscalaZ,
-	aColocado,
-};
-new InfoAccesorio[MAX_PLAYERS][MAX_ACCESORIOS][aInfo];
+
 
 enum AccesoriosEnum
 {
@@ -7166,19 +6395,7 @@ check_code(const account[])
 	return fexist(count);
 }
 
-check_username(const account[])
-{
-	new count[128];
-	format(count, sizeof(count), DATOS_CUENTAS, account);
-	return fexist(count);
-}
 
-check_cuenta(const account[])
-{
-	new count[128];
-	format(count, sizeof(count), DATOS_Personajes, account);
-	return fexist(count);
-}
 new
 	code_nivel[MAX_PLAYERS],
 	code_horas[MAX_PLAYERS],
@@ -7191,7 +6408,7 @@ funcion Code_data(playerid, name[], value[])
 	INI_Int("Horas", code_horas[playerid]);
 	return 0;
 }
-funcion C_data(playerid, name[], value[])
+/*funcion C_data(playerid, name[], value[])
 {
 	new tipo = tipo_carga[playerid];
 	switch (tipo)
@@ -7509,7 +6726,7 @@ funcion C_data(playerid, name[], value[])
 	    }
 	}
 	return 0;
-}
+}*/
 
 vehicle_lock_doors(vehicle)
 {
@@ -9661,22 +8878,28 @@ stock save_stuff()
 	return 1;
 }
 
-funcion GuardarCuentas()
-{
-	for (new i = 0; i < MAX_PLAYERS; i++)
-	{
-		if (IsPlayerConnected(i))
-		{
-			guardar_cuenta(i);
-		}
+funcion GuardarCuentas(){
+	yield 1;
+	foreach(new playerid: Player){
+		if(charLoggedIn[playerid])
+			characterSave(playerid);
 	}
 	return 1;
+}
+
+funcion GuardarUsuarios(){
+	yield 1;
+	foreach(new playerid: Player){
+		if(LoggedIn[playerid])
+			accountSave(playerid);
+	}
 }
 
 public OnGameModeExit()
 {
     AntiAmx();
     GuardarCuentas();
+	GuardarUsuarios();
     save_stuff();
     save_incendios();
     save_bindon();
@@ -9686,9 +8909,9 @@ public OnGameModeExit()
 public OnPlayerRequestClass(playerid, classid)
 {
 	if (IsPlayerNPC(playerid)) return 1;
-
 	if (user[playerid][State] == 0)
 	{
+		PreloadAnimations(playerid);												// —— Cargado de animaciones
 		//_cIniciales(playerid, 2);
 		PlayerPlaySound(playerid, 19800, 0, 0, 0);
 		TextDrawHideForPlayer(playerid, D_LOGIN);
@@ -9696,25 +8919,27 @@ public OnPlayerRequestClass(playerid, classid)
 		gettime(hora_s, minuto_s, segundo_s);
 		SetPlayerTime(playerid, hora_s, minuto_s);
 
-		new
-			cuenta2[128],
-			cuenta3[128]
-		;
+		new cuenta2[128];
+		yield 1;
+		mysql_format(mainDatabase, cuenta2, sizeof cuenta2, "SELECT * FROM accounts WHERE Nombre = '%e' LIMIT 1", username[playerid]);
+		await mysql_aquery(mainDatabase, cuenta2);
+		
 
-		format(cuenta2, sizeof(cuenta2), "Bienvenido %s\n\nPor favor introduzca su contraseña:", username[playerid]);
-		format(cuenta3, sizeof(cuenta3), "Bienvenido %s\n\nPor favor introduzca una contraseña:", username[playerid]);
-
-		if(check_username(username[playerid]))
+		if(cache_num_rows())
 		{
+			accountORMInit(playerid);
+			orm_apply_cache(accountORM[playerid], 0);
+			format(cuenta2, sizeof(cuenta2), "Bienvenido %s\n\nPor favor introduzca su contraseña:", username[playerid]);
 			ExPlayerDialog(playerid, D_INGRESO, DIALOG_STYLE_PASSWORD, "Iniciar Sesión", cuenta2, "Ingresar", "Salir");
 		}
 		else
 		{
 			if (ActRegistro == 0) _Expulsar(playerid, 1, "Registro deshabilitado");
-			ExPlayerDialog(playerid, D_REGISTRO, DIALOG_STYLE_PASSWORD, "Registro", cuenta3, "Registrar", "Salir");
+			format(cuenta2, sizeof(cuenta2), "Bienvenido %s\n\nPor favor introduzca una contraseña:", username[playerid]);
+			ExPlayerDialog(playerid, D_REGISTRO, DIALOG_STYLE_PASSWORD, "Registro", cuenta2, "Registrar", "Salir");
 		}
 	}
-	return 1;
+	return 0;
 }
 
 public OnPlayerConnect(playerid)
@@ -10087,8 +9312,8 @@ public OnPlayerDisconnect(playerid, reason)
 	PlayerTextDrawDestroy(playerid, TextTrabajo[playerid]);
 	PlayerTextDrawDestroy(playerid, info_w[playerid][Velocimetro]);
 	secuencia_veh(playerid);
-	guardar_cuenta(playerid);
-
+	characterSave(playerid);
+	accountSave(playerid);
 	SetPlayerName(playerid, username[playerid]);
 	return 1;
 }
@@ -11036,12 +10261,9 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 }
                 else
                 {
-                    format(putamierda, sizeof(putamierda), DATOS_Personajes, nombre);
-                    if(!fexist(putamierda)) return _Mensaje(playerid, 0, "0", "No se encontró archivo del jugador.");
-                    new INI: File = INI_Open(putamierda);
-                    INI_WriteInt(File, "Contrato", -1);
-                    INI_WriteInt(File, "HorasE", 0);
-                    INI_Close(File);
+					yield 1;
+                    if(!characterCheck(nombre)) return _Mensaje(playerid, 0, "0", "No se encontró archivo del jugador.");
+					mysql_tquery_s(mainDatabase, str_format("UPDATE characters SET Contrato = -1, HorasE = 0 WHERE Nombre = '%s'", nombre));
 					format(string, sizeof(string), "* %s fue expulsado de la empresa.", nombre);
 					_Mensaje(playerid, 4, "33CCFF", string);
                     return 1;
@@ -11258,7 +10480,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                 code_nivel[playerid] = 0;
                 code_horas[playerid] = 0;
                 code_dinero[playerid] = 0;
-				guardar_cuenta(playerid);
+				characterSave(playerid);
 				return 1;
 			}
 			else
@@ -11270,16 +10492,11 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_INGRESO:
 		{
 			if (!response) return _Expulsar(playerid, 1, "Ingreso falso");
-
-			new
-				p_username[50 + MAX_PLAYER_NAME]
-			;
-			format(p_username, sizeof(p_username), DATOS_CUENTAS, username[playerid]);
-			INI_ParseFile(p_username, "C_data", .bExtra = true, .extra = playerid);
-
-			if(!strcmp(user[playerid][jClave], inputtext))
-			{
-				ver_personajes(playerid);
+			yield 1;
+			new check = await bcrypt_averify(playerid, inputtext, user[playerid][jClave]);
+			if(check){
+        		LoggedIn[playerid] = 1;
+        		ver_personajes(playerid);
 			}
 			else
 			{
@@ -11292,32 +10509,38 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				format(cuenta2, sizeof(cuenta2), "%s, la contraseña escrita no es válida\nPor favor intente de nuevo.\n\nIntroduzca su contraseña:", username[playerid]);
 				ExPlayerDialog(playerid, D_INGRESO, DIALOG_STYLE_PASSWORD, "Iniciar Sesión", cuenta2, "Ingresar", "Salir");
 				_Logeo[playerid] += 1;
-			}
+			}				
 		}
 
 		case D_REGISTRO:
 		{
 			if (!response) return _Expulsar(playerid, 1, "Cancelar registro");
+			new cuenta2[200];
 			if (strlen(inputtext) < 5)
 			{
-				new cuenta2[200];
 				format(cuenta2, sizeof(cuenta2), "%s, la contraseña es inferior a 4 carácteres\nPor favor intente con una más larga.\n\nIntroduzca una contraseña:", username[playerid]);
 				ExPlayerDialog(playerid, D_REGISTRO, DIALOG_STYLE_PASSWORD, "Registro", cuenta2, "Registrar", "Salir");
 				return 1;
 			}
 			if(strlen(inputtext) > 18)
-			{
-				new cuenta2[200];
+			{	
 				format(cuenta2, sizeof(cuenta2), "%s, la contraseña sobrepasa los 18 carácteres\nPor favor intente con una más corta.\n\nIntroduzca una contraseña:", username[playerid]);
 				ExPlayerDialog(playerid, D_REGISTRO, DIALOG_STYLE_PASSWORD, "Registro", cuenta2, "Registrar", "Salir");
 				return 1;
 			}
-			alm(user[playerid][jClave], inputtext);
-			StopAudioStreamForPlayer(playerid);
-
-			ExPlayerDialog(playerid, D_EMAIL, DIALOG_STYLE_INPUT, "Correo electrónico:",
-			"Escribe tu correo electrónico\n\nFormato: email@dominio.com\n", "Continuar", "Salir");
-
+			yield 1;
+			await_str(user[playerid][jClave]) bcrypt_ahash(playerid, inputtext);
+			if(strlen(user[playerid][jClave])){
+				new check = await bcrypt_averify(playerid, inputtext, user[playerid][jClave]);
+				if(!check){
+					format(cuenta2, sizeof(cuenta2), "Bienvenido %s\n\nPor favor introduzca una contraseña:", username[playerid]);
+					ExPlayerDialog(playerid, D_REGISTRO, DIALOG_STYLE_PASSWORD, "Registro", cuenta2, "Registrar", "Salir");
+					return 1;
+				}
+				StopAudioStreamForPlayer(playerid);
+				ExPlayerDialog(playerid, D_EMAIL, DIALOG_STYLE_INPUT, "Correo electrónico:",
+				"Escribe tu correo electrónico\n\nFormato: email@dominio.com\n", "Continuar", "Salir");
+			}
 			return 1;
 		}
 
@@ -11334,48 +10557,24 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		        if (ActTest != 0) test_rol(playerid);
 		        else //test desactivado
 		        {
-					if(!check_username(username[playerid]))
-					{
-						alm(user[playerid][jCuenta_1], "user_none");
-						alm(user[playerid][jCuenta_2], "user_none");
-						alm(user[playerid][jCuenta_3], "user_none");
-						new year, month, day, code_1[128];
-						getdate(year, month, day);
-						format(code_1, sizeof(code_1), "%02d de %s del %02d", day, GetMonth(month), year);
-						user[playerid][pfechareg] = code_1;
-						c_cuentas++;
-						save_stuff();
-						user[playerid][jSQLID] = c_cuentas;
-
-						new data[60];
-						format(data, sizeof data, DATOS_CUENTAS, username[playerid]);
-						new INI: File = INI_Open(data);
-
-						INI_WriteString(File, "Contraseña", user[playerid][jClave]);
-						INI_WriteInt(File, "SQLID", user[playerid][jSQLID]);
-						INI_WriteString(File, "Nombre", username[playerid]);
-						INI_WriteString(File, "Email", user[playerid][jEmail]);
-						INI_WriteInt(File, "Admin", user[playerid][jAdmin]);
-						INI_WriteString(File, "Staff", user[playerid][jStaff]);
-						INI_WriteInt(File, "Encargado1", user[playerid][jEncargado][0]);
-						INI_WriteInt(File, "Encargado2", user[playerid][jEncargado][1]);
-						INI_WriteInt(File, "Encargado3", user[playerid][jEncargado][2]);
-						INI_WriteInt(File, "Encargado4", user[playerid][jEncargado][3]);
-						INI_WriteInt(File, "Encargado5", user[playerid][jEncargado][4]);
-						INI_WriteString(File, "IP", user[playerid][jIP]);
-						INI_WriteString(File, "Cuenta_1", user[playerid][jCuenta_1]);
-						INI_WriteString(File, "Cuenta_2", user[playerid][jCuenta_2]);
-						INI_WriteString(File, "Cuenta_3", user[playerid][jCuenta_3]);
-						INI_WriteInt(File, "Eliminado", 0);
-						INI_WriteString(File, "Fecha_Reg", code_1);
-						INI_Close(File);
-
+					alm(user[playerid][jCuenta_1], "user_none");
+					alm(user[playerid][jCuenta_2], "user_none");
+					alm(user[playerid][jCuenta_3], "user_none");
+					new year, month, day, code_1[128];
+					getdate(year, month, day);
+					format(code_1, sizeof(code_1), "%02d de %s del %02d", day, GetMonth(month), year);
+					alm(user[playerid][pfechaUreg], code_1);
+					c_cuentas++;
+					save_stuff();
+					accountORMInit(playerid);
+					yield 1;
+					new err = await orm_async_insert(accountORM[playerid]);
+					if(err == ERROR_OK)
 						ver_personajes(playerid);
-					}
-					else
-					{
-					    _Expulsar(playerid, 1, "Cuenta existente");
-					    return 1;
+					else{
+						SendClientMessage(playerid, C_ROJO2, "Ocurrió un error al crear tu cuenta, contacta con administración.");
+						wait_ms(1000);
+						Kick(playerid);
 					}
 		        }
 				return 1;
@@ -11407,57 +10606,36 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		case D_FIN_REG:
 		{
 			if (!response) return _Expulsar(playerid, 1, "Cancelar registro");
-
-			if (GetPVarInt(playerid, "pasadotest") == 1)
-			{
-				test_rol(playerid);
+			if(GetPVarInt(playerid, "pasadotest") == 1){
+					test_rol(playerid);
 			}
-			else
-			{
-				if(!check_username(username[playerid]))
-				{
-					alm(user[playerid][jCuenta_1], "user_none");
-					alm(user[playerid][jCuenta_2], "user_none");
-					alm(user[playerid][jCuenta_3], "user_none");
-					new year, month, day, code_1[128];
-					getdate(year, month, day);
-					format(code_1, sizeof(code_1), "%02d de %s del %02d", day, GetMonth(month), year);
-					user[playerid][pfechareg] = code_1;
-					c_cuentas++;
-					save_stuff();
-					user[playerid][jSQLID] = c_cuentas;
-
-					new data[60];
-					format(data, sizeof data, DATOS_CUENTAS, username[playerid]);
-					new INI: File = INI_Open(data);
-
-					INI_WriteString(File, "Contraseña", user[playerid][jClave]);
-					INI_WriteInt(File, "SQLID", user[playerid][jSQLID]);
-					INI_WriteString(File, "Nombre", username[playerid]);
-					INI_WriteString(File, "Email", user[playerid][jEmail]);
-					INI_WriteInt(File, "Admin", user[playerid][jAdmin]);
-					INI_WriteString(File, "Staff", user[playerid][jStaff]);
-					INI_WriteInt(File, "Encargado1", user[playerid][jEncargado][0]);
-					INI_WriteInt(File, "Encargado2", user[playerid][jEncargado][1]);
-					INI_WriteInt(File, "Encargado3", user[playerid][jEncargado][2]);
-					INI_WriteInt(File, "Encargado4", user[playerid][jEncargado][3]);
-					INI_WriteInt(File, "Encargado5", user[playerid][jEncargado][4]);
-					INI_WriteString(File, "IP", user[playerid][jIP]);
-					INI_WriteString(File, "Cuenta_1", user[playerid][jCuenta_1]);
-					INI_WriteString(File, "Cuenta_2", user[playerid][jCuenta_2]);
-					INI_WriteString(File, "Cuenta_3", user[playerid][jCuenta_3]);
-					INI_WriteInt(File, "Eliminado", 0);
-					INI_WriteString(File, "Fecha_Reg", code_1);
-					INI_Close(File);
-
+			else if(GetPVarInt(playerid, "pasadotest") == 2)
+		    {
+				alm(user[playerid][jCuenta_1], "user_none");
+				alm(user[playerid][jCuenta_2], "user_none");
+				alm(user[playerid][jCuenta_3], "user_none");
+				new year, month, day, code_1[128];
+				getdate(year, month, day);
+				format(code_1, sizeof(code_1), "%02d de %s del %02d", day, GetMonth(month), year);
+				alm(user[playerid][pfechaUreg], code_1);
+				alm(user[playerid][jNombre], username[playerid]);
+				c_cuentas++;
+				save_stuff();
+				accountORMInit(playerid);
+				yield 1;
+				new err = await orm_async_insert(accountORM[playerid]);
+				if(err == ERROR_OK){
+					LoggedIn[playerid] = 1;
 					ver_personajes(playerid);
 				}
-				else
-				{
-				    _Expulsar(playerid, 1, "Cuenta existente");
-				    return 1;
+				else{
+					SendClientMessage(playerid, C_ROJO2, "Ocurrió un error al crear tu cuenta, contacta con administración.");
+					wait_ms(1000);
+					Kick(playerid);
+					orm_destroy(accountORM[playerid]);
 				}
-			}
+		    }
+			else Kick(playerid);
 			return 1;
 		}
 		case D_fianza:
@@ -11549,11 +10727,18 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 				    detener_playsound(playerid);
 					JugadorEnSeccion {playerid} = 1;
-					tipo_carga[playerid] = 2;
-					new p_cuenta[128];
-					format(p_cuenta, sizeof(p_cuenta), DATOS_Personajes, playername);
-					INI_ParseFile(p_cuenta, "C_data", .bExtra = true, .extra = playerid);
 					SetPVarInt(playerid, "crear_pj", personaje);
+					new query[96];
+					mysql_format(mainDatabase, query, sizeof(query), "SELECT * FROM characters WHERE NombrePJ = '%e' LIMIT 1", playername);
+					yield 1;
+					await mysql_aquery(mainDatabase, query);
+					charORMInit(playerid);
+					if(cache_num_rows())
+						orm_apply_cache(charORM[playerid], 0);
+					else{
+						ver_personajes(playerid);
+						return 1;
+					}
 					if (user[playerid][jRegistrado] == 0) return SpawnPlayer(playerid),_OnPlayerSpawn(playerid);
 
 					SetPlayerName(playerid, playername);
@@ -11577,7 +10762,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				ver_personajes(playerid);
 				return 1;
 			}
-			new personaje = GetPVarInt(playerid, "crear_pj");
+			
+			/*new personaje = GetPVarInt(playerid, "crear_pj");
 
 			new playername[50 + MAX_PLAYER_NAME];
 
@@ -11678,7 +10864,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			user_clean(playerid);
 			ver_personajes(playerid);
 			c_personajes--;
-			save_stuff();
+			save_stuff();*/
 			return 1;
 		}
 		case crear_personaje:
@@ -11704,22 +10890,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					case 2: alm(playername, user[playerid][jCuenta_2]);
 					case 3: alm(playername, user[playerid][jCuenta_3]);
 				}
-
-				new data[60];
-				format(data, sizeof data, DATOS_Personajes, playername);
-				new INI: File = INI_Open(data);
-				INI_WriteString(File, "NombrePJ", playername);
-				INI_WriteInt(File, "Registrado", user[playerid][jRegistrado]);
-				INI_Close(File);
-
-				new dataex[60];
-				format(dataex, sizeof dataex, DATOS_CUENTAS, username[playerid]);
-				new INI: FileEx = INI_Open(dataex);
-				INI_WriteString(FileEx, "Cuenta_1", user[playerid][jCuenta_1]);
-				INI_WriteString(FileEx, "Cuenta_2", user[playerid][jCuenta_2]);
-				INI_WriteString(FileEx, "Cuenta_3", user[playerid][jCuenta_3]);
-				INI_Close(FileEx);
-
+				accountSave(playerid);
 				c_personajes++;
 				save_stuff();
 				return 1;
@@ -11730,8 +10901,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				if (isnull(inputtext) || strlen(inputtext) > 20) return ExPlayerDialog(playerid, crear_personaje, DIALOG_STYLE_INPUT, "Crear personaje", "Introduce el nombre de tu personaje abajo:\n\nImportante: El nombre debe ser en el formato Nombre_Apellido\ny no exceder los 20 caracteres.", "Crear", "Atrás");
 
 				if (!IsValidRoleplayName(inputtext)) return ExPlayerDialog(playerid, crear_personaje, DIALOG_STYLE_INPUT, "Crear personaje", "Error: Usaste un nombre incorrecto.\n\nIntroduce el nombre de tu personaje abajo:\n\nImportante: El nombre debe ser en el formato Nombre_Apellido.", "Crear", "Atrás");
-
-				if (!check_cuenta(inputtext))
+				yield 1;
+				if (!characterCheck(inputtext))
 				{
 					switch (personaje)
 					{
@@ -11873,11 +11044,21 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 			switch (personaje)
 			{
-			    case 1: SetPlayerName(playerid, user[playerid][jCuenta_1]);
-			    case 2: SetPlayerName(playerid, user[playerid][jCuenta_2]);
-			    case 3: SetPlayerName(playerid, user[playerid][jCuenta_3]);
+			    case 1:{
+					SetPlayerName(playerid, user[playerid][jCuenta_1]);
+					alm(user[playerid][jNombrePJ], user[playerid][jCuenta_1]);
+				}
+			    case 2:{
+					SetPlayerName(playerid, user[playerid][jCuenta_2]);
+					alm(user[playerid][jNombrePJ], user[playerid][jCuenta_2]);
+				}
+			    case 3:{
+					SetPlayerName(playerid, user[playerid][jCuenta_3]);
+					alm(user[playerid][jNombrePJ], user[playerid][jCuenta_3]);
+				}
 			}
-			new id = random(5)+1;
+			new id = 1;
+			charLoggedIn[playerid] = 1;
 			user[playerid][jFuerza] = 50;
 			user[playerid][jm_Derecha] = 80;
 			user[playerid][jm_DerechaCant] = 1;
@@ -11893,7 +11074,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			SetCameraBehindPlayer(playerid);
 			if(user[playerid][jSexo] == 1) Skin_(playerid, 155);
 			else if(user[playerid][jSexo] == 2) Skin_(playerid, 93);
-
+			
 			new
 				year,
 				month,
@@ -11909,8 +11090,22 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 			format(code_1, sizeof(code_1), "%02d de %s del %02d", day, GetMonth(month), year);
 			user[playerid][pfechareg] = code_1;
+			user[playerid][charOwner] = user[playerid][jSQLID];
+			yield 1;
 
-			guardar_cuenta(playerid);
+			charORMInit(playerid);
+			new err = await orm_async_insert(charORM[playerid]);
+			if(err != ERROR_OK){
+				SendClientMessage(playerid, C_ROJO2, "Ocurrió un error al crear tu cuenta, contacta con administración.");
+				wait_ms(1000);
+				Kick(playerid);
+				format(code_1, sizeof(code_1), "Ocurrió un error al crear el personaje %s del usuario %s (SQLID %d)", user[playerid][jNombrePJ], username[playerid], user[playerid][jSQLID]);
+				return 1;
+			}
+
+			format(code_1, sizeof(code_1), "Se creo el personaje %s (SQLID %d) del usuario %s (SQLID %d)", user[playerid][jNombrePJ], user[playerid][charSQLID], username[playerid], user[playerid][jSQLID]);
+			serverLogRegister(code_1, "account");
+			accountSave(playerid);
 			cmd_climpiar(playerid);
 			format(string, sizeof(string), "Bienvenido %s, acabas de iniciar en %s.", nombre_pj(playerid), point_spawn[id][name_spawn]); Mensaje_(playerid, 0x7593F5FF, string);
 			Mensaje_(playerid, 0x7593F5FF, "Utiliza /lugares para ayudarte a ubicar los puntos más importantes de Los Santos.");
@@ -12165,7 +11360,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			format(MsgDialogSexo, sizeof(MsgDialogSexo), "Nuevo sexo de su personaje es: %s.", sexo);
 			_Mensaje(playerid, 2, "0", MsgDialogSexo);
 			cmd_panel(playerid);
-			guardar_cuenta(playerid);
+			characterSave(playerid);
 			return 1;
 		}
 		case D_CUENTA5:
@@ -12179,7 +11374,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					format(MsgDialogEdad, sizeof(MsgDialogEdad), "Nueva edad de su personaje: %i.", user[playerid][jEdad]);
 					_Mensaje(playerid, 2, "0", MsgDialogEdad);
 					cmd_panel(playerid);
-					guardar_cuenta(playerid);
+					characterSave(playerid);
 				}
 				else
 				{
@@ -12201,15 +11396,11 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					}
 					else
 					{
-						strmid(user[playerid][jClave], inputtext, 0, strlen(inputtext), 24);
+						yield 1;
+						await_str(user[playerid][jClave]) bcrypt_ahash(playerid, inputtext);
 						format(string, sizeof(string), "Cambiaste tu contraseña satisfactoriamente. Cual es: {90C3D4}%s", inputtext);
 						_Mensaje(playerid, 1, "0", string);
-
-						new data[60];
-						format(data, sizeof data, DATOS_CUENTAS, username[playerid]);
-						new INI: File = INI_Open(data);
-						INI_WriteString(File, "Contraseña", user[playerid][jClave]);
-						INI_Close(File);
+						accountSave(playerid);
 
 						cmd_panel(playerid);
 					}
@@ -12803,7 +11994,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				user[playerid][jVirtualWorld] = GetPlayerVirtualWorld(playerid);
 				GetPlayerPos(playerid, user[playerid][jPosicion_X], user[playerid][jPosicion_Y], user[playerid][jPosicion_Z]);
 				GetPlayerFacingAngle(playerid, user[playerid][jPosicion_R]);
-				guardar_cuenta(playerid);
+				characterSave(playerid);
 				SetPVarInt(playerid, "Money", 0);
 				ReiniciarDinero(playerid);
 				format(string, sizeof(string), "[Atención]{FFFFFF} %s(%d) ha seleccionado cambiar personaje.", nombre_pj(playerid), playerid);
@@ -12816,13 +12007,15 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				SetPlayerScore(playerid, -1);
 				cmd_climpiar(playerid);
 
+				new query[96];
+				mysql_format(mainDatabase, query, sizeof(query), "SELECT * FROM accounts WHERE SQLID = %d LIMIT 1", user[playerid][jSQLID]);
 				user_clean(playerid);
-				new
-					p_username[50 + MAX_PLAYER_NAME]
-				;
-				format(p_username, sizeof(p_username), DATOS_CUENTAS, username[playerid]);
-				INI_ParseFile(p_username, "C_data", .bExtra = true, .extra = playerid);
-
+				orm_destroy(accountORM[playerid]);
+				yield 1;
+				await mysql_aquery(mainDatabase, query);
+				if(cache_num_rows())
+					orm_apply_cache(accountORM[playerid], 0);
+				else Kick(playerid);
 				ver_personajes(playerid);
 				time_change[playerid] = gettime();
 				return 1;
@@ -13248,7 +12441,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			DarDineroGC(playerid, -50);
 			format(string, sizeof(string), "Has cambiado correctamente la patente del %s.", nombre_vehiculo[i_Vehiculo[veh][vModelo] - 400]);
 			SendClientMessage(playerid, 0x33CCFFFF, string);
-			save_vehiculo(veh);
+			vehicleSave(veh);
 			return 1;
 		}
 		case D_AYUNTAMIENTO:
@@ -14017,7 +13210,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					_Mensaje(playerid, 2, "0", string);
 					set_checkpoint(playerid, carPos[0], carPos[1], carPos[2], 15.0);
 					SetPVarInt(playerid, "EnCheckPoint", 1);
-					save_vehiculo(veh);
+					vehicleSave(veh);
 					TogglePlayerAllDynamicCPs(playerid, false);
 					return 1;
 				}
@@ -14161,7 +13354,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					_Mensaje(playerid, 2, "0", string);
 					set_checkpoint(playerid, carPos[0], carPos[1], carPos[2], 15.0);
 					SetPVarInt(playerid, "EnCheckPoint", 1);
-					save_vehiculo(veh);
+					vehicleSave(veh);
 					TogglePlayerAllDynamicCPs(playerid, false);
 					return 1;
 				}
@@ -14266,7 +13459,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			VehiculoBorrar(user[playerid][jLlaveCoche][id]-1000);
 			_Mensaje(playerid, 2, "0", "Vehículo borrado con éxito.");
 			user[playerid][jLlaveCoche][id] = 0;
-			guardar_cuenta(playerid);
+			characterSave(playerid);
 			DeletePVar(playerid, "op_coches2");
 			return 1;
 		}
@@ -14283,7 +13476,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
            	
 			format(string, sizeof(string), "* Desbug vehículo dimensión %d e interior %d con éxito.", GetPlayerVirtualWorld(playerid), GetPlayerInterior(playerid));
 			_Mensaje(playerid, 2, "0", string);
-			save_vehiculo(vid, 0);
+			vehicleSave(vid, 0);
 			return 1;
 		}
 		case D_MusiCar:
@@ -14797,13 +13990,13 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						for(new f = 0; f < MAX_MODVEHICULOS; f++) {
 							RemoveVehicleComponent(vehiculo, GetVehicleComponentInSlot(vehiculo, f));
 							i_Vehiculo[vid][vModificaciones][f] = 0;
-							save_vehiculo(vid);
+							vehicleSave(vid);
 						}
 						return _Mensaje(playerid, 2, "0", "Se eliminaron todas las modificaciones de tu vehículo");
 					}
 					RemoveVehicleComponent(vehiculo, partID);
 					i_Vehiculo[vid][vModificaciones][GetVehicleComponentType(partID)] = 0;
-					save_vehiculo(vid);
+					vehicleSave(vid);
 					return _Mensaje(playerid, 2, "0", "Ha sido eliminada la modificación seleccionada.");
 				}
 			}
@@ -15002,7 +14195,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 							d_estado += multa;
 							i_Vehiculo[vid][vEnDeposito] = 0;
 							i_Vehiculo[vid][vMulta] = 0;
-							save_vehiculo(vid);
+							vehicleSave(vid);
 						}
 						else if(i_Vehiculo[vid][vMulta])
 						{
@@ -15012,7 +14205,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 							format(string, sizeof(string), "* Pagaste la multa de $%d de tu %s.", i_Vehiculo[vid][vMulta], nombre_vehiculo[i_Vehiculo[vid][vModelo] - 400]);
 							_Mensaje(playerid, 4, "33CCFF", string);
 							i_Vehiculo[vid][vMulta] = 0;
-							save_vehiculo(vid);
+							vehicleSave(vid);
 						} else _Mensaje(playerid, 0, "689", "El vehículo seleccionado se encuentra limpio.");
 						return 1;
 					}
@@ -16127,7 +15320,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						SolicitaRefuerzos[playerid] = 1;
 						format(string, sizeof(string), "CENTRAL: A todas las unidades, el oficial (%s) requiere apoyo en su posición.", nombre_pj(playerid, 0));
 						_MensajeRfac(1, C_COLORRADIO, string);
-						for (new i = 0; i < MAX_PLAYERS; i++)
+						foreach(new i: Player)
 						{
 							if (IsPlayerConnected(i))
 							{
@@ -16143,7 +15336,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					{
 						SolicitaRefuerzos[playerid] = 0;
 						_MensajeRfac(1, C_COLORRADIO, "CENTRAL: A todas las unidades que están de apoyo, se ha cancelado el pedido.");
-						for (new i = 0; i < MAX_PLAYERS; i++)
+						foreach(new i: Player)
 						{
 							if (IsPlayerConnected(i))
 							{
@@ -16313,7 +15506,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			Mensaje_(playerid, -1, string);
 			set_checkpoint(playerid, carPos[0], carPos[1], carPos[2], 15.0);
 			SetPVarInt(playerid, "EnCheckPoint", 1);
-			save_vehiculo(veh);
+			vehicleSave(veh);
 			TogglePlayerAllDynamicCPs(playerid, false);*/
 			return 1;
 		}
@@ -17847,7 +17040,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					if(i_Vehiculo[veh-1000][vStereo] == 1) return _Mensaje(playerid, 0, "31", "El stereo ya se encuentra instalado en ese vehiculo.");
 					_Mensaje(playerid, 5, "0", "Compraste un stereo, comandos: /stereo /estacion /apagarstereo");
 					i_Vehiculo[veh-1000][vStereo] = 1;
-					save_vehiculo(veh-1000);
+					vehicleSave(veh-1000);
 					if(user[playerid][jPremium] == 0)
 					{
 						DarDineroGC(playerid, -100);
@@ -19685,7 +18878,7 @@ stock estado_civil(playerid)
 public OnGameModeInit()
 {
 	AntiAmx();
-
+	
 	SanMusic = 0;
 
 	//» Anticheat Jorge.
@@ -20733,7 +19926,7 @@ stock TieneNumeros(str[])
 funcion Loteria(number)
 {
 	new DineroLoteriaFallen = 0, string[128], winner[50 + MAX_PLAYER_NAME];
-	for(new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if(IsPlayerConnected(i))
 		{
@@ -20781,6 +19974,10 @@ funcion Loteria(number)
 
 funcion user_clean(playerid)
 {
+	orm_clear_vars(accountORM[playerid]);
+	orm_clear_vars(charORM[playerid]);
+	orm_destroy(accountORM[playerid]);
+	orm_destroy(charORM[playerid]);
 	p_bank[playerid][0] = -1;
 	p_bank[playerid][1] = -1;
 	un_rent[playerid] = 0;
@@ -21001,6 +20198,8 @@ funcion user_clean(playerid)
 	}
 
 	// DATA USERS
+	LoggedIn[playerid] = -1;
+	charLoggedIn[playerid] = -1;
 	user[playerid][jSQLID] = -1;
 	user[playerid][jNombre] = -1;
 	user[playerid][jClave] = -1;
@@ -21684,34 +20883,8 @@ stock _cIniciales(playerid, tipo)
 }
 
 // lo pusist komo stock y no hace falta men,t amo.
-guardar_username(extraid)
-{
-	if(!JugadorEnSeccion {extraid}) return 1;
 
-	new playername[50 + MAX_PLAYER_NAME];
-	
-	alm(playername, username[extraid]);
-	
-	if(check_username(playername) || registrando[extraid] == 1)
-	{
-		new data[60];
-		format(data, sizeof data, DATOS_CUENTAS, playername);
-		new INI: File = INI_Open(data);
-
-		INI_WriteString(File, "Nombre", playername);
-		INI_WriteInt(File, "Admin", user[extraid][jAdmin]);
-		INI_WriteString(File, "Staff", user[extraid][jStaff]);
-		INI_WriteInt(File, "Encargado1", user[extraid][jEncargado][0]);
-		INI_WriteInt(File, "Encargado2", user[extraid][jEncargado][1]);
-		INI_WriteInt(File, "Encargado3", user[extraid][jEncargado][2]);
-		INI_WriteInt(File, "Encargado4", user[extraid][jEncargado][3]);
-		INI_WriteInt(File, "Encargado5", user[extraid][jEncargado][4]);
-
-		INI_Close(File);
-	}
-	return 1;
-}
-guardar_cuenta(extraid)
+/*characterSave(extraid)
 {
 	if(user[extraid][jMascaraPD] == 1) return 1;
 
@@ -21728,7 +20901,7 @@ guardar_cuenta(extraid)
 		case 3: alm(playername, user[extraid][jCuenta_3]);
 	}
 
-	if(check_cuenta(playername) || registrando[extraid] == 1)
+	if(characterCheck(playername) || registrando[extraid] == 1)
 	{
 		new data[60];
 		format(data, sizeof data, DATOS_Personajes, playername);
@@ -22033,10 +21206,11 @@ guardar_cuenta(extraid)
 		INI_Close(File);
 	}
 	return 1;
-}
+}*/
 
 stock cargar_pj(playerid)
 {
+	charLoggedIn[playerid] = 1;
     StopAudioStreamForPlayer(playerid);
     ResetPlayerMoney(playerid);
     JugadorEnSeccion {playerid} = 1;
@@ -22136,7 +21310,6 @@ stock cargar_pj(playerid)
 	SetPlayerScore(playerid, user[playerid][jNivel]);
 	SetPlayerFightingStyle(playerid, user[playerid][jPelea]);
 	user[playerid][State] = 3;
-	PreloadAnimations(playerid);												// —— Cargado de animaciones
 	Caminar(playerid);
 	new hora_s, minuto_s, segundo_s;
 	gettime(hora_s, minuto_s, segundo_s);
@@ -22198,7 +21371,7 @@ juegador(playerid)
 		string[300]
 	;
 
-	format(string, sizeof(string), "[INFO] Bienvenido a Bullworth RolePlay. Su última conexión fue el día %02d/%02d/%02d — %02d:%02d\n\n", user[playerid][jDias], user[playerid][jMeses], user[playerid][jAnos], user[playerid][jHoras], user[playerid][jMinutos]);
+	format(string, sizeof(string), "[INFO] Bienvenido a Generation City RolePlay. Su última conexión fue el día %02d/%02d/%02d — %02d:%02d\n\n", user[playerid][jDias], user[playerid][jMeses], user[playerid][jAnos], user[playerid][jHoras], user[playerid][jMinutos]);
 	SendClientMessage(playerid, 0x7593F5FF, string);
 	SendClientMessage(playerid, 0x7593F5FF, "[INFO] Puedes usar (/lugares) o (/gps) para localizar los puntos más importantes del servidor.");
 
@@ -23250,7 +22423,7 @@ funcion S_Guantera(playerid, vehicleid, id)
 		format(string, sizeof(string), "Sacas tu ~b~%s~w~ del vehículo", InfoObjeto[Bonnet][NombreObjeto]);
 		ShowPlayerFooter(playerid, string);
 		VehGuanteraPlayer[playerid] = 0;
-		save_vehiculo(vehicleid);
+		vehicleSave(vehicleid);
 		return 1;
 	}
 	else if(user[playerid][jm_Izquierda] == 0)
@@ -23263,7 +22436,7 @@ funcion S_Guantera(playerid, vehicleid, id)
 		format(string, sizeof(string), "Sacas tu ~b~%s~w~ del vehículo", InfoObjeto[Bonnet][NombreObjeto]);
 		ShowPlayerFooter(playerid, string);
 		VehGuanteraPlayer[playerid] = 0;
-		save_vehiculo(vehicleid);
+		vehicleSave(vehicleid);
 	} else return _Mensaje(playerid, 0, "9", "ERROR: Posees ambas manos ocupadas, guarda o arroja lo que llevas.");
 	return 1;
 }
@@ -23294,7 +22467,7 @@ funcion G_Guantera(playerid, vehicleid, mano)
 				ShowPlayerFooter(playerid, string);
 				BonnetLibre = 1;
 				VehGuanteraPlayer[playerid] = 0;
-				save_vehiculo(vehicleid);
+				vehicleSave(vehicleid);
 				return 1;
 			}
 		}
@@ -23318,7 +22491,7 @@ funcion G_Guantera(playerid, vehicleid, mano)
 				ShowPlayerFooter(playerid, string);
 				BonnetLibre = 1;
 				VehGuanteraPlayer[playerid] = 0;
-				save_vehiculo(vehicleid);
+				vehicleSave(vehicleid);
 				return 1;
 			}
 		}
@@ -23392,7 +22565,7 @@ funcion S_Maletero(playerid, vehicleid, id)
 		format(string, sizeof string, "%s sacó del maletero (ID VEH %d) [%s].", nombre_pj(playerid), i_Vehiculo[vehicleid][vLlave], InfoObjeto[Bonnet][NombreObjeto]);
 		Log("Registros/MaleterosU.log", string);
 		VehMaleteroPlayer[playerid] = 0;
-		save_vehiculo(vehicleid);
+		vehicleSave(vehicleid);
 		return 1;
 	}
 	else if(user[playerid][jm_Izquierda] == 0)
@@ -23407,7 +22580,7 @@ funcion S_Maletero(playerid, vehicleid, id)
 		format(string, sizeof string, "%s sacó del maletero (ID VEH %d) [%s].", nombre_pj(playerid), i_Vehiculo[vehicleid][vLlave], InfoObjeto[Bonnet][NombreObjeto]);
 		Log("Registros/MaleterosU.log", string);
 		VehMaleteroPlayer[playerid] = 0;
-		save_vehiculo(vehicleid);
+		vehicleSave(vehicleid);
 	} else return _Mensaje(playerid, 0, "9", "ERROR: Posees ambas manos ocupadas, guarda o arroja lo que llevas.");
 	return 1;
 }
@@ -23440,7 +22613,7 @@ funcion G_Maletero(playerid, vehicleid, mano)
 				Log("Registros/MaleterosU.log", string);
 				BonnetLibre = 1;
 				VehMaleteroPlayer[playerid] = 0;
-				save_vehiculo(vehicleid);
+				vehicleSave(vehicleid);
 				return 1;
 			}
 		}
@@ -23466,7 +22639,7 @@ funcion G_Maletero(playerid, vehicleid, mano)
 				Log("Registros/MaleterosU.log", string);
 				BonnetLibre = 1;
 				VehMaleteroPlayer[playerid] = 0;
-				save_vehiculo(vehicleid);
+				vehicleSave(vehicleid);
 				return 1;
 			}
 		}
@@ -26020,7 +25193,7 @@ stock mensaje_admin(const string[], color, dale = 0)
 
 stock MensajeAdmins(color, const string[])
 {
-	for(new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (user[i][State] != 0)
 		{
@@ -26034,7 +25207,7 @@ stock MensajeAdmins(color, const string[])
 
 stock MensajeMPS(color, const string[])
 {
-	for(new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (user[i][State] != 0)
 		{
@@ -26773,25 +25946,46 @@ GCMD:editara(playerid,  const params[])
 	}
 	return 1;
 }
-
-GCMD:quitaralmacenoff(playerid,  const params[])
-{
+GCMD:quitaralmacen(playerid, params[]){
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
+	new quitalmName[MAX_PLAYER_NAME];
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitaralmacenoff [Nombre_Apellido]");
-	if (check_cuenta(params))
+	sscanf(params, "s[25]", quitalmName);
+	yield 1;
+	if (characterCheck(quitalmName))
 	{
-		new data[60], string[128];
-		format(data, sizeof data, DATOS_Personajes, params);
-		new INI: File = INI_Open(data);
-		INI_WriteInt(File, "Almacen", -1);
-		INI_Close(File);
-		format(string, 128, "[Administración]{FFFFFF} %s le quitó el almacen que tenía %s.", nombre_pj(playerid), params);
-		MensajeAdmin(string);
-		format(string, sizeof(string), "Registros: %s le quitó el almacen que tenía %s.", nombre_pj(playerid), params);
-		Log("Registros/QuitarNegocio.log", string);
+		new ply,
+		string[128];
+		if((ply = IsCharConnected(quitalmName)) != -1){
+			if(user[ply][jAlmacen] == -1) return _Mensaje(playerid, 0, "0", "El personaje no tiene ningun almacen.");
+			user[ply][jAlmacen] = -1;
+			format(string, 128, "[Administración]{FFFFFF} %s le quitó el almacen que tenía %s.", nombre_pj(playerid), params);
+			MensajeAdmin(string);
+			format(string, sizeof(string), "Registros: %s le quitó el almacen que tenía %s.", nombre_pj(playerid), params);
+			Log("Registros/QuitarNegocio.log", string);
+			return 1;
+		}
+		yield 1;
+		new qa_alm;
+		new eScaped[MAX_PLAYER_NAME];
+		new pjid;
+		mysql_escape_string(quitalmName, eScaped);
+		await mysql_aquery_s(mainDatabase, str_format("SELECT Almacen, SQLID FROM characters WHERE NombrePJ = '%s' LIMIT 1", eScaped));
+		if(cache_num_rows()){
+			cache_get_value_name_int(0, "Almacen", qa_alm);
+			cache_get_value_name_int(0, "SQLID", pjid);
+			if(qa_alm == -1) return _Mensaje(playerid, 0, "0", "El personaje no tiene ningun almacen.");
+			qa_alm = -1;
+			mysql_tquery_s(mainDatabase, str_format("UPDATE characters SET Almacen = %d WHERE SQLID = %d", qa_alm, pjid));
+			format(string, 128, "[Administración]{FFFFFF} %s le quitó el almacen que tenía %s.", nombre_pj(playerid), quitalmName);
+			MensajeAdmin(string);
+			format(string, sizeof(string), "Registros: %s le quitó el almacen que tenía %s.", nombre_pj(playerid), quitalmName);
+			Log("Registros/QuitarNegocio.log", string);
+		}
 	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
 	return 1;
 }
+
 
 GCMD:iralmacen(playerid,  const params[])
 {
@@ -27332,7 +26526,7 @@ GCMD:carteles(playerid)
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[128], c_tel[60];
 	_Mensaje(playerid, 4, "90C3D4", "Carteles:");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -27968,24 +27162,45 @@ GCMD:ascensor(playerid)
 	ExPlayerDialog(playerid, D_Ascensor, DIALOG_STYLE_LIST, "{b0b0b0}LS BeachSide", string, "Siguiente", "Cerrar");
 	return 1;
 }
-GCMD:quitarvipoff(playerid, const params[])
+GCMD:quitarvip(playerid, const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarvipoff [Nombre_Apellido]");
-	if (check_cuenta(params))
-	{
-		new data[60], string[128];
-		format(data, sizeof data, DATOS_Personajes, params);
-		new INI: File = INI_Open(data);
-		INI_WriteInt(File, "Premium", 0);
-		INI_WriteInt(File, "ColorP", 0);
-		INI_WriteInt(File, "dPremium", 0);
-		INI_WriteInt(File, "mPremium", 0);
-		INI_Close(File);
+	new qvName[MAX_PLAYER_NAME];
+	sscanf(params, "s[25]", qvName);
+	new string[128];
+	if(new curr = IsCharConnected(qvName) != -1){
+		user[curr][jPremium] = 0;
+		user[curr][jColorP] = 0;
+		user[curr][jD_premium] = 0;
+		user[curr][jM_premium] = 0;
+		
 		format(string, 128, "[Administración]{FFFFFF} %s retiró el premium de %s. [CMD_OFF]", nombre_pj(playerid), params);
 		MensajeAdmin(string);
 		format(string, sizeof(string), "Registros: %s retiró el premium de %s.", nombre_pj(playerid), params);
 		Log("Registros/QuitarVIP.log", string);
+	}
+	yield 1;
+	if (characterCheck(params))
+	{
+		static setZERO = 0;
+		new ORM:quitarvip_orm = orm_create("characters");
+		orm_addvar_string(quitarvip_orm, qvName, MAX_PLAYER_NAME, "NombrePJ");
+		orm_setkey(quitarvip_orm, "NombrePJ");
+		orm_addvar_int(quitarvip_orm, setZERO, "Premium");
+		orm_addvar_int(quitarvip_orm, setZERO, "ColorP");
+		orm_addvar_int(quitarvip_orm, setZERO, "dPremium");
+		orm_addvar_int(quitarvip_orm, setZERO, "mPremium");
+		if( (task_await(orm_async_update(quitarvip_orm))) != _:ERROR_OK ){
+			orm_destroy(quitarvip_orm);
+			return _Mensaje(playerid, 0, "179", "Ocurrió un error al guardar el cambio.");
+		}
+		format(string, 128, "[Administración]{FFFFFF} %s retiró el premium de %s. [CMD_OFF]", nombre_pj(playerid), params);
+		MensajeAdmin(string);
+		format(string, sizeof(string), "Registros: %s retiró el premium de %s.", nombre_pj(playerid), params);
+		Log("Registros/QuitarVIP.log", string);
+		
+		
 	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
 	return 1;
 }
@@ -28062,7 +27277,7 @@ GCMD:veh_patente(playerid)
 		if (i_Vehiculo[vid][vModelo] > 0)
 		{
 			i_Vehiculo[vid][vPatente] = vid+Random(-400000, 999999); //
-			save_vehiculo(vid);
+			vehicleSave(vid);
 			Totalvehs++;
 		}
 	}
@@ -28980,7 +28195,7 @@ GCMD:astaff(playerid,  const params[])
 	{
 		if (!user[params[0]][jAdmin]) return _Mensaje(playerid, 0, "548", "ERROR: Ese jugador no forma parte de la administración.");
 		format(user[params[0]][jStaff], 32, "%s", params[1]);
-		guardar_username(params[0]);
+		accountSave(params[0]);
 		_Mensaje(playerid, 4, "00c200", "Nombre del administrador editado con éxito.");
 	} else _Mensaje(playerid, 3, "0", "/astaff [id jugador] [apodo]");
 	return 1;
@@ -28991,13 +28206,16 @@ GCMD:aclave(playerid,  const params[])
 	new nombre[24], clave[24];
 	if (user[playerid][jAdmin] < 1337) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "s[24]s[24]", nombre, clave)) return _Mensaje(playerid, 3, "0", "/aclave [username] [contraseña]");
-	if (check_username(nombre))
+	if (accountCheck(nombre))
 	{
-		new data[60], string[128];
-		format(data, sizeof data, DATOS_CUENTAS, nombre);
-		new INI: File = INI_Open(data);
-	    INI_WriteString(File, "Contraseña", clave);
-		INI_Close(File);
+		yield 1;
+		new hash[BCRYPT_HASH_LENGTH];
+		await_str(hash) bcrypt_ahash(playerid, clave);
+		new check = await bcrypt_averify(playerid, clave, hash);
+		if(!check) return 1;
+		new string[128];
+		mysql_format(mainDatabase, string, sizeof(string), "UPDATE accounts SET Clave = '%e' WHERE Nombre = '%e'", hash, nombre);
+		mysql_tquery(mainDatabase, string);
 		format(string, 128, "[Administración]{FFFFFF} %s cambió la contraseña de %s.", nombre_pj(playerid), nombre);
 		MensajeAdmin(string);
 		format(string, sizeof(string), "Registros: %s cambió la contraseña de %s.", nombre_pj(playerid), nombre);
@@ -29029,7 +28247,7 @@ GCMD:rcar(playerid)
 GCMD:specs(playerid)
 {
 	if (user[playerid][jAdmin] < 1337) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -30482,12 +29700,6 @@ GCMD:tirardni(playerid)
 	return 1;
 }
 
-new
-	user_rname[MAX_PLAYERS][24],
-	cuenta_rname[MAX_PLAYERS][24],
-	cuenta_2rname[MAX_PLAYERS][24],
-	cuenta_3rname[MAX_PLAYERS][24]
-;
 
 GCMD:edinson(playerid,  const params[])
 {
@@ -30500,130 +29712,75 @@ GCMD:edinson(playerid,  const params[])
 
 	if (sscanf(params, "s[24]s[24]", nombre_viejo, nombre_nuevo)) return _Mensaje(playerid, 3, "0", "/edinson [Nombre_Apellido (viejo)] [Nombre_Apellido (nuevo)]");
 
-	new
-		fcuenta[128],
-		fcuenta2[128]
-	;
-	if(fexist(nombre_nuevo)) return Mensaje_(playerid, -1, "El personaje nuevo está existente.");
+	yield 1;
+	if(characterCheck(nombre_nuevo)) return Mensaje_(playerid, -1, "El personaje nuevo está existente.");
 	
 	// detecta si existe el personaje, y toma información del username
-	format(fcuenta, sizeof(fcuenta), DATOS_Personajes, nombre_viejo);
-	if(!fexist(fcuenta)) return Mensaje_(playerid, -1, "Ese personaje no existe.");
-	INI_ParseFile(fcuenta, "CargarCuenta_X", .bExtra = true, .extra = playerid);
+	if(!characterCheck(nombre_viejo)) return Mensaje_(playerid, -1, "Ese personaje no existe.");
 	// detecta si existe la cuenta
-	format(fcuenta2, sizeof(fcuenta2), DATOS_CUENTAS, user_rname[playerid]);
-	if(!fexist(fcuenta2)) return Mensaje_(playerid, -1, "Esa cuenta no existe.");
-	INI_ParseFile(fcuenta2, "CargarCuenta_XX", .bExtra = true, .extra = playerid);
-	
-
-	new
-		slot_pj = 0;
-
-	if (strcmp(cuenta_rname[playerid], nombre_viejo, true) == 0)
-	{
-		slot_pj = 1;
-	}
-	if (strcmp(cuenta_2rname[playerid], nombre_viejo, true) == 0)
-	{
-		slot_pj = 2;
-	}
-	if (strcmp(cuenta_3rname[playerid], nombre_viejo, true) == 0)
-	{
-		slot_pj = 3;
-	}
-
-	if (slot_pj == 0) return Mensaje_(playerid, -1, "No hay coincidencia con el personaje (username).");
-
-	if (check_username(user_rname[playerid]))
-	{
-		new data[60], string[128];
-		format(data, sizeof data, DATOS_CUENTAS, user_rname[playerid]);
-		new INI: File = INI_Open(data);
-		switch (slot_pj)
-		{
-			case 1: INI_WriteString(File, "Cuenta_1", nombre_nuevo);
-			case 2: INI_WriteString(File, "Cuenta_2", nombre_nuevo);
-			case 3: INI_WriteString(File, "Cuenta_3", nombre_nuevo);
-			default: INI_WriteString(File, "Cuenta_1", nombre_nuevo), slot_pj = 1;
-		}
-		INI_Close(File);
-		format(string, sizeof(string), "Ajustaste el personaje %s (%d) a la cuenta %s.", nombre_nuevo, slot_pj, user_rname[playerid]);
-		SendClientMessage(playerid, -1, string);
-	} else return _Mensaje(playerid, 0, "179", "Esa cuenta no existe / parte 2.");
 	return 1;
 }
 
-funcion CargarCuenta_X(playerid, name[], value[])
-{
-	INI_String("Cuenta", user_rname[playerid], 24);
-	return 1;
-}
-
-funcion CargarCuenta_XX(playerid, name[], value[])
-{
-	INI_String("Cuenta_1", cuenta_rname[playerid], 24);
-	INI_String("Cuenta_2", cuenta_2rname[playerid], 24);
-	INI_String("Cuenta_3", cuenta_3rname[playerid], 24);
-	return 1;
-}
 
 GCMD:secambio(playerid,  const params[])
 {
     new nombre[24], edad;
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "s[24]d", nombre, edad)) return _Mensaje(playerid, 3, "0", "/secambio [Nombre_Apellido] [Edad]");
-	if (check_cuenta(nombre))
+	yield 1;
+	if (characterCheck(nombre))
 	{
+		
+		new string[128];
+		/*foreach(new iterated: Player){
+			if(strequal(nombre, user[iterated][jNombrePJ])){
+				Kick(iterated);
+				wait_ms(500);
+			}
+		}
+		
 		new documento = Random(100000, 499999);
-		new data[60], string[128];
-		format(data, sizeof data, DATOS_Personajes, nombre);
-		new INI: File = INI_Open(data);
-		INI_WriteInt(File, "Edad", edad);
-		INI_WriteInt(File, "Fuerza", 50);
-		INI_WriteInt(File, "Trabajo1", 0);
-		INI_WriteInt(File, "Trabajo2", 0);
-		INI_WriteInt(File, "Trabajo3", 0);
-		INI_WriteFloat(File, "Hambre", -10);
+		new secEdad = edad,
+			secFuerza = 50,
+			secTrabajo1 = 0,
+			secTrabajo2 = 0,
+			secTrabajo3 = 0,
+			secHambre = -10
+		;
 		for(new i = 0; i < 10; i++)
 		{
-			new sql[100];
-			format(sql, sizeof(sql), "Habilidad%d", i);
-			INI_WriteInt(File, sql, 0);
-			format(sql, sizeof(sql), "Habilidadx%d", i);
-			INI_WriteInt(File, sql, 1);
-			format(sql, sizeof(sql), "Adiccion%d", i);
-			INI_WriteInt(File, sql, 0);
+			user[target][jHabilidad][i] = 0;
+			user[target][jHabilidad2][i] = 1;
+			user[target][jAdiccion][i] = 0;
 		}
-		INI_WriteInt(File, "Arrestos", 0);
-		INI_WriteInt(File, "Documento", documento);
-        INI_WriteString(File, "Delito1", "Ninguno");
-        INI_WriteString(File, "Delito2", "Ninguno");
-        INI_WriteString(File, "Delito3", "Ninguno");
-        INI_WriteString(File, "Delito4", "Ninguno");
-        INI_WriteString(File, "Delito5", "Ninguno");
-        INI_WriteString(File, "Delito6", "Ninguno");
-        INI_WriteString(File, "Delito7", "Ninguno");
-        INI_WriteString(File, "Delito8", "Ninguno");
-        INI_WriteString(File, "Delito9", "Ninguno");
-        INI_WriteString(File, "Delito10", "Ninguno");
-        INI_WriteInt(File, "Delitox1", 0);
-        INI_WriteInt(File, "Delitox2", 0);
-        INI_WriteInt(File, "Delitox3", 0);
-        INI_WriteInt(File, "Delitox4", 0);
-        INI_WriteInt(File, "Delitox5", 0);
-        INI_WriteInt(File, "Delitox6", 0);
-        INI_WriteInt(File, "Delitox7", 0);
-        INI_WriteInt(File, "Delitox8", 0);
-        INI_WriteInt(File, "Delitox9", 0);
-        INI_WriteInt(File, "Delitox10", 0);
+		user[playerid][jArrestos] = 0;
+		user[playerid][jDocumento] = documento;
+		alm(p_delito[target][0], "Ninguno");
+		alm(p_delito[target][1], "Ninguno"); 
+		alm(p_delito[target][2], "Ninguno"); 
+		alm(p_delito[target][3], "Ninguno"); 
+		alm(p_delito[target][4], "Ninguno"); 
+		alm(p_delito[target][5], "Ninguno"); 
+		alm(p_delito[target][6], "Ninguno"); 
+		alm(p_delito[target][7], "Ninguno"); 
+		alm(p_delito[target][8], "Ninguno"); 
+		alm(p_delito[target][9], "Ninguno");
+		user[target][jDelito][0] = 0;
+		user[target][jDelito][1] = 0;
+		user[target][jDelito][2] = 0;
+		user[target][jDelito][3] = 0;
+		user[target][jDelito][4] = 0;
+		user[target][jDelito][5] = 0;
+		user[target][jDelito][6] = 0;
+		user[target][jDelito][7] = 0;
+		user[target][jDelito][8] = 0;
+		user[target][jDelito][9] = 0;
 		for(new i = 0; i < 6; i++)
 		{
-			new sql[100];
-			format(sql, sizeof(sql), "CocheLlaves%d", i);
-			INI_WriteInt(File, sql, 0);
+			user[target][j2Vehiculos][i] = 0;
 		}
-        //INI_WriteInt(File, "CambioN", 0);
-		INI_Close(File);
+		characterSave(target);
+		unloadEmulatedPlayer();*/
 		format(string, 128, "[Administración]{FFFFFF} %s activó el cambio de nombre de %s.", nombre_pj(playerid), nombre);
 		MensajeAdmin(string);
 		format(string, sizeof(string), "Registros: %s activó el cambio de nombre de %s.", nombre_pj(playerid), nombre);
@@ -31165,7 +30322,7 @@ GCMD:comprarempresa(playerid)
 				new randphone = 913 + random(9080);
 				i_Empresa[e_id][eTelefono] = randphone;
 				save_Empresa(e_id);
-				guardar_cuenta(playerid);
+				characterSave(playerid);
 				return 1;
 			} else _Mensaje(playerid, 0, "555", "No tienes fondos suficientes para comprarte este negocio.");
 		}
@@ -31465,57 +30622,72 @@ GCMD:borrarempresa(playerid,  const params[])
 	return 1;
 }
 
-GCMD:expulsarfaccion(playerid,  const params[])
+GCMD:expulsarfaccion(playerid, const params[])
 {
 	if (user[playerid][jLider] != 1) return _Mensaje(playerid, 4, "b0b0b0", "No eres líder de la PD.");
-
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/expulsarfaccion [Nombre_Apellido]");
-	if (check_cuenta(params))
+	new nomExFacc[MAX_PLAYER_NAME];
+	sscanf(params, "s[25]", nomExFacc);
+	yield 1;
+	if (characterCheck(nomExFacc))
 	{
-		new fcuenta[120];
-		format(fcuenta, sizeof(fcuenta), DATOS_Personajes, params);
-		INI_ParseFile(fcuenta, "CargarFaccion", .bExtra = true, .extra = playerid);
-		if(xDias[playerid] != 1) return _Mensaje(playerid, 4, "b0b0b0", "Ese jugador no es de tu facción.");
+		new
+			string[128],
+			ORM:ex_fac = orm_create("characters")
+		;
+		static
+			exMiembro,
+			val_ZERO = 0
+		;
+		while(exMiembro){
+			yield 1;
+			exMiembro ^= 0;
+		}
+			
 
-		new data[60], string[128];
-		format(data, sizeof data, DATOS_Personajes, params);
-		new INI: File = INI_Open(data);
+		orm_addvar_string(ex_fac, nomExFacc, MAX_PLAYER_NAME, "NombrePJ");
+		orm_addvar_int(ex_fac, exMiembro, "Miembro");
+		orm_setkey(ex_fac, "NombrePJ");
+		if((task_await(orm_async_select(ex_fac))) != _:ERROR_OK){
+			exMiembro = 0;
+			orm_destroy(ex_fac);
+			return _Mensaje(playerid, 4, "b0b0b0", "Ocurrió un error al recuperar los datos del personaje.");
+		}
+		if(exMiembro != user[playerid][jMiembro]) return _Mensaje(playerid, 4, "b0b0b0", "Ese jugador no es de tu facción.");
+		orm_addvar_int(ex_fac, val_ZERO, "Lider");
+		orm_addvar_int(ex_fac, val_ZERO, "Miembro");
+		orm_addvar_int(ex_fac, val_ZERO, "Rango");
 		for(new i = 0; i < 10; i++)
 		{
 			new sql[100];
 			format(sql, sizeof(sql), "Bolsillo%d", i);
-			INI_WriteInt(File, sql, 0);
+			orm_addvar_int(ex_fac, val_ZERO, sql);
 			format(sql, sizeof(sql), "BolsilloCant%d", i);
-			INI_WriteInt(File, sql, 0);
+			orm_addvar_int(ex_fac, val_ZERO, sql);
 		}
-		INI_WriteInt(File, "Izquierda", 0);
-		INI_WriteInt(File, "IzquierdaCant", 0);
-		INI_WriteInt(File, "Derecha", 0);
-		INI_WriteInt(File, "DerechaCant", 0);
-		INI_WriteInt(File, "Espalda", 0);
-		INI_WriteInt(File, "EspaldaCant", 0);
-		INI_WriteInt(File, "Lider", 0);
-		INI_WriteInt(File, "Miembro", 0);
-		INI_WriteInt(File, "Rango", 0);
+		orm_addvar_int(ex_fac, val_ZERO, "Izquierda");
+		orm_addvar_int(ex_fac, val_ZERO, "IzquierdaCant");
+		orm_addvar_int(ex_fac, val_ZERO, "Derecha");
+		orm_addvar_int(ex_fac, val_ZERO, "DerechaCant");
+		orm_addvar_int(ex_fac, val_ZERO, "Espalda");
+		orm_addvar_int(ex_fac, val_ZERO, "EspaldaCant");
 		for(new i = 0; i < 6; i++)
 		{
 			new sql[100];
-			format(sql, sizeof(sql), "Cinturon%d", i); INI_WriteInt(File, sql, 0);
-			format(sql, sizeof(sql), "CinturonCant%d", i); INI_WriteInt(File, sql, 0);
+			format(sql, sizeof(sql), "Cinturon%d", i);
+			orm_addvar_int(ex_fac, val_ZERO, sql);
+			format(sql, sizeof(sql), "CinturonCant%d", i);
+			orm_addvar_int(ex_fac, val_ZERO, sql);
 		}
-		INI_Close(File);
-	    format(string, sizeof(string), "Líder %s expulsó de la facción a %s. (OFF)", nombre_pj(playerid), params);
-		mensaje_faccion(user[playerid][jMiembro], C_LIGHTBLUE, string);
-
-		max_miembros[user[playerid][jMiembro]]--;
-		save_stuff();
-	} else _Mensaje(playerid, 4, "b0b0b0", "Esa cuenta no existe.");
-	return 1;
-}
-
-funcion CargarFaccion(playerid, name[], value[])
-{
-	INI_Int("Miembro", xDias[playerid]);
+		
+		
+		if((task_await(orm_async_update(ex_fac))) == _:ERROR_OK){
+			format(string, sizeof(string), "Líder %s expulsó de la facción a %s. (OFF)", nombre_pj(playerid), nomExFacc);
+			mensaje_faccion(user[playerid][jMiembro], C_LIGHTBLUE, string);
+		}
+		else _Mensaje(playerid, 4, "b0b0b0", "Ocurrió un error al recuperar los datos del personaje.");
+		orm_destroy(ex_fac);
+	} else _Mensaje(playerid, 4, "b0b0b0", "Ese personaje no existe.");
 	return 1;
 }
 
@@ -31682,7 +30854,7 @@ GCMD:rcaja(playerid,  const params[])
 		DarDineroGC(playerid, dinero);
 		user[playerid][jm_DerechaCant] -= dinero;
 		update_manos(playerid);
-		guardar_cuenta(playerid);
+		characterSave(playerid);
 		new string[128];
 		format(string, sizeof(string), "Sacas de la caja %d$ dólares.", dinero);
 		_Mensaje(playerid, 4, "b0b0b0", string);
@@ -31699,7 +30871,7 @@ GCMD:rcaja(playerid,  const params[])
 		DarDineroGC(playerid, -dinero);
 		user[playerid][jm_DerechaCant] += dinero;
 		update_manos(playerid);
-		guardar_cuenta(playerid);
+		characterSave(playerid);
 		new string[128];
 		format(string, sizeof(string), "Guardas en la caja %d$ dólares.", dinero);
 		_Mensaje(playerid, 4, "b0b0b0", string);
@@ -32198,7 +31370,7 @@ GCMD:bp(playerid)
 	accion_rol(playerid, 0, "pulsó el botón de pánico.");
 	format(string, sizeof(string), "CENTRAL: %s ha pulsado el botón de pánico, se requiere asistencia urgente en su posición.", nombre_pj(playerid, 0));
 	_MensajeRfac(1, C_COLORRADIO, string);
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -32222,7 +31394,7 @@ GCMD:bkc(playerid)
 	if (SolicitaRefuerzos[playerid] == 1) SolicitaRefuerzos[playerid] = 0;
 	else BotonPanico[playerid] = 0;
 	_MensajeRfac(1, C_COLORRADIO, "CENTRAL: A todas las unidades que están de apoyo, se ha cancelado el pedido.");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -32718,7 +31890,7 @@ GCMD:fseguro(playerid)
 						VehSeguro[i_Vehiculo[v][vID]] = 0;
 						vehicle_unlock_doors(i_Vehiculo[v][vID]);
 						accion_rol(playerid, 0, "toma su palanca y comenzó a forzar la cerradura del vehículo, después de unos segundos consigue abrirlo.");
-						save_vehiculo(v);
+						vehicleSave(v);
 						user[playerid][jTiempos][18] = 5;
 						return 1;
 					}
@@ -32741,115 +31913,164 @@ GCMD:tbanoff(playerid,  const params[])
         if (sscanf(params, "uds[128]", pID, tiempo, razon)) return Mensaje_(playerid, -1, "Algo ocurrió.");
 	    if (IsPlayerConnected(pID)) return _Mensaje(playerid, 0, "75", "Ese jugador está conectado.");
 		if (tiempo == 0) return cmd_a(playerid, "Pero q retraso, intenté banear a uno temporalmente 0 horas XD");
-		new fcuenta[120];
-		format(fcuenta, sizeof(fcuenta), DATOS_Personajes, nombrexdd);
-		if(!fexist(fcuenta)) return Mensaje_(playerid, -1, "Esta cuenta no existe.");
-	    new INI: File = INI_Open(fcuenta);
-		new k = gettime(), elpru[30];
-		tiempo *= 3600;
-		k += tiempo;
-		format(elpru, sizeof(elpru), "%d", k);
-		INI_WriteString(File, "bTiempo", elpru);
-		INI_WriteString(File, "bMomento", el_tiempo());
-		INI_WriteString(File, "bRazon", razon);
-		INI_WriteString(File, "bCulpable", nombre_pj(playerid));
-		INI_WriteInt(File, "Baneado", 10);
-	 	INI_Close(File);
-		format(fcuenta, 128, "Administración: %s ha sido bloqueado por %s, Razón:[%s], Tiempo:[%d horas] (OFFLINE)", nombrexdd, nombre_pj(playerid), razon, tiempo/3600);
-		_MensajeOOC(0xFF6347FF, fcuenta);
+		yield 1;
+
+		if(!characterCheck(nombrexdd)) return _Mensaje(playerid, 0, "75", "El personaje no existe.");
+		new ORM:tbanorm = orm_create("characters");
+		orm_addvar_string(tbanorm, nombrexdd, sizeof(nombrexdd), "NombrePJ");
+		orm_setkey(tbanorm, "NombrePJ");
+		orm_addvar_int(tbanorm, tiempo, "bTiempo");
+		orm_addvar_string(tbanorm, el_tiempo(), 96, "bMomento");
+		orm_addvar_string(tbanorm, razon, sizeof(razon),"bRazon");
+		orm_addvar_string(tbanorm, nombre_pj(playerid), MAX_PLAYER_NAME, "bCulpable");
+		new ban_type = 10;
+		orm_addvar_int(tbanorm, ban_type, "Baneado");
+		
+		new ret = await orm_async_update(tbanorm);
+		if(ret == _:ERROR_OK){
+			new fcuenta[128];
+			format(fcuenta, 128, "Administración: %s ha sido bloqueado por %s, Razón:[%s], Tiempo:[%d horas] (OFFLINE)", nombrexdd, nombre_pj(playerid), razon, tiempo/3600);
+			_MensajeOOC(0xFF6347FF, fcuenta);
+		}
+		orm_destroy(tbanorm);
     }
 	else _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	return 1;
 }
 
-new _ban[MAX_PLAYERS][2], ban1[MAX_PLAYERS][32], ban2[MAX_PLAYERS][128], ban3[MAX_PLAYERS][150];
-GCMD:estaban(playerid,  const params[])
+IsAccountConnected(const account[]){
+	foreach(new playerid: Player){
+		if(strequal(account, user[playerid][jNombre]))
+			return playerid;
+	}
+	return -1;
+}
+IsCharConnected(const character[]){
+	foreach(new playerid: Player){
+		if(strequal(character, user[playerid][jNombrePJ]))
+			return playerid;
+	}
+	return -1;
+}
+
+GCMD:estaban(playerid, const params[])
 {
 	if(user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	new
-		pID
-	;
-	if (sscanf(params, "u", pID)) return _Mensaje(playerid, 3, "0", "/estaban [Nombre_Apellido]");
-	if (IsPlayerConnected(pID)) return _Mensaje(playerid, 0, "75", "Ese jugador está conectado.");
+	if(isnull(params)) return _Mensaje(playerid, 0, "0", "USO: /estaban [Nombre_Apellido]");
+	new nomban[MAX_PLAYER_NAME];
+	sscanf(params, "s[32]", nomban);
+	yield 1;
+	if (!characterCheck(nomban)) return _Mensaje(playerid, 0, "75", "Ese personaje no existe.");
+	if (IsCharConnected(nomban) != -1) return _Mensaje(playerid, 0, "75", "Ese jugador está conectado.");
 	new fcuenta[256];
-	format(fcuenta, sizeof(fcuenta), DATOS_Personajes, params);
-	if(!fexist(fcuenta)) return Mensaje_(playerid, -1, "Esta cuenta no existe.");
-	INI_ParseFile(fcuenta, "CargarBan", .bExtra = true, .extra = playerid);
-	if(_ban[playerid][0] == 0) return Mensaje_(playerid, C_UGRP, "Ese personaje no está baneado/bloqueado.");
-	if(_ban[playerid][0] == 10)
+	new ORM:esta_ban = orm_create("characters");
+	static
+		_ban[2],
+		ban1[32], 
+		ban2[128], 
+		ban3[150]
+	;
+	while(_ban[1]) task_yield(1);
+	orm_addvar_string(esta_ban, nomban, MAX_PLAYER_NAME, "NombrePJ");
+	orm_setkey(esta_ban, "NombrePJ");
+	orm_addvar_int(esta_ban, _ban[0], "Baneado");
+	orm_addvar_int(esta_ban, _ban[1], "bTiempo");
+	orm_addvar_string(esta_ban, ban1, 32, "bCulpable");
+	orm_addvar_string(esta_ban, ban2, 128, "bRazon");
+	orm_addvar_string(esta_ban, ban3, 150, "bMomento");
+	
+	new check = await orm_async_select(esta_ban);
+	if(check != _:ERROR_OK){
+		orm_destroy(esta_ban);
+		_ban[1] = 0;
+		return _Mensaje(playerid, 0, "0", "No se pudo cargar la información de ese personaje.");
+	}
+	if(_ban[0] == 0) return Mensaje_(playerid, C_UGRP, "Ese personaje no está baneado/bloqueado.");
+	if(_ban[0] == 10)
 	{
 		SendClientMessage(playerid, 0xccccccff, "Bloqueo temporal");
-		format(fcuenta, sizeof(fcuenta), "Tiempo: %s", Segundostiempo(_ban[playerid][1] - gettime()));
+		format(fcuenta, sizeof(fcuenta), "Tiempo: %s", Segundostiempo(_ban[1] - gettime()));
 		SendClientMessage(playerid, 0xffffffff, fcuenta);
-		format(fcuenta, sizeof(fcuenta), "Responsable: %s - Razón: %s - Fecha del baneo: %s", ban1[playerid], ban2[playerid], ban3[playerid]);
+		format(fcuenta, sizeof(fcuenta), "Responsable: %s - Razón: %s - Fecha del baneo: %s", ban1, ban2, ban3);
 		SendClientMessage(playerid, 0xffffffff, fcuenta);
 	}
-	else if(_ban[playerid][0] == 20)
+	else if(_ban[0] == 20)
 	{
 		SendClientMessage(playerid, 0xccccccff, "Bloqueo");
-		format(fcuenta, sizeof(fcuenta), "Responsable: %s - Razón: %s - Fecha del baneo: %s", ban1[playerid], ban2[playerid], ban3[playerid]);
+		format(fcuenta, sizeof(fcuenta), "Responsable: %s - Razón: %s - Fecha del baneo: %s", ban1, ban2, ban3);
 		SendClientMessage(playerid, 0xffffffff, fcuenta);
 	}
 	else SendClientMessage(playerid, 0xffffffff, "un bloqueo no existente... na, usa /unban boboXD1");
+	orm_destroy(esta_ban);
+	_ban[1] = 0;
 	return 1;
 }
 
-funcion CargarBan(playerid, name[], value[])
-{
-	INI_Int("Baneado", _ban[playerid][0]);
-	INI_Int("bTiempo", _ban[playerid][1]);
-	INI_String("bCulpable", ban1[playerid], 32);
-	INI_String("bRazon", ban2[playerid], 128);
-	INI_String("bMomento", ban3[playerid], 150);
-	return 1;
-}
 
 GCMD:estajail(playerid,  const params[])
 {
+	yield 1;
 	if(user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new
-		pID
+		pID,
+		ORM:esta_jail,
+		nomban[MAX_PLAYER_NAME]
 	;
-	if (sscanf(params, "u", pID)) return _Mensaje(playerid, 3, "0", "/estajail [Nombre_Apellido]");
-	if (IsPlayerConnected(pID)) return _Mensaje(playerid, 0, "75", "Ese jugador está conectado.");
-	new fcuenta[256];
-	format(fcuenta, sizeof(fcuenta), DATOS_Personajes, params);
-	if(!fexist(fcuenta)) return Mensaje_(playerid, -1, "Esta cuenta no existe.");
-	INI_ParseFile(fcuenta, "CargarSancion", .bExtra = true, .extra = playerid);
-	switch (xDias[playerid])
-	{
-		case 1:
-		{
-			format(fcuenta, sizeof(fcuenta), "OOC: Tiempo %d minutos - Responsable: %s - Razón: %s", xMeses[playerid], ban1[playerid], ban2[playerid]);
-			SendSplitMessage(playerid, 0xffffffff, fcuenta);
+	static
+		ban1[51],
+		ejJail,
+		ejJailTime,
+		ejTiempito,
+		ban2[51]
+	;
+	
+
+	if(isnull(params)) return _Mensaje(playerid, 0, "0", "USO: /estajail [Nombre_Apellido]" );
+	sscanf(params, "s[32]", nomban);
+	if (!characterCheck(params)) return _Mensaje(playerid, 0, "75", "Ese personaje no existe.");
+	if ((pID = IsCharConnected(nomban)) != -1){
+		alm(ban1, user[pID][jJculpable]);
+		alm(ban2, user[pID][jJrazon]);
+		ejJail = user[pID][jEncarcelado];
+		ejJailTime = user[pID][jTiempoCarcel];
+		ejTiempito = user[pID][jtiempito];
+	}
+	else{
+		while(ejJailTime){
+			yield 1;
+			ejJailTime ^= 0;
 		}
-		case 2:
-		{
-			format(fcuenta, sizeof(fcuenta), "Comisaría: Tiempo %d minutos.", xMeses[playerid]);
-			SendClientMessage(playerid, 0xffffffff, fcuenta);
-		}
-		case 3:
-		{
-			format(fcuenta, sizeof(fcuenta), "PF: Tiempo %s.", tiempo_minuto(playerid, algomas[playerid] - gettime(), 1));
-			SendClientMessage(playerid, 0xffffffff, fcuenta);
-		}
-		default:
-		{
-			Mensaje_(playerid, C_UGRP, "Ese personaje no está sancionado.");
+		esta_jail = orm_create("characters");
+		orm_addvar_string(esta_jail, nomban, MAX_PLAYER_NAME, "NombrePJ");
+		orm_setkey(esta_jail, "NombrePJ");
+		orm_addvar_string(esta_jail, ban1, 50, "jCulpable");
+		orm_addvar_int(esta_jail, ejJail, "Encarcelado");
+		orm_addvar_int(esta_jail, ejJailTime, "TiempoCarcel");
+		orm_addvar_int(esta_jail, ejTiempito, "tiempito");
+		orm_addvar_string(esta_jail, ban2, 50, "jRazon");
+		
+		if((task_await(orm_async_select(esta_jail))) != _:ERROR_OK){
+			ejJailTime = 0;
+			orm_destroy(esta_jail);
+			return _Mensaje(playerid, 0, "0", "No se pudo cargar la información del jail.");
 		}
 	}
+	switch (ejJail)
+	{
+		case 1:
+			SendClientMessage(playerid, 0xffffffff, "OOC: Tiempo %d minutos - Responsable: %s - Razón: %s", ejJailTime, ban1, ban2);
+		case 2:
+			SendClientMessage(playerid, 0xffffffff, "Comisaría: Tiempo %d minutos.", ejJailTime);
+		case 3:
+			SendClientMessage(playerid, 0xffffffff, "PF: Tiempo %s.", tiempo_minuto(playerid, ejTiempito - gettime(), 1));
+		default:
+			Mensaje_(playerid, C_UGRP, "Ese personaje no está sancionado.");
+	}
+	ejJailTime = 0;
+	orm_destroy(esta_jail);
 	return 1;
 }
 
-funcion CargarSancion(playerid, name[], value[])
-{
-	INI_String("jCulpable", ban1[playerid], 50);
-	INI_Int("Encarcelado", xDias[playerid]);
-	INI_Int("TiempoCarcel", xMeses[playerid]);
-	INI_Int("tiempito", algomas[playerid]);
-	INI_String("jRazon", ban2[playerid], 50);
-	return 1;
-}
 
 GCMD:desbug(playerid)
 {
@@ -32868,27 +32089,36 @@ GCMD:desbug(playerid)
 GCMD:desbugear(playerid,  const params[])
 {
 	if(user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-
-	new
-		pID
-	;
-	if (sscanf(params, "u", pID)) return _Mensaje(playerid, 3, "0", "/desbugear [Nombre_Apellido]");
-	if (IsPlayerConnected(pID)) return _Mensaje(playerid, 0, "75", "Ese jugador está conectado.");
+	new dbgName[MAX_PLAYER_NAME];
+	if(sscanf(params, "s[25]", dbgName)) return _Mensaje(playerid, 0, "0", "USO: /desbugear [Nombre_Apellido]");
+	yield 1;
+	if(!characterCheck(dbgName)) return _Mensaje(playerid, 0, "0", "Ese personaje no existe.");
 	new fcuenta[120];
-	format(fcuenta, sizeof(fcuenta), DATOS_Personajes, params);
-	if(!fexist(fcuenta)) return Mensaje_(playerid, -1, "Esta cuenta no existe.");
+	new ORM:desbugero = orm_create("characters");
+	orm_addvar_string(desbugero, dbgName, MAX_PLAYER_NAME, "NombrePJ");
+	orm_setkey(desbugero, "NombrePJ");
+	static val_ZERO = 0;
+	new
+		Float:dbgPosX = 1679.3351,
+		Float:dbgPosY = -1657.1349,
+		Float:dbgPosZ = 13.5395,
+		Float:dbgPosR = 318.4477
+	;
+	
+	orm_addvar_float(desbugero, dbgPosX, "Posicion_X" );
+	orm_addvar_float(desbugero, dbgPosY, "Posicion_Y" );
+	orm_addvar_float(desbugero, dbgPosZ, "Posicion_Z" );
+	orm_addvar_float(desbugero, dbgPosR, "Posicion_R" );
+	orm_addvar_int(desbugero, val_ZERO, "Interior");
+	orm_addvar_int(desbugero, val_ZERO, "VirtualWorld");
+	if( (task_await(orm_async_update(desbugero))) == _:ERROR_OK)
+		format(fcuenta, sizeof(fcuenta), "Desbugeaste a %s.", dbgName);
+	else
+		format(fcuenta, sizeof(fcuenta), "Ocurrió un error al desbugear a %s.", dbgName);
 
-	new INI: File = INI_Open(fcuenta);
-	INI_WriteFloat(File, "Posicion_X", 1679.3351);
-	INI_WriteFloat(File, "Posicion_Y", -1657.1349);
-	INI_WriteFloat(File, "Posicion_Z", 13.5395);
-	INI_WriteFloat(File, "Posicion_R", 318.4477);
-	INI_WriteInt(File, "Interior", 0);
-	INI_WriteInt(File, "VirtualWorld", 0);
-	INI_Close(File);
-	format(fcuenta, sizeof(fcuenta), "Desbugeaste a %s.", params);
+
 	Mensaje_(playerid, -1, fcuenta);
-
+	orm_destroy(desbugero);
 	return 1;
 }
 
@@ -33278,35 +32508,49 @@ GCMD:apagarincendio(playerid)
     }
 	return 1;
 }
-new cuenta_[MAX_PLAYERS][9];
+
 GCMD:coff(playerid,  const params[])
 {
 	if(user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-
 	if(isnull(params)) return Mensaje_(playerid, -1, "/coff [Nombre_Apellido]");
-	new fcuenta[256];
-	format(fcuenta, sizeof(fcuenta), DATOS_Personajes, params);
-	if(!fexist(fcuenta)) return Mensaje_(playerid, -1, "Esta cuenta no existe.");
-	INI_ParseFile(fcuenta, "CargarCuentaOff", .bExtra = true, .extra = playerid);
-	new proximonvl = cuenta_[playerid][0] + 1, cantidadexp = proximonvl * nivelexp;
-	format(fcuenta, sizeof(fcuenta), "%s - Nivel: %d (%d/%d) | Horas de juego: %d | Dinero: %d | Banco: %d | Casas: %d / %d | Negocios: %d / %d", params,
-	cuenta_[playerid][0], cuenta_[playerid][8], cantidadexp, cuenta_[playerid][1], cuenta_[playerid][2], cuenta_[playerid][3],
-	cuenta_[playerid][4], cuenta_[playerid][5], cuenta_[playerid][6], cuenta_[playerid][7]);
-	_Mensaje(playerid, 4, "ffffff", fcuenta);
-	return 1;
-}
+	new charCheck[MAX_PLAYER_NAME];
+	sscanf(params, "s[25]", charCheck);
+	yield 1;
+	if(!characterCheck(charCheck)) return Mensaje_(playerid, -1, "Esta cuenta no existe.");
+	new ORM:c_off = orm_create("characters");
+	orm_addvar_string(c_off, charCheck, MAX_PLAYER_NAME, "NombrePJ");
+	orm_setkey(c_off, "NombrePJ");
+	static cuenta_[9] = {-1, ...}; // Declaramos una static, para que al usar yield, la parte asíncrona continúe teniendo los punteros.
+	while(cuenta_[0] != -1) //static es un global, si alguien llega a utilizar el comando mientras se procesa otro, aguantar los ticks hasta que las variables se liberen
+		yield 1;
+	orm_addvar_int(c_off, cuenta_[0], "Nivel");
+	orm_addvar_int(c_off, cuenta_[1], "Horas");
+	orm_addvar_int(c_off, cuenta_[2], "Dinero");
+	orm_addvar_int(c_off, cuenta_[3], "Banco");
+	orm_addvar_int(c_off, cuenta_[4], "Casa");
+	orm_addvar_int(c_off, cuenta_[5], "Casa2");
+	orm_addvar_int(c_off, cuenta_[6], "Negocio");
+	orm_addvar_int(c_off, cuenta_[7], "Negocio2");
+    orm_addvar_int(c_off, cuenta_[8], "Experiencia");
 
-funcion CargarCuentaOff(playerid, name[], value[])
-{
-	INI_Int("Nivel", cuenta_[playerid][0]);
-	INI_Int("Horas", cuenta_[playerid][1]);
-	INI_Int("Dinero", cuenta_[playerid][2]);
-	INI_Int("Banco", cuenta_[playerid][3]);
-	INI_Int("Casa", cuenta_[playerid][4]);
-	INI_Int("Casa2", cuenta_[playerid][5]);
-	INI_Int("Negocio", cuenta_[playerid][6]);
-	INI_Int("Negocio2", cuenta_[playerid][7]);
-    INI_Int("Experiencia", cuenta_[playerid][8]);
+	
+	if( (task_await(orm_async_select(c_off))) != _:ERROR_OK){
+		cuenta_[0] = -1; //Marcamos el indice 0 del arreglo estático como "libre"
+		orm_destroy(c_off);
+		return _Mensaje(playerid, 0, "0", "Ocurrió un error al recuperar los datos del personaje.");
+	}
+
+	new proximonvl = cuenta_[0] + 1, cantidadexp = proximonvl * nivelexp;
+	new fcuenta[200];
+	printf("%s - Nivel: %d (%d/%d) | Horas de juego: %d | Dinero: %d | Banco: %d | Casas: %d / %d | Negocios: %d / %d", charCheck,
+	cuenta_[0], cuenta_[8], cantidadexp, cuenta_[1], cuenta_[2], cuenta_[3],
+	cuenta_[4], cuenta_[5], cuenta_[6], cuenta_[7]);
+	format(fcuenta, sizeof(fcuenta), "%s - Nivel: %d (%d/%d) | Horas de juego: %d | Dinero: %d | Banco: %d | Casas: %d / %d | Negocios: %d / %d", charCheck,
+	cuenta_[0], cuenta_[8], cantidadexp, cuenta_[1], cuenta_[2], cuenta_[3],
+	cuenta_[4], cuenta_[5], cuenta_[6], cuenta_[7]);
+	_Mensaje(playerid, 4, "ffffff", fcuenta);
+	cuenta_[0] = -1; //Marcamos el indice 0 del arreglo estático como "libre"
+	orm_destroy(c_off);
 	return 1;
 }
 
@@ -33315,27 +32559,43 @@ GCMD:ultimaconexion(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return Mensaje_(playerid, -1, "/ultimaconexion [Nombre_Apellido]");
-
+	new
+		pjName[MAX_PLAYER_NAME];
+	sscanf(params, "s[25]", pjName);
+	yield 1;
+	if(!characterCheck(params)) return _Mensaje(playerid, 0, "0", "Ese personaje no existe.");
 	new
 		fcuenta[120]
 	;
+	static
+		xDias,
+	 	xMes,
+	 	xAno
+	;
+	// MSVC: xDias updated asynchronously
+	while(xDias){
+		yield 1;
+		xDias ^= 0;
+	}
 
-	format(fcuenta, sizeof(fcuenta), DATOS_Personajes, params);
-	if(!fexist(fcuenta)) return Mensaje_(playerid, -1, "Ese personaje no existe.");
-	INI_ParseFile(fcuenta, "CargarUltimaConexion", .bExtra = true, .extra = playerid);
-	format(fcuenta, sizeof(fcuenta), "%s última conexión: %d de %s del %d.", params, xDias[playerid], GetMonth(xMeses[playerid]), xAnos[playerid]);
+	new ORM:cmd_ultima_conexion = orm_create("characters");
+	orm_addvar_string(cmd_ultima_conexion, pjName, MAX_PLAYER_NAME, "NombrePJ");
+	orm_setkey(cmd_ultima_conexion, "NombrePJ");
+	orm_addvar_int(cmd_ultima_conexion, xDias, "uDia");
+	orm_addvar_int(cmd_ultima_conexion, xMes, "uMes");
+	orm_addvar_int(cmd_ultima_conexion, xAno, "uAno");
+	if((task_await(orm_async_select(cmd_ultima_conexion))) != _:ERROR_OK){
+		xDias = 0;
+		orm_destroy(cmd_ultima_conexion);
+		return _Mensaje(playerid, 0, "0", "Hubo un error cargando los datos del personaje.");
+	}
+	format(fcuenta, sizeof(fcuenta), "%s última conexión: %d de %s del %d.", pjName, xDias, GetMonth(xMes), xAno);
 	_Mensaje(playerid, 4, "ffffff", fcuenta);
-
+	
+	orm_destroy(cmd_ultima_conexion);
 	return 1;
 }
 
-funcion CargarUltimaConexion(playerid, name[], value[])
-{
-	INI_Int("uDia", xDias[playerid]);
-	INI_Int("uMes", xMeses[playerid]);
-	INI_Int("uAno", xAnos[playerid]);
-	return 1;
-}
 
 GetXYInFrontOfPoint(&Float:x, &Float:y, Float:angle, Float:distance) // funcion x jorge el matematico
 {
@@ -33461,7 +32721,7 @@ GCMD:darencrol(playerid,  const params[])
 	if (!IsPlayerConnected(playerid2)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
 
 	user[playerid2][jEncargado][4] = 1;
-	guardar_username(playerid2);
+	accountSave(playerid2);
 	format(string, sizeof(string), " %s lo ha asignado encargado de rol.", nombre_pj(playerid));
 	_Mensaje(playerid2, 4, "33CCFF", string);
 	format(string, sizeof(string), "[Administración]{FFFFFF} %s ha asignado encargado de rol a %s", nombre_pj(playerid), nombre_pj(playerid2));
@@ -33470,67 +32730,6 @@ GCMD:darencrol(playerid,  const params[])
 	return 1;
 }
 
-new x_pdr[MAX_PLAYERS];
-GCMD:darpdroff(playerid,  const params[])
-{
-	if (user[playerid][jEncargado][4] == 0) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	new string[128], name[MAX_PLAYER_NAME], pID, string2[40];
-	if (sscanf(params, "us[40]", pID, string2)) return _Mensaje(playerid, 3, "0", "/darpdroff [Nombre_Apellido] [razón]");
-	if (IsPlayerConnected(pID)) return _Mensaje(playerid, 0, "75", "Ese jugador está conectado.");
-	if (sscanf(params, "s[24]s[40]", name, string2)) return _Mensaje(playerid, 3, "0", "/darpdroff [Nombre_Apellido] [razón]");
-
-	new fcuenta[128];
-	format(fcuenta, sizeof(fcuenta), DATOS_Personajes, name);
-	if(!fexist(fcuenta)) return Mensaje_(playerid, -1, "Esta cuenta no existe.");
-	INI_ParseFile(fcuenta, "CargarPDR", .bExtra = true, .extra = playerid);
-	x_pdr[playerid]++;
-	new data[128];
-	format(data, sizeof data, DATOS_Personajes, name);
-	new INI: File = INI_Open(data);
-	INI_WriteInt(File, "PuntosRol", x_pdr[playerid]);
-	INI_Close(File);
-
-	format(string, sizeof(string), "Registros: %s dió un punto de rol a %s. Razón: %s.", user[playerid][jStaff], name, string2);
-	Log("Registros/PuntosDeRol.log", string);
-	format(string, sizeof(string), "[AvisoAdmin] %s ha dado un punto de rol a %s. ({ffffff}%s{FFFF00})", user[playerid][jStaff], name, string2);
-	MensajeAdmin(string, 2);
-	format(string, sizeof(string), "%s ahora tiene %d puntos de rol.", name, x_pdr[playerid]);
-	_Mensaje(playerid, 4, "b0b0b0", string);
-	return 1;
-}
-GCMD:quitarpdroff(playerid,  const params[])
-{
-	if (user[playerid][jEncargado][4] == 0) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	new string[128], name[MAX_PLAYER_NAME], pID;
-	if (sscanf(params, "u", pID)) return _Mensaje(playerid, 3, "0", "/quitarpdroff [Nombre_Apellido]");
-	if (IsPlayerConnected(pID)) return _Mensaje(playerid, 0, "75", "Ese jugador está conectado.");
-	if (sscanf(params, "s[24]", name)) return _Mensaje(playerid, 3, "0", "/quitarpdroff [Nombre_Apellido]");
-
-	new fcuenta[128];
-	format(fcuenta, sizeof(fcuenta), DATOS_Personajes, name);
-	if(!fexist(fcuenta)) return Mensaje_(playerid, -1, "Esta cuenta no existe.");
-	INI_ParseFile(fcuenta, "CargarPDR", .bExtra = true, .extra = playerid);
-	x_pdr[playerid]--;
-	new data[128];
-	format(data, sizeof data, DATOS_Personajes, name);
-	new INI: File = INI_Open(data);
-	INI_WriteInt(File, "PuntosRol", x_pdr[playerid]);
-	INI_Close(File);
-
-	format(string, sizeof(string), "Registros: %s ha removido un punto de rol a %s.", user[playerid][jStaff], name);
-	Log("Registros/PuntosDeRol.log", string);
-	format(string, sizeof(string), "[AvisoAdmin] %s ha removido un punto de rol a %s.", user[playerid][jStaff], name);
-	MensajeAdmin(string, 2);
-	format(string, sizeof(string), "%s ahora tiene %d puntos de rol.", name, x_pdr[playerid]);
-	_Mensaje(playerid, 4, "b0b0b0", string);
-	return 1;
-}
-
-funcion CargarPDR(playerid, name[], value[])
-{
-	INI_Int("PuntosRol", x_pdr[playerid]);
-	return 1;
-}
 
 GCMD:apdrn(playerid,  const params[])
 {
@@ -33641,9 +32840,8 @@ stock banipA(playerid, const razon[] = "x razón", const baneador[] = "x baneador
 	{
 		new directorio[200], namepj[MAX_PLAYER_NAME];
 		GetPlayerName(playerid, namepj, sizeof(namepj));
-		format(directorio, sizeof(directorio), DATOS_Personajes, namepj);
 
-		if (!fexist(directorio)) {
+		if (characterCheck(namepj)) {
 
 			_Mensaje(playerid, 0, "0", "No puedes hacer esto con un usuario no registrado.");
 
@@ -33654,9 +32852,8 @@ stock banipA(playerid, const razon[] = "x razón", const baneador[] = "x baneador
 				k += worth;
 				user[playerid][jBaneado] = 10;
 				format(elpru, sizeof(elpru), "%d", k);
-            	new INI:archivitodelplayer = INI_Open(directorio);
-				INI_WriteString(archivitodelplayer,"bTiempo", elpru);
-            	INI_Close(archivitodelplayer);
+				mysql_format(mainDatabase, directorio, sizeof(directorio), "UPDATE characters SET bTiempo = '%e' WHERE NombrePJ = '%e'", elpru, namepj);
+				mysql_tquery(mainDatabase, directorio);
 			}
 			else user[playerid][jBaneado] = 20;
 			alm(user[playerid][jBmomento], el_tiempo());
@@ -34294,7 +33491,7 @@ GCMD:editarv(playerid,  const params[])
 	{
 		if (!i_Vehiculo[params[0]][vModelo]) return _Mensaje(playerid, 0, "548", "Id vehículo invalida.");
 		format(i_Vehiculo[params[0]][vDueno], 64, "%s", params[1]);
-		save_vehiculo(params[0]);
+		vehicleSave(params[0]);
 		_Mensaje(playerid, 4, "00ABAE", "Vehículo indicado ha sido cambiado de dueño con éxito.");
 	} else _Mensaje(playerid, 3, "0", "/editarv [id veh] [nombre apellido]");
 	return 1;
@@ -34587,92 +33784,17 @@ GCMD:salirpd(playerid)
 	return 1;
 }
 
-GCMD:quitarcasaoff(playerid,  const params[])
-{
-	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarcasaoff [Nombre_Apellido]");
-	if (check_cuenta(params))
-	{
-		new data[60], string[128];
-		format(data, sizeof data, DATOS_Personajes, params);
-		new INI: File = INI_Open(data);
-		INI_WriteInt(File, "Casa", -1);
-		INI_Close(File);
-		format(string, 128, "[Administración]{FFFFFF} %s le quitó la casa que tenía %s.", nombre_pj(playerid), params);
-		MensajeAdmin(string);
-		format(string, sizeof(string), "Registros: %s le quitó la casa que tenía %s.", nombre_pj(playerid), params);
-		Log("Registros/QuitarCasa.log", string);
-	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
-	return 1;
-}
-GCMD:quitarcasaoff2(playerid,  const params[])
-{
-	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarcasaoff2 [Nombre_Apellido]");
-	if (check_cuenta(params))
-	{
-		new data[60], string[128];
-		format(data, sizeof data, DATOS_Personajes, params);
-		new INI: File = INI_Open(data);
-		INI_WriteInt(File, "CasaLlaves", -1);
-		INI_Close(File);
-		format(string, 128, "[Administración]{FFFFFF} %s le quitó la casaLl que tenía %s.", nombre_pj(playerid), params);
-		MensajeAdmin(string);
-		format(string, sizeof(string), "Registros: %s le quitó la casaLl que tenía %s.", nombre_pj(playerid), params);
-		Log("Registros/QuitarCasa.log", string);
-	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
-	return 1;
-}
 
-GCMD:quitarnegociooff(playerid,  const params[])
-{
-	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarnegociooff [Nombre_Apellido]");
-	if (check_cuenta(params))
-	{
-		new data[60], string[128];
-		format(data, sizeof data, DATOS_Personajes, params);
-		new INI: File = INI_Open(data);
-		INI_WriteInt(File, "Negocio", -1);
-		INI_Close(File);
-		format(string, 128, "[Administración]{FFFFFF} %s le quitó el negocio que tenía %s.", nombre_pj(playerid), params);
-		MensajeAdmin(string);
-		format(string, sizeof(string), "Registros: %s le quitó el negocio que tenía %s.", nombre_pj(playerid), params);
-		Log("Registros/QuitarNegocio.log", string);
-	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
-	return 1;
-}
-GCMD:quitarnegociooff2(playerid,  const params[])
-{
-	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarnegociooff2 [Nombre_Apellido]");
-	if (check_cuenta(params))
-	{
-		new data[60], string[128];
-		format(data, sizeof data, DATOS_Personajes, params);
-		new INI: File = INI_Open(data);
-		INI_WriteInt(File, "NegocioLlaves", -1);
-		INI_Close(File);
-		format(string, 128, "[Administración]{FFFFFF} %s le quitó el negocioLl que tenía %s.", nombre_pj(playerid), params);
-		MensajeAdmin(string);
-		format(string, sizeof(string), "Registros: %s le quitó el negocioLl que tenía %s.", nombre_pj(playerid), params);
-		Log("Registros/QuitarNegocio.log", string);
-	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
-	return 1;
-}
 
 GCMD:darhorasoff(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[128], name[MAX_PLAYER_NAME], dinero;
 	if (sscanf(params, "s[50]d", name, dinero)) return _Mensaje(playerid, 3, "0", "/darhorasoff [Nombre_Apellido] [monto]");
-	if (check_cuenta(name))
+	if (characterCheck(name))
 	{
-		new data[60];
-		format(data, sizeof data, DATOS_Personajes, name);
-		new INI: File = INI_Open(data);
-		INI_WriteInt(File, "Horas", dinero);
-		INI_Close(File);
+		mysql_format(mainDatabase, string, sizeof(string), "UPDATE characters SET Horas = Horas+%d WHERE NombrePJ = '%e'", dinero, name);
+		mysql_tquery(mainDatabase, string);
 		format(string, 128, "[AvisoAdmin] %s cedió las horas de juego %d a %s. (OFF)", nombre_pj(playerid), dinero, name);
 		MensajeAdmin(string, 2);
 		format(string, sizeof(string), "Registros: %s cedió las horas de juego %d a %s. (OFF)", nombre_pj(playerid), dinero, name);
@@ -34686,13 +33808,10 @@ GCMD:darniveloff(playerid,  const params[])
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[128], name[MAX_PLAYER_NAME], dinero;
 	if (sscanf(params, "s[50]d", name, dinero)) return _Mensaje(playerid, 3, "0", "/darniveloff [Nombre_Apellido] [monto]");
-	if (check_cuenta(name))
+	if (characterCheck(name))
 	{
-		new data[60];
-		format(data, sizeof data, DATOS_Personajes, name);
-		new INI: File = INI_Open(data);
-		INI_WriteInt(File, "Nivel", dinero);
-		INI_Close(File);
+		mysql_format(mainDatabase, string, sizeof(string), "UPDATE characters SET Nivel = %d WHERE NombrePJ = '%e'", dinero, name);
+		mysql_tquery(mainDatabase, string);
 		format(string, 128, "[AvisoAdmin] %s cedió el nivel %d a %s. (OFF)", nombre_pj(playerid), dinero, name);
 		MensajeAdmin(string, 2);
 		format(string, sizeof(string), "Registros: %s cedió el nivel %d a %s. (OFF)", nombre_pj(playerid), dinero, name);
@@ -34706,16 +33825,13 @@ GCMD:darbancooff(playerid,  const params[])
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[128], name[MAX_PLAYER_NAME], dinero;
 	if (sscanf(params, "s[50]d", name, dinero)) return _Mensaje(playerid, 3, "0", "/darbancooff [Nombre_Apellido] [monto]");
-	if (check_cuenta(name))
+	if (characterCheck(name))
 	{
-		new data[60];
-		format(data, sizeof data, DATOS_Personajes, name);
-		new INI: File = INI_Open(data);
-		INI_WriteInt(File, "Banco", dinero);
-		INI_Close(File);
-		format(string, 128, "[AvisoAdmin] %s ha otorgado la cantidad banco de %d$ a %s. (OFF)", nombre_pj(playerid), dinero, name);
+		mysql_format(mainDatabase, string, sizeof(string), "UPDATE characters SET Banco = Banco+(%d) WHERE NombrePJ = '%e'", dinero, name);
+		mysql_tquery(mainDatabase, string);
+		format(string, 128, "[AvisoAdmin] %s ha otorgado la cantidad banco de $%d a %s. (OFF)", nombre_pj(playerid), dinero, name);
 		MensajeAdmin(string, 2);
-		format(string, sizeof(string), "Registros: %s le cedio la cantidad banco de %d$ a %s. (OFF)", nombre_pj(playerid), dinero, name);
+		format(string, sizeof(string), "Registros: %s le cedio la cantidad banco de $%d a %s. (OFF)", nombre_pj(playerid), dinero, name);
 		Log("Registros/DarDinero.log", string);
 	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
 	return 1;
@@ -34726,16 +33842,13 @@ GCMD:dardinerooff(playerid,  const params[])
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	new string[128], name[MAX_PLAYER_NAME], dinero;
 	if (sscanf(params, "s[50]d", name, dinero)) return _Mensaje(playerid, 3, "0", "/dardinerooff [Nombre_Apellido] [monto]");
-	if (check_cuenta(name))
+	if (characterCheck(name))
 	{
-		new data[60];
-		format(data, sizeof data, DATOS_Personajes, name);
-		new INI: File = INI_Open(data);
-		INI_WriteInt(File, "Dinero", dinero);
-		INI_Close(File);
-		format(string, 128, "[AvisoAdmin] %s ha otorgado la cantidad de %d$ a %s. (OFF)", nombre_pj(playerid), dinero, name);
+		mysql_format(mainDatabase, string, sizeof(string), "UPDATE characters SET Dinero = Dinero+(%d) WHERE NombrePJ = '%e'", dinero, name);
+		mysql_tquery(mainDatabase, string);
+		format(string, 128, "[AvisoAdmin] %s ha otorgado la cantidad de $%d a %s. (OFF)", nombre_pj(playerid), dinero, name);
 		MensajeAdmin(string, 2);
-		format(string, sizeof(string), "Registros: %s le cedio la cantidad de %d$ a %s. (OFF)", nombre_pj(playerid), dinero, name);
+		format(string, sizeof(string), "Registros: %s le cedio la cantidad de $%d a %s. (OFF)", nombre_pj(playerid), dinero, name);
 		Log("Registros/DarDinero.log", string);
 	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
 	return 1;
@@ -34797,36 +33910,45 @@ GCMD:limpiartodooff(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/limpiartodooff [Nombre_Apellido]");
-	if (check_cuenta(params))
+	new nomlt_off[MAX_PLAYER_NAME];
+	sscanf(params, "s[25]", nomlt_off);
+	new string[128];
+	yield 1;
+	if (characterCheck(nomlt_off))
 	{
-		new data[60], string[128];
-		format(data, sizeof data, DATOS_Personajes, params);
-		new INI: File = INI_Open(data);
+		static val_ZERO = 0;
+		new ORM:lt_orm = orm_create("characters");
+		orm_addvar_string(lt_orm, nomlt_off, MAX_PLAYER_NAME, "NombrePJ");
+		orm_setkey(lt_orm, "NombrePJ");
 		for(new i = 0; i < 10; i++)
 		{
 			new sql[100];
 			format(sql, sizeof(sql), "Bolsillo%d", i);
-			INI_WriteInt(File, sql, 0);
+			orm_addvar_int(lt_orm, val_ZERO, sql);
 			format(sql, sizeof(sql), "BolsilloCant%d", i);
-			INI_WriteInt(File, sql, 0);
+			orm_addvar_int(lt_orm, val_ZERO, sql);
 		}
-		INI_WriteInt(File, "Izquierda", 0);
-		INI_WriteInt(File, "IzquierdaCant", 0);
-		INI_WriteInt(File, "Derecha", 0);
-		INI_WriteInt(File, "DerechaCant", 0);
-		INI_WriteInt(File, "Espalda", 0);
-		INI_WriteInt(File, "EspaldaCant", 0);
+		orm_addvar_int(lt_orm, val_ZERO, "Izquierda");
+		orm_addvar_int(lt_orm, val_ZERO, "IzquierdaCant");
+		orm_addvar_int(lt_orm, val_ZERO, "Derecha");
+		orm_addvar_int(lt_orm, val_ZERO, "DerechaCant");
+		orm_addvar_int(lt_orm, val_ZERO, "Espalda");
+		orm_addvar_int(lt_orm, val_ZERO, "EspaldaCant");
 		for(new i = 0; i < 6; i++)
 		{
 			new sql[100];
-			format(sql, sizeof(sql), "Cinturon%d", i); INI_WriteInt(File, sql, 0);
-			format(sql, sizeof(sql), "CinturonCant%d", i); INI_WriteInt(File, sql, 0);
+			format(sql, sizeof(sql), "Cinturon%d", i);
+			orm_addvar_int(lt_orm, val_ZERO, sql);
+			format(sql, sizeof(sql), "CinturonCant%d", i);
+			orm_addvar_int(lt_orm, val_ZERO, sql);
 		}
-		INI_Close(File);
-		format(string, 128, "[Administración]{FFFFFF} %s limpio el sistema de inventarios de %s. (CMD OFF)", nombre_pj(playerid), params);
-		MensajeAdmin(string);
-		format(string, sizeof(string), "Registros: %s limpio el sistema de inventarios de %s. (CMD OFF)", nombre_pj(playerid), params);
-		Log("Registros/LimpiarInventario.log", string);
+		
+		if( (task_await(orm_async_update(lt_orm))) == _:ERROR_OK ){
+			format(string, 128, "[Administración]{FFFFFF} %s limpio el sistema de inventarios de %s. (CMD OFF)", nombre_pj(playerid), params);
+			MensajeAdmin(string);
+			format(string, sizeof(string), "Registros: %s limpio el sistema de inventarios de %s. (CMD OFF)", nombre_pj(playerid), params);
+			Log("Registros/LimpiarInventario.log", string);
+		}
 	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
 	return 1;
 }
@@ -34895,7 +34017,7 @@ GCMD:venderveh(playerid,  const params[])
 				SetPlayerPos(playerid, X, Y, Z+2);
 				VehiculoBorrar(vid);
 				user[playerid][jLlaveCoche][id-1] = 0;
-				guardar_cuenta(playerid);
+				characterSave(playerid);
 				_Mensaje(playerid, 5, "0", "Su vehículo ha sido vendido a mitad de precio.");
 				coches_usados+=1;
 			} else return _Mensaje(playerid, 0, "327", "No estás dentro del vehículo que escogiste a vender.");
@@ -35755,7 +34877,7 @@ GCMD:adminayuda(playerid)
 	if (user[playerid][jEncargado][0])
 	{
 		strcat(DComandosAdmin, "{E8B63A}— STAFF{ffffff}\n");
-		strcat(DComandosAdmin, "{FFFFFF}/daradmin /daradminoff /quitaradminoff /admins\n");
+		strcat(DComandosAdmin, "{FFFFFF}/daradmin /admins\n");
 	}
 	if (user[playerid][jEncargado][1])
 	{
@@ -36059,7 +35181,7 @@ GCMD:salirfaccion(playerid)
 		user[playerid][jLider] = 0;
 		EnServicio[playerid] = 0;
 		EnServicioPD[playerid] = 0;
-		guardar_cuenta(playerid);
+		characterSave(playerid);
 	} else _Mensaje(playerid, 0, "218", "No estás en una facción.");
 	return 1;
 }
@@ -36257,25 +35379,53 @@ GCMD:quitarcasa(playerid,  const params[])
 {
 	new string[200];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	if (sscanf(params, "d", params[0])) return _Mensaje(playerid, 3, "0", "/quitarcasa [id jugador]");
-	if (!IsPlayerConnected(params[0])) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
-
-	user[params[0]][jCasaKey] = INVALID_CASA_ID;
-	format(string, sizeof(string), "[Administración]{FFFFFF} %s utilizó /quitarcasa, Jugador: %s[%d].", nombre_pj(playerid), nombre_pj(params[0]),params[0]);
-	MensajeAdmin(string);
+	new quitarName[MAX_PLAYER_NAME];
+	if (sscanf(params, "s[25]", quitarName)) return _Mensaje(playerid, 3, "0", "/quitarcasa [Nombre_Apellido]");
+	if(new target = IsCharConnected(quitarName) != -1){
+		user[target][jCasaKey] = INVALID_CASA_ID;
+		format(string, sizeof(string), "[Administración]{FFFFFF} %s utilizó /quitarcasa, Jugador: %s[%d].", nombre_pj(playerid), nombre_pj(target), target);
+		MensajeAdmin(string);
+		format(string, sizeof(string), "Registros: %s le quitó la casa que tenía %s.", nombre_pj(playerid), params);
+		Log("Registros/QuitarCasa.log", string);
+	}
+	else{
+		if(characterCheck(quitarName))
+		{
+			mysql_format(mainDatabase, string, sizeof(string), "UPDATE characters SET Casa = %d WHERE NombrePJ = '%e'", INVALID_CASA_ID, quitarName);
+			mysql_tquery(mainDatabase, string);
+			format(string, 128, "[Administración]{FFFFFF} %s le quitó la casa que tenía %s.", nombre_pj(playerid), params);
+			MensajeAdmin(string);
+			format(string, sizeof(string), "Registros: %s le quitó la casa que tenía %s.", nombre_pj(playerid), params);
+			Log("Registros/QuitarCasa.log", string);
+		} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
+	}
 	return 1;
 }
 
 GCMD:quitarcasa2(playerid,  const params[])
 {
 	new string[200];
-	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "728", "Usted no tiene acceso a este comando.");
-	if (sscanf(params, "d", params[0])) return _Mensaje(playerid, 3, "0", "/quitarcasa2 [id jugador]");
-	if (!IsPlayerConnected(params[0])) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
-
-	user[params[0]][jCasaKey2] = INVALID_CASA_ID;
-	format(string, sizeof(string), "[Administración]{FFFFFF} %s utilizó /quitarcasa2, Jugador: %s[%d].", nombre_pj(playerid), nombre_pj(params[0]),params[0]);
-	MensajeAdmin(string);
+	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
+	new quitarName[MAX_PLAYER_NAME];
+	if (sscanf(params, "s[25]", quitarName)) return _Mensaje(playerid, 3, "0", "/quitarcasa [Nombre_Apellido]");
+	if(new target = IsCharConnected(quitarName) != -1){
+		user[target][jCasaKey2] = INVALID_CASA_ID;
+		format(string, sizeof(string), "[Administración]{FFFFFF} %s utilizó /quitarcasa, Jugador: %s[%d].", nombre_pj(playerid), nombre_pj(target), target);
+		MensajeAdmin(string);
+		format(string, sizeof(string), "Registros: %s le quitó la casa que tenía %s.", nombre_pj(playerid), params);
+		Log("Registros/QuitarCasa.log", string);
+	}
+	else{
+		if(characterCheck(quitarName))
+		{
+			mysql_format(mainDatabase, string, sizeof(string), "UPDATE characters SET Casa2 = %d WHERE NombrePJ = '%e'", INVALID_CASA_ID, quitarName);
+			mysql_tquery(mainDatabase, string);
+			format(string, 128, "[Administración]{FFFFFF} %s le quitó la casa que tenía %s.", nombre_pj(playerid), params);
+			MensajeAdmin(string);
+			format(string, sizeof(string), "Registros: %s le quitó la casa que tenía %s.", nombre_pj(playerid), params);
+			Log("Registros/QuitarCasa.log", string);
+		} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
+	}
 	return 1;
 }
 
@@ -36325,10 +35475,26 @@ GCMD:quitarnegocio(playerid,  const params[])
 {
 	new string[200];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "728", "Usted no tiene acceso a este comando.");
-	if (sscanf(params, "d", params[0])) return _Mensaje(playerid, 3, "0", "/quitarnegocio [id jugador]");
-	if (!IsPlayerConnected(params[0])) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
-
-	user[params[0]][jNegocioKey] = INVALID_NEGOCIO_ID;
+	new quitarName[MAX_PLAYER_NAME];
+	if (sscanf(params, "s[25]", quitarName)) return _Mensaje(playerid, 3, "0", "/quitarnegocio [Nombre_Apellido]");
+	if(new target = IsCharConnected(quitarName) != -1){
+		user[target][jNegocioKey] = INVALID_NEGOCIO_ID;
+		characterSave(target);
+		format(string, 128, "[Administración]{FFFFFF} %s le quitó el negocio que tenía %s.", nombre_pj(playerid), quitarName);
+		MensajeAdmin(string);
+		format(string, sizeof(string), "Registros: %s le quitó el negocio que tenía %s.", nombre_pj(playerid), quitarName);
+		Log("Registros/QuitarNegocio.log", string);
+	}
+	
+	if (characterCheck(quitarName))
+	{ 
+		mysql_format(mainDatabase, string, sizeof(string), "UPDATE characters SET Negocio = %d WHERE NombrePJ = '%e'", INVALID_NEGOCIO_ID, quitarName);
+		mysql_tquery(mainDatabase, string);
+		format(string, 128, "[Administración]{FFFFFF} %s le quitó el negocio que tenía %s.", nombre_pj(playerid), params);
+		MensajeAdmin(string);
+		format(string, sizeof(string), "Registros: %s le quitó el negocio que tenía %s.", nombre_pj(playerid), params);
+		Log("Registros/QuitarNegocio.log", string);
+	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
 	format(string, 128, "[Administración]{FFFFFF} %s utilizó /quitarnegocio, Jugador: %s[%d].", nombre_pj(playerid), nombre_pj(params[0]),params[0]);
 	MensajeAdmin(string);
 	return 1;
@@ -36338,63 +35504,110 @@ GCMD:quitarnegocio2(playerid,  const params[])
 {
 	new string[200];
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "728", "Usted no tiene acceso a este comando.");
-	if (sscanf(params, "d", params[0])) return _Mensaje(playerid, 3, "0", "/quitarnegocio2 [id jugador]");
-	if (!IsPlayerConnected(params[0])) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
-
-	user[params[0]][jNegocioKey2] = INVALID_NEGOCIO_ID;
-	format(string, 128, "[Administración]{FFFFFF} %s utilizó /quitarnegocio2, Jugador: %s[%d].", nombre_pj(playerid), nombre_pj(params[0]),params[0]);
-	MensajeAdmin(string);
-	return 1;
-}
-
-GCMD:daradminoff(playerid,  const params[])
-{
-	if (user[playerid][jEncargado][0] == 0) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
-	new string[128], name[MAX_PLAYER_NAME], minutes;
-	if (sscanf(params, "s[24]d", name, minutes)) return _Mensaje(playerid, 3, "0", "/daradminoff [username] [nivel]");
-	if (check_username(name))
-	{
-		new data[60];
-		format(data, sizeof data, DATOS_CUENTAS, name);
-		new INI: File = INI_Open(data);
-		INI_WriteInt(File, "Admin", minutes);
-		INI_Close(File);
-		format(string, sizeof(string), "Registros: %s le otorgo a %s un puesto en el Staff nivel %d. (CMD OFF)", username[playerid], name,minutes);
-		if (playerid != params[0]) Log("Registros/DarAdmin.log", string);
-		format(string, 128, "[Administración]{FFFFFF} %s le otorgo a %s un puesto en el Staff nivel %d. (CMD OFF)", nombre_pj(playerid),name,minutes);
+	new quitarName[MAX_PLAYER_NAME];
+	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarnegocio2 [id jugador]");
+	sscanf(params, "s[25]", quitarName);
+	if(new target = IsCharConnected(quitarName) != -1){
+		user[target][jNegocioKey2] = INVALID_NEGOCIO_ID;
+		characterSave(target);
+		format(string, 128, "[Administración]{FFFFFF} %s le quitó el negocio que tenía %s.", nombre_pj(playerid), quitarName);
 		MensajeAdmin(string);
-	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
+		format(string, sizeof(string), "Registros: %s le quitó el negocio que tenía %s.", nombre_pj(playerid), quitarName);
+		Log("Registros/QuitarNegocio.log", string);
+	}
+	if (characterCheck(params))
+	{ 
+		mysql_format(mainDatabase, string, sizeof(string), "UPDATE characters SET NegocioLlaves = %d WHERE NombrePJ = '%e'", INVALID_NEGOCIO_ID, quitarName);
+		mysql_tquery(mainDatabase, string);
+		format(string, 128, "[Administración]{FFFFFF} %s utilizó /quitarnegocio2, Jugador: %s[%d].", nombre_pj(playerid), nombre_pj(params[0]),params[0]);
+		MensajeAdmin(string);
+		format(string, sizeof(string), "Registros: %s le quitó el negocioLl que tenía %s.", nombre_pj(playerid), params);
+		Log("Registros/QuitarNegocio.log", string);
+	}
+	else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
+	
 	return 1;
 }
+
 
 GCMD:daradmin(playerid,  const params[])
 {
-	if (user[playerid][jEncargado][0] == 0) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
-	if (sscanf(params, "dd", params[0], params[1])) return _Mensaje(playerid, 3, "0", "/daradmin [id jugador] [nivel]");
+	if (user[playerid][jEncargado][0] == 0 && user[playerid][jAdmin] < 1338) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
+	new target[32], level;
+	if(sscanf(params, "s[32]d", target, level)) return _Mensaje(playerid, 3, "0", "USO: /darmod [Cuenta] [Nivel de Rango Administrativo]");
 	if (params[1] < 0 || params[1] > 5) return _Mensaje(playerid, 1, "0", "Rangos admins desde 1 a 5.");
-	if (!IsPlayerConnected(params[0])) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
-
 	new string[128];
-	user[params[0]][jAdmin] = params[1];
-	if (params[1] == 0)
-	{
-		user[params[0]][jEncargado][0] = 0;
-		user[params[0]][jEncargado][1] = 0;
-		user[params[0]][jEncargado][2] = 0;
-		user[params[0]][jEncargado][3] = 0;
-		user[params[0]][jEncargado][4] = 0;
+	if(!accountCheck(target)){
+		new err[64];
+		format(err, sizeof(err), "¡La cuenta %s no existe!", target);
+		return _Mensaje(playerid, 3, "0", err);
 	}
-	guardar_username(params[0]);
-	format(string, sizeof(string), "* El administrador %s te otorgo un puesto en el Staff nivel %d", nombre_pj(playerid), params[1]);
-	_Mensaje(params[0], 4, "33CCFF", string);
-	format(string, sizeof(string), "[Administración]{FFFFFF} %s le otorgo a %s un puesto en el Staff nivel %d.", nombre_pj(playerid), nombre_pj(params[0]), params[1]);
-	MensajeAdmin(string);
-	format(string, sizeof(string), "Registros: El administrador %s le otorgo a %s un puesto en el Staff nivel %d.",  username[playerid], username[params[0]], params[1]);
-	if (playerid != params[0]) Log("Registros/DarAdmin.log", string);
+	new id = IsAccountConnected(target);
+	if(IsPlayerConnected(id)){
+		if(user[id][jAdmin] >= user[playerid][jAdmin]) return _Mensaje(playerid, 1, "0", "¡No puedes cambiar el rango de un superior o un usuario de tu mismo rango!");
+		format(string, sizeof(string), "* El administrador %s te otorgo un puesto en el Staff nivel %d", nombre_pj(playerid), level);
+		_Mensaje(id, 4, "33CCFF", string);
+		user[id][jAdmin] = level;
+		if (!level){
+			user[id][jEncargado][0] = 0;
+			user[id][jEncargado][1] = 0;
+			user[id][jEncargado][2] = 0;
+			user[id][jEncargado][3] = 0;
+			user[id][jEncargado][4] = 0;
+		}
+        accountSave(id);
+		format(string, sizeof(string), "[Administración]{FFFFFF} %s le otorgo a %s un puesto en el Staff nivel %d.", nombre_pj(playerid), nombre_pj(id), level);
+		MensajeAdmin(string);
+		format(string, sizeof(string), "Registros: El administrador %s le otorgo a %s un puesto en el Staff nivel %d.",  username[playerid], username[id], level);
+		if (playerid != id) Log("Registros/DarAdmin.log", string);
+		return 1;
+	}
+
+	new
+		ORM:dar_admin = orm_create("accounts");
+
+	static
+		rank;
+	
+	while(rank){
+		yield 1;
+		rank ^= 0;
+	}
+	orm_addvar_string(dar_admin, target, MAX_PLAYER_NAME, "Nombre");
+	orm_setkey(dar_admin, "Nombre");
+	orm_addvar_int(dar_admin, rank, "Admin");
+
+	if((task_await(orm_async_select(dar_admin))) != _:ERROR_OK){
+		rank = 0;
+		orm_destroy(dar_admin);
+		return _Mensaje(playerid, 1, "0", "Ocurrió un error al cargar los datos de la cuenta.");
+	}
+		
+
+	if(rank >= user[playerid][jAdmin]) return _Mensaje(playerid, 1, "0", "¡No puedes cambiar el rango de un superior o un usuario de tu mismo rango!");
+	rank = level;
+	if (!level){
+		static val_ZERO = 0;
+		orm_addvar_int(dar_admin, val_ZERO, "Encargado1");
+    	orm_addvar_int(dar_admin, val_ZERO, "Encargado2");
+    	orm_addvar_int(dar_admin, val_ZERO, "Encargado3");
+    	orm_addvar_int(dar_admin, val_ZERO, "Encargado4");
+    	orm_addvar_int(dar_admin, val_ZERO, "Encargado5");
+	}
+
+	if((task_await(orm_async_update(dar_admin))) == _:ERROR_OK){
+		format(string, sizeof(string), "[Administración]{FFFFFF} %s le otorgo a %s un puesto en el Staff nivel %d.", nombre_pj(playerid), target, rank);
+		MensajeAdmin(string);
+		format(string, sizeof(string), "Registros: El administrador %s le otorgo a %s un puesto en el Staff nivel %d.",  username[playerid], target, rank);
+		if (playerid != id) Log("Registros/DarAdmin.log", string);
+	}
+	rank = 0;
+	orm_destroy(dar_admin);
 	return 1;
 }
 
-GCMD:soyadmin(playerid,  const params[])
+
+/*GCMD:soyadmin(playerid,  const params[])
 {
 	new nick[MAX_PLAYER_NAME];
 	GetPlayerName(playerid, nick, sizeof(nick));
@@ -36405,7 +35618,7 @@ GCMD:soyadmin(playerid,  const params[])
 		if (!IsPlayerConnected(playerid2)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
 		new string[128];
 		user[playerid2][jAdmin] = level;
-		guardar_username(playerid2);
+		accountSave(playerid2);
 		format(string, sizeof(string), "* %s te otorgo un puesto en el Staff nivel %d.", nombre_pj(playerid), level);
 		_Mensaje(playerid2, 4, "33CCFF", string);
 		format(string, sizeof(string), "Registros: El administrador %s le otorgo a %s un puesto en el Staff nivel %d. (/soyadmin)",  username[playerid], username[playerid2], level);
@@ -36439,7 +35652,7 @@ GCMD:soytoy(playerid,  const params[])
 		return 1;
 	} else _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
 	return 1;
-}
+}*/
 
 GCMD:darencfac(playerid,  const params[])
 {
@@ -36449,7 +35662,7 @@ GCMD:darencfac(playerid,  const params[])
 	if (!IsPlayerConnected(playerid2)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
 
 	user[playerid2][jEncargado][1] = 1;
-	guardar_username(playerid2);
+	accountSave(playerid2);
 	format(string, sizeof(string), "* %s lo ha asignado moderador de facciones.", nombre_pj(playerid));
 	_Mensaje(playerid2, 4, "33CCFF", string);
 	format(string, sizeof(string), "[Administración]{FFFFFF} %s ha asignado moderador de facciones a %s", nombre_pj(playerid), nombre_pj(playerid2));
@@ -36466,7 +35679,7 @@ GCMD:darencfam(playerid,  const params[])
 	if (!IsPlayerConnected(playerid2)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
 
 	user[playerid2][jEncargado][2] = 1;
-	guardar_username(playerid2);
+	accountSave(playerid2);
 	format(string, sizeof(string), "* %s lo ha asignado moderador de familias.", nombre_pj(playerid));
 	_Mensaje(playerid2, 4, "33CCFF", string);
 	format(string, sizeof(string), "[Administración]{FFFFFF} %s ha asignado moderador de familias a %s", nombre_pj(playerid), nombre_pj(playerid2));
@@ -36483,7 +35696,7 @@ GCMD:darencban(playerid,  const params[])
 	if (!IsPlayerConnected(playerid2)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
 
 	user[playerid2][jEncargado][3] = 1;
-	guardar_username(playerid2);
+	accountSave(playerid2);
 	format(string, sizeof(string), "* %s lo ha asignado moderador de ban.", nombre_pj(playerid));
 	_Mensaje(playerid2, 4, "33CCFF", string);
 	format(string, sizeof(string), "[Administración]{FFFFFF} %s ha asignado moderador de ban a %s", nombre_pj(playerid), nombre_pj(playerid2));
@@ -36500,7 +35713,7 @@ GCMD:darencstaff(playerid,  const params[])
 	if (!IsPlayerConnected(playerid2)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
 
 	user[playerid2][jEncargado][0] = 1;
-	guardar_username(playerid2);
+	accountSave(playerid2);
 	format(string, sizeof(string), "* %s lo ha asignado moderador del staff.", nombre_pj(playerid));
 	_Mensaje(playerid2, 4, "33CCFF", string);
 	format(string, sizeof(string), "[Administración]{FFFFFF} %s ha asignado moderador del staff a %s", nombre_pj(playerid), nombre_pj(playerid2));
@@ -36509,48 +35722,31 @@ GCMD:darencstaff(playerid,  const params[])
 	return 1;
 }
 
-GCMD:quitaradmin(playerid,  const params[])
-{
-	new string[128], playerid2;
-	if (user[playerid][jEncargado][0] == 0) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
-	if (sscanf(params, "d", playerid2)) return _Mensaje(playerid, 3, "0", "/quitaradmin [id jugador]");
-	if (!IsPlayerConnected(playerid2)) return _Mensaje(playerid, 0, "75", "ERROR: El jugador seleccionado no se encuentra conectado.");
-
-	format(string, sizeof(string), "[Administración]{FFFFFF} %s limpió variables admin a %s", nombre_pj(playerid), nombre_pj(playerid2));
-	MensajeAdmin(string);
-	format(string, sizeof(string), "Registros: %s limpió variables admin a %s.", nombre_pj(playerid), nombre_pj(playerid2));
-	Log("Registros/QuitarAdmin.log", string);
-	_Mensaje(playerid2, 2, "0", "Retiraron todas tus variables de staff.");
-
-	SetPlayerColor(playerid2, C_PLAYERBLANCO);
-	EnServicioADM[playerid2] = 0;
-	user[playerid2][jAdmin] = 0;
-	user[playerid2][jEncargado][0] = 0;
-	user[playerid2][jEncargado][1] = 0;
-	user[playerid2][jEncargado][2] = 0;
-	user[playerid2][jEncargado][3] = 0;
-	user[playerid2][jEncargado][4] = 0;
-	guardar_username(playerid2);
-	return 1;
-}
 
 GCMD:quitarfaccionoff(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarfaccionoff [Nombre_Apellido]");
-	if (check_cuenta(params))
+	new qfName[MAX_PLAYER_NAME];
+	sscanf(params, "s[25]", qfName);
+	if (characterCheck(params))
 	{
-		new data[60], string[128];
-		format(data, sizeof data, DATOS_Personajes, params);
-		new INI: File = INI_Open(data);
-		INI_WriteInt(File, "Lider", 0);
-		INI_WriteInt(File, "Miembro", 0);
-		INI_WriteInt(File, "Rango", 0);
-		INI_Close(File);
-		format(string, 128, "[Administración]{FFFFFF} %s fue sacado de la facción en la que estaba por %s.", params, nombre_pj(playerid));
-		MensajeAdmin(string);
-		format(string, sizeof(string), "Registros: %s fue sacado de la facción en la que estaba por %s.", params, nombre_pj(playerid));
-		Log("Registros/QuitarFaccion.log", string);
+		static intZERO = 0;
+		new string[128],
+		ORM:qform = orm_create("characters");
+		orm_addvar_string(qform, qfName, MAX_PLAYER_NAME, "NombrePJ");
+		orm_setkey(qform, "NombrePJ");
+		orm_addvar_int(qform, intZERO,"Lider");
+		orm_addvar_int(qform, intZERO,"Miembro");
+		orm_addvar_int(qform, intZERO,"Rango");
+		yield 1;
+		if( (task_await(orm_async_update(qform))) == _:ERROR_OK ){
+			format(string, 128, "[Administración]{FFFFFF} %s fue sacado de la facción en la que estaba por %s.", params, nombre_pj(playerid));
+			MensajeAdmin(string);
+			format(string, sizeof(string), "Registros: %s fue sacado de la facción en la que estaba por %s.", params, nombre_pj(playerid));
+			Log("Registros/QuitarFaccion.log", string);
+		}
+		orm_destroy(qform);
 	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
 	return 1;
 }
@@ -36559,46 +35755,30 @@ GCMD:quitarfamiliaoff(playerid,  const params[])
 {
 	if (user[playerid][jAdmin] < 10) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitarfamiliaoff [Nombre_Apellido]");
-	if (check_cuenta(params))
+	new qfName[MAX_PLAYER_NAME];
+	sscanf(params, "s[25]", qfName);
+	if (characterCheck(params))
 	{
-		new data[60], string[128];
-		format(data, sizeof data, DATOS_Personajes, params);
-		new INI: File = INI_Open(data);
-		INI_WriteInt(File, "Lider2", 0);
-		INI_WriteInt(File, "Miembro2", 0);
-		INI_WriteInt(File, "Rango2", 1);
-		INI_Close(File);
-		format(string, 128, "[Administración]{FFFFFF} %s fue sacado de la familia en la que estaba por %s.", params, nombre_pj(playerid));
-		MensajeAdmin(string);
-		format(string, sizeof(string), "Registros: %s fue sacado de la familia en la que estaba por %s.", params, nombre_pj(playerid));
-		Log("Registros/QuitarFamilia.log", string);
+		static intZERO = 0;
+		new string[128],
+		ORM:qfmorm = orm_create("characters");
+		orm_addvar_string(qfmorm, qfName, MAX_PLAYER_NAME, "NombrePJ");
+		orm_setkey(qfmorm, "NombrePJ");
+		orm_addvar_int(qfmorm, intZERO,"Lider2");
+		orm_addvar_int(qfmorm, intZERO,"Miembro2");
+		orm_addvar_int(qfmorm, intZERO,"Rango2");
+		yield 1;
+		if( (task_await(orm_async_update(qfmorm))) == _:ERROR_OK ){
+			format(string, 128, "[Administración]{FFFFFF} %s fue sacado de la familia en la que estaba por %s.", params, nombre_pj(playerid));
+			MensajeAdmin(string);
+			format(string, sizeof(string), "Registros: %s fue sacado de la familia en la que estaba por %s.", params, nombre_pj(playerid));
+			Log("Registros/QuitarFamilia.log", string);
+		}
+		orm_destroy(qfmorm);
 	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
 	return 1;
 }
 
-GCMD:quitaradminoff(playerid,  const params[])
-{
-	if (user[playerid][jEncargado][0] == 0) return _Mensaje(playerid, 0, "514", "Usted no tiene acceso a este comando.");
-	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/quitaradminoff [username]");
-	if (check_username(params))
-	{
-		new data[60], string[128];
-		format(data, sizeof data, DATOS_CUENTAS, params);
-		new INI: File = INI_Open(data);
-		INI_WriteInt(File, "Admin", 0);
-		INI_WriteInt(File, "Encargado1", 0);
-		INI_WriteInt(File, "Encargado2", 0);
-		INI_WriteInt(File, "Encargado3", 0);
-		INI_WriteInt(File, "Encargado4", 0);
-		INI_WriteInt(File, "Encargado5", 0);
-		INI_Close(File);
-		format(string, 128, "[Administración]{FFFFFF} %s fue sacado del staff por %s.", params, nombre_pj(playerid));
-		MensajeAdmin(string);
-		format(string, sizeof(string), "Registros: %s fue sacado del staff por %s.", params, nombre_pj(playerid));
-		Log("Registros/QuitarAdminOff.log", string);
-	} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
-	return 1;
-}
 
 GCMD:duda(playerid,  const params[])
 {
@@ -36725,7 +35905,7 @@ GCMD:dudas(playerid)
 	new string[200];
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	_Mensaje(playerid, 4, "00c200", "» {ffffff}Dudas:");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i) && DudaA[i] == 1)
 		{
@@ -36740,7 +35920,7 @@ GCMD:borrardudas(playerid)
 {
 	new string[128];
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i) && DudaA[i] == 1)
 		{
@@ -37608,7 +36788,7 @@ GCMD:conmirilla(playerid)
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 
 	_Mensaje(playerid, 4, "33CCFF", "Jugadores con mirilla:");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -37627,7 +36807,7 @@ GCMD:enmascarados(playerid)
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 
 	_Mensaje(playerid, 4, "33CCFF", "Jugadores con máscara:");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -37646,7 +36826,7 @@ GCMD:enmascaradospd(playerid)
 	if (user[playerid][jAdmin] < 2) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 
 	_Mensaje(playerid, 4, "33CCFF", "Jugadores con máscara pd:");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -38370,7 +37550,7 @@ GCMD:aceptar(playerid)
 					ChangeVehiclePaintjob(vehiculo, m_operacion[playerid][4]);
 					_Mensaje(playerid2, 4, "ADC3E7", "Cambiaste el paintjob del vehiculo.");
 					_Mensaje(playerid, 4, "ADC3E7", "Cambiaron el paintjob del vehiculo.");
-					save_vehiculo(v);
+					vehicleSave(v);
 					m_operacion[playerid][0] = 0;
 					m_operacion[playerid][1] = 0;
 					m_operacion[playerid][2] = -1;
@@ -38416,7 +37596,7 @@ GCMD:aceptar(playerid)
 					format(string, sizeof(string), "Cambiaron el color del vehiculo. [%d - %d]", m_operacion[playerid][4], m_operacion[playerid][5]);
 					_Mensaje(playerid, 4, "ADC3E7", string);
 					ChangeVehicleColor(vehiculo, m_operacion[playerid][4], m_operacion[playerid][5]);
-					save_vehiculo(v);
+					vehicleSave(v);
 					m_operacion[playerid][0] = 0;
 					m_operacion[playerid][1] = 0;
 					m_operacion[playerid][2] = -1;
@@ -38570,8 +37750,8 @@ GCMD:aceptar(playerid)
 			i_Casa[casaid][c_patente] = casaid+Random(-400000, 999999);
 			strmid(i_Casa[casaid][cComprador], nombre_sin(playerid), 0, strlen(nombre_sin(playerid)), 32);
 			save_Casa(casaid);
-			guardar_cuenta(playerid);
-			guardar_cuenta(CasaOffer[playerid]);
+			characterSave(playerid);
+			characterSave(CasaOffer[playerid]);
 			haciend_[playerid] = 0;
 			haciend_[CasaOffer[playerid]] = 0;
 			CasaOffer[playerid] = 999;
@@ -38611,8 +37791,8 @@ GCMD:aceptar(playerid)
 			strmid(i_Negocio[negid][nDueno], nombre_sin(playerid), 0, strlen(nombre_sin(playerid)), 32);
 			i_Negocio[negid][n_patente] = negid+Random(-400000, 999999);
 			save_Negocio(negid);
-			guardar_cuenta(playerid);
-			guardar_cuenta(NegocioOffer[playerid]);
+			characterSave(playerid);
+			characterSave(NegocioOffer[playerid]);
 			_NegocioP(negid);
 			haciend_[playerid] = 0;
 			haciend_[NegocioOffer[playerid]] = 0;
@@ -38721,9 +37901,9 @@ GCMD:aceptar(playerid)
 				}
 				haciend_[playerid] = 0;
 				haciend_[vendedor] = 0;
-				guardar_cuenta(playerid);
-				guardar_cuenta(vendedor);
-				save_vehiculo(vid);
+				characterSave(playerid);
+				characterSave(vendedor);
+				vehicleSave(vid);
 				_Vehdueno[playerid] = 999;
 				_Vehprecio[playerid] = 0;
 				_VehID[playerid] = 0;
@@ -38845,7 +38025,7 @@ GCMD:cpantalla(playerid,  const params[])
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	if (sscanf(params, "is", type, text)) return _Mensaje(playerid, 3, "0", "/cpantalla [tipo] [texto]");
 	if (type == 2) return _Mensaje(playerid, 0, "306", "No puedes elegir el #2.");
-	for (new i = 0; i < MAX_PLAYERS; i++) { if (JugadorEnSeccion {i}) { textgame_player(i, text, 5000, type); } }
+	foreach(new i: Player) { if (JugadorEnSeccion {i}) { textgame_player(i, text, 5000, type); } }
 	new string[128];
 	format(string, sizeof(string), "[Administración]{FFFFFF} %s usó el comando /cpantalla.", nombre_pj(playerid));
 	MensajeAdmin(string);
@@ -39223,25 +38403,21 @@ GCMD:togprivados(playerid)
 GCMD:togmp2(playerid,  const params[])
 {
 	new
-		name[MAX_PLAYER_NAME],
-		string[128]
+		name[MAX_PLAYER_NAME]
 	;
 
 	if (sscanf(params, "s[24]", name)) return _Mensaje(playerid, 3, "0", "/togmp2 [Nombre_Apellido]");
 
 	if (strcmp(user[playerid][j_uMP2], "user_none", true) == 0)
 	{
-		new fcuenta[128];
-		format(fcuenta, sizeof(fcuenta), DATOS_Personajes, name);
-		if(!fexist(fcuenta)) return Mensaje_(playerid, -1, "Ese personaje no existe.");
+		yield 1;
+		if(!characterCheck(name)) return Mensaje_(playerid, -1, "Ese personaje no existe.");
 		alm(user[playerid][j_uMP2], name);
-		format(string, sizeof(string), "Bloqueaste los MP's de %s.", user[playerid][j_uMP2]);
-		SendClientMessage(playerid, 0x7593F5FF, string);
+		SendClientMessage(playerid, 0x7593F5FF,"Bloqueaste los MP's de %s.", user[playerid][j_uMP2]);
 	}
 	else
 	{
-		format(string, sizeof(string), "Desbloqueaste los MP's de %s.", user[playerid][j_uMP2]);
-		SendClientMessage(playerid, 0x7593F5FF, string);
+		SendClientMessage(playerid, 0x7593F5FF, "Desbloqueaste los MP's de %s.", user[playerid][j_uMP2]);
 		alm(user[playerid][j_uMP2], "user_none");
 	}
 	return 1;
@@ -39265,7 +38441,7 @@ GCMD:togmp(playerid)
 GCMD:diadepaga(playerid)
 {
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	for(new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (user[i][State] == 3)
 		{
@@ -39285,7 +38461,7 @@ GCMD:adminrcon(playerid,  const params[])
 
 		new string[128];
 		user[params[0]][jAdmin] = params[1];
-		guardar_username(params[0]);
+		accountSave(params[0]);
 		format(string, sizeof(string), "* %s lo ha asignado administrador nivel %d", nombre_pj(playerid), params[1]);
 		_Mensaje(playerid, 4, "33CCFF", string);
 		format(string, sizeof(string), "Registros: El administrador %s le otorgo a %s un puesto en el Staff nivel %d. (/adminrcon)",  username[playerid], username[params[0]], params[1]);
@@ -39444,7 +38620,7 @@ GCMD:conectar(playerid,  const params[])
 			new numero, nume2ro = true;
 			if (sscanf(params, "d", numero)) return _Mensaje(playerid, 3, "0", "/conectar [número de teléfono]");
 			if (!IsNumeric(params)) return _Mensaje(playerid, 0, "43", "Sólo números porfavor, vuelve a intentarlo.");
-			for (new i = 0; i < MAX_PLAYERS; i++)
+			foreach(new i: Player)
 			{
 				if (IsPlayerConnected(i) && user[i][State] == 3 && user[i][jTelefono] == numero)
 				{
@@ -41190,7 +40366,8 @@ GCMD:liberar(playerid,  const params[])
 	return 1;
 }
 
-new x_jail[MAX_PLAYERS], x_jail2[MAX_PLAYERS];
+#pragma warning push
+#pragma warning disable 252
 GCMD:sancionarcuenta(playerid,  const params[]) return cmd_jailcuenta(playerid, params);
 GCMD:jailcuenta(playerid,  const params[])
 {
@@ -41199,28 +40376,66 @@ GCMD:jailcuenta(playerid,  const params[])
 	if (sscanf(params, "udds[100]", pID, tipo, minutes, reason)) return _Mensaje(playerid, 3, "0", "/jailcuenta [Nombre_Apellido] [tipo, 1. OOC - 2. IC - 3. PF] [minutos] [razón]");
 	if (IsPlayerConnected(pID)) return _Mensaje(playerid, 0, "75", "Ese jugador está conectado.");
 	if (sscanf(params, "s[24]dds[100]", name, tipo, minutes, reason)) return _Mensaje(playerid, 3, "0", "/jailcuenta [Nombre_Apellido] [tipo, 1. OOC - 2. IC - 3. PF] [minutos] [razón]");
-
-	new fcuenta[128];
-	format(fcuenta, sizeof(fcuenta), DATOS_Personajes, name);
-	if(!fexist(fcuenta)) return Mensaje_(playerid, -1, "Esta cuenta no existe.");
-	INI_ParseFile(fcuenta, "CargarJAIL", .bExtra = true, .extra = playerid);
+	yield 1;
+	if(!characterCheck(name)) return Mensaje_(playerid, -1, "Esta cuenta no existe.");
+	
 	if (tipo < 1 || tipo > 3) { _Mensaje(playerid, 4, "b0b0b0", "Tipos: 1. OOC - 2. IC - 3. PF"); return 1; }
 	if (tipo == 3) if (minutes < 1 || minutes > 20) { _Mensaje(playerid, 0, "174", "Horas: 1 a 20 horas."); return 1; }
 	else { if (minutes < 1 || minutes > 900) { _Mensaje(playerid, 0, "174", "Tiempo: 1 a 900 minutos."); return 1; } }
-	new data[60], tipos[5];
+	
+	static
+		x_jail,
+		x_jail2
+	;
 
-	if(tipo == 1) { tipos = "OOC"; x_jail[playerid]++; }
-	else if (tipo == 2) { tipos = "IC"; x_jail2[playerid]++; }
-	else if (tipo == 3) { tipos = "PF"; x_jail2[playerid]++; }
+	new
+		tipos[5],
+		timejl[92],
+		resp[MAX_PLAYER_NAME],
+		ORM:jlcORM = orm_create("characters")
+	;
+	
+	orm_addvar_string(jlcORM, name, MAX_PLAYER_NAME, "NombrePJ");
+	orm_setkey(jlcORM, "NombrePJ");
+	orm_addvar_int(jlcORM, x_jail, "Sanciones");
+	orm_addvar_int(jlcORM, x_jail2, "Arrestos");
 
-	format(data, sizeof data, DATOS_Personajes, name);
-	new INI: File = INI_Open(data);
-	INI_WriteInt(File, "Encarcelado", tipo);
-	INI_WriteInt(File, "Sanciones", x_jail[playerid]);
-	INI_WriteInt(File, "Arrestos", x_jail2[playerid]);
-	INI_WriteString(File, "jCulpable", nombre_pj(playerid));
-	INI_WriteString(File, "jMomento", el_tiempo());
-	INI_WriteString(File, "jRazon", reason);
+	while(x_jail || x_jail2){
+		x_jail ^= 0;
+		x_jail2 ^= 0;
+		task_yield(1);
+	}
+		
+
+
+	if( (task_await(orm_async_select(jlcORM))) != _:ERROR_OK ){
+		orm_destroy(jlcORM);
+		x_jail = 0;
+		x_jail2 = 0;
+		return _Mensaje(playerid, 0, "0", "Ocurrió un error al cargar los datos del personaje a sancionar.");
+	}
+	
+	switch(tipo){
+		case 1:{
+			tipos = "OOC";
+			x_jail++;
+		}
+		case 2:{
+			tipos = "IC";
+			x_jail2++;
+		}
+		case 3:{
+			tipos = "PF";
+			x_jail2++;	
+		}
+	}
+
+	orm_addvar_int(jlcORM, tipo, "Encarcelado");
+	orm_addvar_string(jlcORM, resp, MAX_PLAYER_NAME, "jCulpable");
+	orm_addvar_string(jlcORM, timejl, sizeof(timejl), "jMomento");
+	orm_addvar_string(jlcORM, reason, sizeof(reason), "jRazon");
+
+
 	if (tipo == 3)
 	{
 		if(minutes > 2)
@@ -41229,34 +40444,38 @@ GCMD:jailcuenta(playerid,  const params[])
 			minutes = (minutes-2)*3600;
 			k += minutes;
 			format(elpru, sizeof(elpru), "%d", k);
-			INI_WriteString(File, "tiempito", elpru);
-			INI_WriteInt(File, "TiempoCarcel", 120);
+			static tiempoCr = 120;
+			orm_addvar_string(jlcORM, elpru, sizeof(elpru), "tiempito");
+			orm_addvar_int(jlcORM, tiempoCr, "TiempoCarcel");
 		}
 		else
 		{
-			INI_WriteString(File, "tiempito", "0");
-			INI_WriteInt(File, "TiempoCarcel", minutes*60);
+			new tiempoCr = (minutes*60);
+			new str[2] = {'0', '\0'};
+			orm_addvar_string(jlcORM, str, sizeof(str), "tiempito");
+			orm_addvar_int(jlcORM, tiempoCr, "TiempoCarcel");
 		}
 	}
 	else
 	{
-		INI_WriteString(File, "tiempito", "0");
-		INI_WriteInt(File, "TiempoCarcel", minutes);
+		new str[2] = {'0', '\0'};
+		new tiempoCr = minutes;
+		orm_addvar_int(jlcORM, tiempoCr, "TiempoCarcel");
+		orm_addvar_string(jlcORM, str, sizeof(str), "tiempito");
 	}
-	INI_Close(File);
-	format(string, sizeof(string), "Registros: %s fue sancionado por %s (%s). [CMD OFFLINE]", name, nombre_pj(playerid), tipos);
-	Log("Registros/JailCuenta.log", string);
-	format(string, 200, "[Administración]{FFFFFF} %s fue sancionado por %s (%s). [CMD OFFLINE]", name, nombre_pj(playerid), tipos);
-	MensajeAdmin(string);
+	if( (task_await(orm_async_update(jlcORM))) == _:ERROR_OK ){
+		format(string, sizeof(string), "Registros: %s fue sancionado por %s (%s). [CMD OFFLINE]", name, nombre_pj(playerid), tipos);
+		Log("Registros/JailCuenta.log", string);
+		format(string, 200, "[Administración]{FFFFFF} %s fue sancionado por %s (%s). [CMD OFFLINE]", name, nombre_pj(playerid), tipos);
+		MensajeAdmin(string);
+	}
+	orm_destroy(jlcORM);
+	x_jail = 0;
+	x_jail2 = 0;
 	return 1;
+	
 }
-
-funcion CargarJAIL(playerid, name[], value[])
-{
-	INI_Int("Sanciones", x_jail[playerid]);
-	INI_Int("Arrestos", x_jail2[playerid]);
-	return 1;
-}
+#pragma warning pop
 
 GCMD:jailtipo(playerid,  const params[])
 {
@@ -41362,7 +40581,7 @@ GCMD:jailtipo(playerid,  const params[])
 		}
 		update_manos(playerid2);
 		QuitarEspalda(playerid2);
-		guardar_cuenta(playerid2);
+		characterSave(playerid2);
 	}
 	StopAudioStreamForPlayer(playerid2);
 	return 1;
@@ -41507,7 +40726,7 @@ GCMD:reportes(playerid)
 	new string[256];
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	_Mensaje(playerid, 4, "E11509", "» {ffffff}Reportes:");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i) && ReporteA[i] == 1)
 		{
@@ -41522,7 +40741,7 @@ GCMD:borrarreportes(playerid,  const params[])
 {
 	new string[128];
 	if (user[playerid][jAdmin] < 4) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i) && ReporteA[i] == 1)
 		{
@@ -41594,20 +40813,47 @@ GCMD:unban(playerid,  const params[])
 	if (user[playerid][jAdmin] >= 2 || user[playerid][jEncargado][3] == 1)
 	{
 		if (isnull(params)) return _Mensaje(playerid, 3, "0", "/unban [Nombre_Apellido]");
-		if (check_cuenta(params))
+		yield 1;
+		if (characterCheck(params))
 		{
-			new data[60], string[128];
-			format(data, sizeof data, DATOS_Personajes, params);
-			new INI: File = INI_Open(data);
-			INI_WriteInt(File, "Baneado", 0);
-			INI_Close(File);
-			format(string, 128, "[Administración]{FFFFFF} %s fue desbaneado por %s.", params, nombre_pj(playerid));
-			MensajeAdmin(string);
-			format(string, sizeof(string), "Registros: %s fue desbaneado por %s.", params, nombre_pj(playerid));
-			Log("Registros/Desban.log", string);
+			new string[128];
+			mysql_format(mainDatabase, string, sizeof(string), "UPDATE characters SET Baneado = 0 WHERE NombrePJ = '%e'", params);
+			await mysql_aquery(mainDatabase, string);
+			if(cache_affected_rows()){
+				format(string, 128, "[Administración]{FFFFFF} %s fue desbaneado por %s.", params, nombre_pj(playerid));
+				MensajeAdmin(string);
+				format(string, sizeof(string), "Registros: %s fue desbaneado por %s.", params, nombre_pj(playerid));
+				Log("Registros/Desban.log", string);
+			}
 		} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
 	} else _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	return 1;
+}
+
+adminCheck(acc[]){
+	new account_id;
+	new query[96];
+	new ret = -1;
+	new find;
+	if((find = strfind(acc, "_")) != -1 && find != acc[0] && find != acc[strlen(acc)-1]){
+		mysql_format(mainDatabase, query, sizeof(query), "SELECT charOwner FROM characters WHERE NombrePJ = '%e' LIMIT 1", acc);
+		await mysql_aquery(mainDatabase, query);
+		if(cache_num_rows()){
+			cache_get_value_name_int(0, "charOwner", account_id);
+			mysql_format(mainDatabase, query, sizeof(query), "SELECT Admin FROM accounts WHERE SQLID = %d  LIMIT 1", account_id);
+			await mysql_aquery(mainDatabase, query);
+			if(cache_num_rows())
+				cache_get_value_name_int(0, "Admin", ret);
+		}
+		return ret;
+	}
+	else{
+		mysql_format(mainDatabase, query, sizeof(query), "SELECT Admin FROM accounts WHERE Nombre = '%e' LIMIT 1", acc);
+		await mysql_aquery(mainDatabase, query);
+		if(cache_num_rows())
+			cache_get_value_name_int(0, "Admin", ret);
+	}
+	return ret;
 }
 
 GCMD:bancuenta(playerid,  const params[]) return cmd_obanear(playerid, params);
@@ -41618,24 +40864,38 @@ GCMD:obanear(playerid,  const params[])
 	{
 		new string[200], playername[MAX_PLAYER_NAME], reason[64];
 		if (sscanf(params, "s[32]s[128]", playername, reason)) return _Mensaje(playerid, 3, "0", "/obanear [Nombre_Apellido] [razón]");
-		if (check_cuenta(playername))
+		yield 1;
+		
+		if (characterCheck(playername))
 		{
-			new data[60];
-			format(data, sizeof data, DATOS_Personajes, playername);
-			new INI: File = INI_Open(data);
+			if (adminCheck(playername) >= user[playerid][jAdmin])
+			{
+				format(string, sizeof(string), "{FF6347}Administración: %s ha sido auto-baneado. Razón: [Intentar banear un staff]", nombre_pj(playerid));
+				MensajeAdmin(string);
+				user[playerid][jBaneado] = 20;
+				Kick(playerid);
+				return 1;
+			}
+			new ORM:obanear_orm = orm_create("characters");
+			orm_addvar_string(obanear_orm, playername, MAX_PLAYER_NAME, "NombrePJ");
 
-			INI_WriteInt(File, "Baneado", 20);
-			INI_WriteString(File, "bCulpable", nombre_pj(playerid));
-			INI_WriteString(File, "bRazon", reason);
-			INI_WriteString(File, "bMomento", el_tiempo());
+			new _ban_ = 20;
+			new culp[MAX_PLAYER_NAME],
+			timeb[92];
+			alm(culp, nombre_pj(playerid));
+			alm(timeb, el_tiempo());
+			orm_addvar_int(obanear_orm, _ban_, "Baneado");
+			orm_addvar_string(obanear_orm, culp, MAX_PLAYER_NAME,"bCulpable");
+			orm_addvar_string(obanear_orm, reason, sizeof(reason), "bRazon");
+			orm_addvar_string(obanear_orm, timeb, sizeof(timeb), "bMomento");
 
-			INI_Close(File);
+			if ( (task_await(orm_async_update(obanear_orm))) == _:ERROR_OK ){
+				format(string, sizeof(string), "Registros: %s ha sido bloqueado por %s. Razón: %s.", playername, nombre_pj(playerid), reason);
+				Log("Registros/Bloqueados.log", string);
 
-			format(string, sizeof(string), "Registros: %s ha sido bloqueado por %s. Razón: %s.", playername, nombre_pj(playerid), reason);
-			Log("Registros/Bloqueados.log", string);
-
-			format(string, 200, "Administración: %s ha sido bloqueado por %s, Razón:[%s] (OFFLINE)", playername, nombre_pj(playerid), reason);
-			_MensajeOOC(0xFF6347FF, string);
+				format(string, 200, "Administración: %s ha sido bloqueado por %s, Razón:[%s] (OFFLINE)", playername, nombre_pj(playerid), reason);
+				_MensajeOOC(0xFF6347FF, string);
+			}
 
 		} else _Mensaje(playerid, 0, "179", "Esa cuenta no existe.");
 	} else _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
@@ -41877,7 +41137,7 @@ GCMD:arrestarf(playerid,  const params[])
 	}
 	update_manos(playerid2);
 	QuitarEspalda(playerid2);
-	guardar_cuenta(playerid2);
+	characterSave(playerid2);
 	if (fianza != 0)
 	{
 		user[playerid2][jFianza] = fianza;
@@ -42138,6 +41398,7 @@ GCMD:guardarservidor(playerid)
 {
 	if (user[playerid][jAdmin] < 5) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	GuardarCuentas();
+	GuardarUsuarios();
 	save_stuff();
 	save_incendios();
 	save_bindon();
@@ -42742,7 +42003,7 @@ GCMD:condinero(playerid)
 {
 	if (user[playerid][jAdmin] < 1) return _Mensaje(playerid, 0, "0", "Usted no tiene acceso a este comando.");
 	_Mensaje(playerid, 4, "FFFFFF", "Usuarios con más de 8,500$");
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -43529,7 +42790,7 @@ GCMD:lock(playerid)
 					i_Vehiculo[v][vUSeguro] = 1;
 					VehSeguro[i_Vehiculo[v][vID]] = 1;
 					vehicle_lock_doors(i_Vehiculo[v][vID]);
-					save_vehiculo(v);
+					vehicleSave(v);
 					return 1;
 				}
 				else if (i_Vehiculo[v][vUSeguro] == 1)
@@ -43539,7 +42800,7 @@ GCMD:lock(playerid)
 					i_Vehiculo[v][vUSeguro] = 0;
 					VehSeguro[i_Vehiculo[v][vID]] = 0;
 					vehicle_unlock_doors(i_Vehiculo[v][vID]);
-					save_vehiculo(v);
+					vehicleSave(v);
 					return 1;
 				}
 			}
@@ -43553,7 +42814,7 @@ GCMD:lock(playerid)
 					i_Vehiculo[v][vUSeguro] = 1;
 					VehSeguro[i_Vehiculo[v][vID]] = 1;
 					vehicle_lock_doors(i_Vehiculo[v][vID]);
-					save_vehiculo(v);
+					vehicleSave(v);
 					return 1;
 				}
 				else if (i_Vehiculo[v][vUSeguro] == 1)
@@ -43563,7 +42824,7 @@ GCMD:lock(playerid)
 					i_Vehiculo[v][vUSeguro] = 0;
 					VehSeguro[i_Vehiculo[v][vID]] = 0;
 					vehicle_unlock_doors(i_Vehiculo[v][vID]);
-					save_vehiculo(v);
+					vehicleSave(v);
 					return 1;
 				}
 			}
@@ -43596,7 +42857,7 @@ GCMD:estacionar(playerid)
 			accion_rol(playerid, 0, "ha estacionado su vehìculo.");
 			_vVelocidad[playerid] = 0.0;
 			UpdateVehicleDamageStatus(i_Vehiculo[d][vID], i_Vehiculo[d][vDanioSuperficie], i_Vehiculo[d][vDanioPuertas], i_Vehiculo[d][vDanioLuces], i_Vehiculo[d][vDanioRuedas]);
-			save_vehiculo(d);
+			vehicleSave(d);
 			return 1;
 		}
 	}
@@ -43758,7 +43019,7 @@ GCMD:guardarcuenta(playerid)
 			user[playerid][jVirtualWorld] = GetPlayerVirtualWorld(playerid);
 			GetPlayerPos(playerid, user[playerid][jPosicion_X], user[playerid][jPosicion_Y], user[playerid][jPosicion_Z]);
 			GetPlayerFacingAngle(playerid, user[playerid][jPosicion_R]);
-			guardar_cuenta(playerid);
+			characterSave(playerid);
 			user[playerid][jTiempoGuardado] = gettime();
 			_Mensaje(playerid, 4, "33CCFF", " Has guardado correctamente tu cuenta, puedes volver a guardarla en 3 minutos.");
 		}
@@ -44029,6 +43290,7 @@ GCMD:creditos(playerid)
 {
 	SendClientMessage(playerid, 0xCB2700FF, "Gamemode elaborado por edinsonwalker (regular).");
 	SendClientMessage(playerid, 0xCB2700FF, "Adaptación a Bullworth por bish0p (zbishop).");
+	SendClientMessage(playerid, C_VIP, "Reimplemetanción a open.mp por 1berkeley (github.com/stley)");
 	return 1;
 }
 
@@ -44276,7 +43538,7 @@ GCMD:bk(playerid,  const params[])
 	SolicitaRefuerzos[playerid] = 1;
 	format(string, sizeof(string), "CENTRAL: A todas las unidades, el oficial (%s) requiere apoyo en su posición.", nombre_pj(playerid, 0));
 	_MensajeRfac(1, C_COLORRADIO, string);
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i))
 		{
@@ -44592,7 +43854,8 @@ GCMD:mascarapd(playerid,  const params[])
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/mascarapd [Nombre_Apellido]");
 	if (user[playerid][jMascaraPD] == 0)
 	{
-		if (!check_cuenta(params))
+		yield 1;
+		if (!characterCheck(params))
 		{
 			format(string, sizeof(string), "Te encuentras en modo detective como %s.", params);
 			_Mensaje(playerid, 4, "b0b0b0", string);
@@ -46117,7 +45380,8 @@ GCMD:nombreadmin(playerid,  const params[])
 	if (isnull(params)) return _Mensaje(playerid, 3, "0", "/nombreadmin [Nuevo Nombre]");
 	if (user[playerid][jMascaraPD] == 0)
 	{
-		if (!check_cuenta(params))
+		yield 1;
+		if (!characterCheck(params))
 		{
 
 			format(string, sizeof(string), "Estás temporalmente con el nombre de %s.", params);
@@ -46441,7 +45705,7 @@ GCMD:entrar(playerid)
 			}
 		}
 	}
-	guardar_cuenta(playerid);
+	characterSave(playerid);
 	Streamer_Update(playerid);
 	return 1;
 }
@@ -46661,7 +45925,7 @@ GCMD:salir(playerid)
 			}
 		}
 	}
-	guardar_cuenta(playerid);
+	characterSave(playerid);
 	Streamer_Update(playerid);
 	return 1;
 }
@@ -46989,7 +46253,7 @@ GCMD:comprarnegocio(playerid)
 					format(string, sizeof(string), "Registros: %s ha comprado el negocio id %d.", nombre_pj(playerid), nid);
 					Log("Registros/Negocios.log", string);
 					save_Negocio(nid);
-					guardar_cuenta(playerid);
+					characterSave(playerid);
 					user[playerid][jTiempos][7] = 250;
 					return 1;
 				} else _Mensaje(playerid, 0, "555", "No tienes fondos suficientes para comprarte este negocio.");
@@ -47012,7 +46276,7 @@ GCMD:comprarnegocio(playerid)
 						format(string, sizeof(string), "Registros: %s ha comprado el negocio id %d.", nombre_pj(playerid), nid);
 						Log("Registros/Negocios.log", string);
 						save_Negocio(nid);
-						guardar_cuenta(playerid);
+						characterSave(playerid);
 						user[playerid][jTiempos][7] = 250;
 						return 1;
 					} else _Mensaje(playerid, 0, "555", "No tienes fondos suficientes para comprarte este negocio.");
@@ -47886,7 +47150,7 @@ GCMD:embargar(playerid,  const params[])
 			CargarVehMods(vid, i_Vehiculo[vid][vID]);
 			SetExVehicleHealth(i_Vehiculo[vid][vID], health);
 			UpdateVehicleDamageStatus(i_Vehiculo[vid][vID], i_Vehiculo[vid][vDanioSuperficie], i_Vehiculo[vid][vDanioPuertas], i_Vehiculo[vid][vDanioLuces], i_Vehiculo[vid][vDanioRuedas]);
-			save_vehiculo(vid);
+			vehicleSave(vid);
 			format(string, sizeof(string), "* Has confiscado el vehiculo de %s - Modelo %s.", i_Vehiculo[vid][vDueno], nombre_vehiculo[i_Vehiculo[vid][vModelo] - 400]);
 			_Mensaje(playerid, 4, "33CCFF", string);
 			format(string, sizeof(string), "CENTRAL: %s ha confiscado el vehiculo de %s - Modelo %s (No pagó $%i de multa).", nombre_pj(playerid, 0), i_Vehiculo[vid][vDueno], nombre_vehiculo[i_Vehiculo[vid][vModelo] - 400], i_Vehiculo[vid][vMulta]);
@@ -47988,7 +47252,7 @@ GCMD:dejarmulta(playerid,  const params[])
 				_Mensaje(playerid, 4, "33CCFF", string);
 				format(string, sizeof string, "%s dejó una multa en el vehículo %s - dueño: %s ($250).", nombre_pj(playerid), NombreVehiculo(i_Vehiculo[v][vID]), i_Vehiculo[v][vDueno]);
 				Log("Registros/DejarMulta.log", string);
-				save_vehiculo(v);
+				vehicleSave(v);
 				return 1;
 			} else _Mensaje(playerid, 0, "1", "Necesitas estar cerca del vehículo seleccionado vehículo.");
 		}
@@ -48510,7 +47774,7 @@ GCMD:ncasa(playerid,  const params[])
 	new name[24];
 	alm(name, qi_puesto(i_Casa[casa][cComprador]));
 	new dinero=i_Casa[casa][cPrecio]+i_Casa[casa][cDinero];
-	if (check_cuenta(name))
+	if (characterCheck(name))
 	{
 		new fcuenta[256];
 		format(fcuenta, sizeof(fcuenta), DATOS_Personajes, name);
@@ -51810,7 +51074,7 @@ funcion VehiculoSacar(vid, playerid)
 		VehSeguro[Coche] = 0;
 		alm(veh_music[Coche], "nadauwu");
 		if(i_Vehiculo[vid][vUSeguro] == 1) { VehSeguro[Coche] = 1; vehicle_lock_doors(Coche); }
-		save_vehiculo(vid);
+		vehicleSave(vid);
     }
 }
 
@@ -51842,7 +51106,7 @@ stock VehiculoGuardar(vid, playerid = -1, tip = 0)
 		i_Vehiculo[vid][v_Guantera] = 0;
 		i_Vehiculo[vid][v_timer] = 0;
 		i_Vehiculo[vid][v_robo] = 0;
-		save_vehiculo(vid);
+		vehicleSave(vid);
 	}
 }
 
@@ -51929,7 +51193,7 @@ funcion VehiculoBorrar(vid)
 		{
 			i_Vehiculo[vid][vModificaciones][m] = 0;
 		}
-		save_vehiculo(vid);
+		vehicleSave(vid);
 	}
 }
 
@@ -52065,7 +51329,7 @@ funcion CrearUCoche(jugador, modelo, Float: x, Float: y, Float: z, Float: angle,
 			DarMatricula(Coche, vid+1000);
 			SetPlayerPos(jugador, x, y, z);
 			PutPlayerInVehicle(jugador, i_Vehiculo[vid][vID], 0);
-        	save_vehiculo(vid);
+        	vehicleSave(vid);
             vid = MAX_VEHICULOS;
         }
     }
@@ -52129,7 +51393,7 @@ funcion CrearCoche(jugador, modelo, Float: x, Float: y, Float: z, Float: angle, 
 			veh_gasolina[Coche] = 150;
 			SetPlayerPos(jugador, x, y, z);
 			PutPlayerInVehicle(jugador, i_Vehiculo[vid][vID], 0);
-			save_vehiculo(vid);
+			vehicleSave(vid);
 			vid = MAX_VEHICULOS;
 		}
 	}
@@ -52556,7 +51820,7 @@ funcion PagoDiario(i)
 		PlayerPlaySound(i, 1052, 0.0, 0.0, 0.0);
 		user[i][jNivel]++;
 		user[i][jExperiencia] = 0;
-		guardar_cuenta(i);
+		characterSave(i);
 		SetPlayerScore(i, user[i][jNivel]);
 		if (user[i][jNivel] == 1)
 		{
@@ -52581,9 +51845,9 @@ funcion PagoDiario(i)
 
 funcion A_MedioSegundo()
 {
-    for(new playerid; playerid < MAX_PLAYERS; playerid++)
+    foreach(new playerid: Player)
 	{
-        for(new i = 0; i < MAX_PLAYERS; i++)
+        foreach(new i: Player)
 		{
 			if(IsPlayerConnected(i))
 			{
@@ -53165,7 +52429,7 @@ funcion A_Minuto()
 						DarDineroGC(playerid, user[playerid][jDineroPF]);
 						user[playerid][jDineroPF] = 0;
 						update_manos(playerid);
-						guardar_cuenta(playerid);
+						characterSave(playerid);
 					}
 				}
 				user[playerid][jEncarcelado] = 0;
@@ -53257,7 +52521,7 @@ funcion A_Hora()
     //incendio_random();
     //save_incendios();
     Regalo = 1;
-    for (new i = 0; i < MAX_PLAYERS; i++)
+    foreach(new i: Player)
 	{
 		if (EnServicioADM[i] == 0)
 		{
@@ -54328,17 +53592,27 @@ new C_MESSAGES[6] =
 
 funcion _Mensaje(playerid, type, const optional[], const message[])
 {
-	new InfoMsg[150];
 	switch (type)
 	{
-		case 0: format(InfoMsg, sizeof(InfoMsg), "%s", message); // Error
-		case 1: format(InfoMsg, sizeof(InfoMsg), "%s", message); // Mensaje color blanco
-		case 2: format(InfoMsg, sizeof(InfoMsg), "[INFO] %s", message); // Información
-		case 3: format(InfoMsg, sizeof(InfoMsg), "USO: %s", message); // CMD
-		case 4: format(InfoMsg, sizeof(InfoMsg), "{%s}%s", optional, message); // Con color mensaje
-		case 5: format(InfoMsg, sizeof(InfoMsg), "%s", message); // Color verde
+		case 0:{
+			SendClientMessage(playerid, C_MESSAGES[type], "%s", message); // Error
+		}
+		case 1:{
+			SendClientMessage(playerid, C_MESSAGES[type], "%s", message); // Mensaje color blanco
+		}
+		case 2:{
+			SendClientMessage(playerid, C_MESSAGES[type], "[INFO] %s", message); // Información
+		}
+		case 3:{
+			SendClientMessage(playerid, C_MESSAGES[type], "USO: %s", message); // CMD
+		}
+		case 4:{
+			SendClientMessage(playerid, C_MESSAGES[type], "{%s}%s", optional, message); // Con color mensaje
+		}
+		case 5:{
+			SendClientMessage(playerid, C_MESSAGES[type], "%s", message); // Color verde
+		}
 	}
-	Mensaje_(playerid, C_MESSAGES[type], InfoMsg);
 	return 1;
 }
 
@@ -54396,7 +53670,7 @@ stock accion_rol(playerid, type, const text[], extra = 0)
 	}
 	new Float: PosMensajeX, Float: PosMensajeY, Float: PosMensajeZ, MyWorrld = GetPlayerVirtualWorld(playerid);
 	GetPlayerPos(playerid, Float: PosMensajeX, Float: PosMensajeY, Float: PosMensajeZ);
-	for (new i = 0; i < MAX_PLAYERS; i++)
+	foreach(new i: Player)
 	{
 		if (IsPlayerConnected(i) && en_pos(i,AccionesRadios[type],Float: PosMensajeX,Float: PosMensajeY, Float: PosMensajeZ) && GetPlayerVirtualWorld(i) == MyWorrld && user[i][State] == 3)
 		{
@@ -56163,3 +55437,6 @@ stock IsModelComponentCompatibleEx(vehiclemodel, count, &component)
 }
 
 
+hook Log(const sz_fileName[], const sz_input[]){
+	return serverLogRegister(sz_input, sz_fileName);
+}

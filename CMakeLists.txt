@@ -1,27 +1,27 @@
 cmake_minimum_required(VERSION 3.20)
 project(Generation-City NONE)
 
+
 # Find pawncc on PATH
 find_program(PAWNCC NAMES pawncc pawncc.exe)
-if(NOT PAWNCC)
-    set(PAWNCC "C:/pawn-compiler/bin/pawncc.exe")
-endif()
 
 # Common flags (tweak as needed)
 set(PAWN_FLAGS
   "-d3"
   "-\;+" "-\(+"
-  "-Z+"
+  "-Z-"
   "-i${CMAKE_SOURCE_DIR}/include"
-  "-i${CMAKE_SOURCE_DIR}/src/main_scripts"
-  "-i${CMAKE_SOURCE_DIR}/src/side_scripts"
+  "-i${CMAKE_SOURCE_DIR}/src/modules/"
 )
 
 # Output directories
 set(OUTPUT_DIR        "${CMAKE_BINARY_DIR}/amx")
-set(MAIN_OUT_DIR      "${OUTPUT_DIR}/main_scripts")
-set(SIDE_OUT_DIR      "${OUTPUT_DIR}/side_scripts")
+set(MAIN_OUT_DIR      "${OUTPUT_DIR}/main_scripts/")
+set(SIDE_OUT_DIR      "${OUTPUT_DIR}/side_scripts/")
 file(MAKE_DIRECTORY "${MAIN_OUT_DIR}" "${SIDE_OUT_DIR}")
+
+
+
 
 # Helper: compile one Pawn file
 #   pawn_compile(<out_list_var> <MAIN|SIDE> <source.pwn> [EXTRA_DEFINES ...])
@@ -43,14 +43,13 @@ function(pawn_compile OUTLIST TYPE SRC)
   set(multiValueArgs EXTRA_DEFINES)
   cmake_parse_arguments(PAWN "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-  add_custom_command(
-    OUTPUT "${_out}"
-    COMMAND "${PAWNCC}" "${SRC}" ${PAWN_FLAGS} ${_defines} ${PAWN_EXTRA_DEFINES} "-o${_out}"
-    DEPENDS "${SRC}"
-    COMMENT "Compiling Pawn: ${SRC} -> ${_out}"
-    VERBATIM
-  )
-  set(${OUTLIST} ${${OUTLIST}} "${_out}" PARENT_SCOPE)
+  add_custom_target(${_name}_amx ALL
+  COMMAND "${PAWNCC}" "${SRC}" ${PAWN_FLAGS} ${_defines} ${PAWN_EXTRA_DEFINES} "-o${_out}"
+  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  COMMENT "Rebuilding Pawn: ${SRC} -> ${_out}"
+  VERBATIM
+)
+set(${OUTLIST} ${${OUTLIST}} ${_name}_amx PARENT_SCOPE)
 endfunction()
 
 # Source layout (adjust globs if you use something else)
